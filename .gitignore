@@ -1,0 +1,11 @@
+## virtual environment
+.venv/**
+
+## Jetbrains
+.idea/**
+
+## VSCode 
+.vscode/**
+
+## temporary path 
+post_process/**
