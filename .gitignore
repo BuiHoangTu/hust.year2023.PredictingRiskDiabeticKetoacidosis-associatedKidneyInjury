@@ -1,3 +1,6 @@
+## cpython 
+__pycache__
+
 ## virtual environment
 .venv/**
 
@@ -9,12 +12,11 @@
 
 ## temporary path 
 post_process/**
-
+tmp/**
 
 ## self 
 note.md
 package_check.py
 paper_based.py
-tmp/**
 main.py
 test*.ipynb
