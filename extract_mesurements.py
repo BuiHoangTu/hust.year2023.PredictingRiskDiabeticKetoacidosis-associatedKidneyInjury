@@ -12,7 +12,8 @@ TEMP_PATH.mkdir(parents=True, exist_ok=True)
 IMPORTANT_MESUREMENTS_ICU = {
     227519: "urine_output",
     224639: "weight",
-    227457: "plt"
+    227457: "plt",
+    220615: "creatinine"
 }
 
 IMPORTANT_MESUREMENTS_LABEVENT = {
@@ -55,9 +56,9 @@ def extract_chartevents_mesurement_from_labevent(mesureId: int, outputFile: str)
     pass
 
 if __name__ == "__main__":
-    # for icdCode, icdName in IMPORTANT_MESUREMENTS_ICU.items():
-    #     extract_chartevents_mesurement_from_icu(icdCode, "chartevent_" + icdName + ".csv")
-    #     pass
+    for icdCode, icdName in IMPORTANT_MESUREMENTS_ICU.items():
+        extract_chartevents_mesurement_from_icu(icdCode, "chartevent_" + icdName + ".csv")
+        pass
     for icdCode, icdName in IMPORTANT_MESUREMENTS_LABEVENT.items():
         extract_chartevents_mesurement_from_labevent(icdCode, "labevent_" + icdName + ".csv")
         pass
