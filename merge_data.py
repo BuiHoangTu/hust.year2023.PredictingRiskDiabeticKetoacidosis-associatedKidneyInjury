@@ -15,7 +15,6 @@ def mergeData(dfPatient: pd.DataFrame, mesureInterval: pd.Timedelta, mesureGroup
     targetCsvColumns = list(dfPatient.columns)
     
     mesuresName = PREPROCESSED_MESUREMENTS + list(IMPORTANT_MESUREMENTS_ICU.values())
-    mesuresName.extend(PREPROCESSED_MESUREMENTS)
     mesureMap = dict()
     for mesureName in mesuresName:
         dfMesure = pd.read_csv(TEMP_PATH / ("chartevent_" + mesureName + ".csv"), parse_dates=["charttime"])
