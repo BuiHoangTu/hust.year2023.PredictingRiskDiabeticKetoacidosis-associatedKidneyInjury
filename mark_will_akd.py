@@ -1,6 +1,6 @@
+import os
 from time import sleep
 import pandas as pd
-import numpy as np
 from extract_mesurements import extract_chartevents_mesurement_from_icu
 
 
@@ -14,46 +14,41 @@ def markWillAkd(mesureGroupTime: pd.Timedelta):
     dfsWillAkd = []
     for groupId, groupDf in groups :
         groupDfSorted = groupDf.sort_values(by="charttime")
-        isAkdIndexes = groupDfSorted[groupDfSorted["is_akd"]].index
+        # isAkdIndexes = groupDfSorted[groupDfSorted["is_akd"]].index
         
-        if (len(isAkdIndexes) > 0):
-            # first time is_akd
-            lastTimeIsAkd: pd.Timestamp = groupDfSorted.loc[isAkdIndexes[0]]["charttime"]
+        # if (len(isAkdIndexes) > 0):
+        #     # first time is_akd
+        #     lastTimeIsAkd: pd.Timestamp = groupDfSorted.loc[isAkdIndexes[0]]["charttime"]
             
-            for index, rowDf in groupDfSorted.iterrows():
-                # move to first is_akd
-                if (index <= isAkdIndexes[0]): 
-                    continue
+        #     for index, rowDf in groupDfSorted.iterrows():
+        #         # move to first is_akd
+        #         if (index <= isAkdIndexes[0]): 
+        #             continue
                 
-                # if is_akd again too close, relocate lastTimeIsAkd and remove elements between 
-                mesuresBetween = []
-                if (rowDf["charttime"] < lastTimeIsAkd + mesureGroupTime ):
-                    if (rowDf["is_akd"]):
-                        # dont need to remove this row, all is_akd will be deleted
-                        lastTimeIsAkd = rowDf["charttime"]
-                        groupDfSorted.drop(mesuresBetween)
-                        mesuresBetween.clear()
-                        continue
-                    else:
-                        mesuresBetween.append(rowDf)
-                        continue
+        #         # if is_akd again too close, relocate lastTimeIsAkd and remove elements between 
+        #         mesuresBetween = []
+        #         if (rowDf["charttime"] < lastTimeIsAkd + mesureGroupTime ):
+        #             if (rowDf["is_akd"]):
+        #                 # dont need to remove this row, all is_akd will be deleted
+        #                 lastTimeIsAkd = rowDf["charttime"]
+        #                 groupDfSorted.drop(mesuresBetween)
+        #                 mesuresBetween.clear()
+        #                 continue
+        #             else:
+        #                 mesuresBetween.append(rowDf)
+        #                 continue
                 
-                # is akd but long after     
-                if (rowDf["is_akd"]):
-                    lastTimeIsAkd = rowDf["charttime"]
-                    mesuresBetween.clear
-                    pass
-                pass 
-            
-            
-            groupDfSorted["will_akd"] = groupDfSorted["is_akd"].shift(-1, fill_value=False)
-            pass
-        # not akd whole time 
-        else:
-            groupDfSorted["will_akd"] = False
+        #         # is akd but long after     
+        #         if (rowDf["is_akd"]):
+        #             lastTimeIsAkd = rowDf["charttime"]
+        #             mesuresBetween.clear
+        #             pass
+        #         pass 
+        #     pass
+        groupDfSorted["will_akd"] = groupDfSorted["is_akd"].shift(-1, fill_value=False)
         
-        # drop all is currently akd 
-        groupDfWillAkd = groupDfSorted[~groupDfSorted["is_akd"]]
+        # # drop all is currently akd 
+        groupDfWillAkd = groupDfSorted
         dfsWillAkd.append(groupDfWillAkd)
         pass
     dfWillAkd = pd.concat(dfsWillAkd)
@@ -61,7 +56,8 @@ def markWillAkd(mesureGroupTime: pd.Timedelta):
     return dfWillAkd
 
 def markIsAkd():
-    # extract_chartevents_mesurement_from_icu(CREATININE_ID, "chartevent_creatinine.csv")
+    if (not os.path.exists("./tmp/chartevent_creatinine.csv")):
+        extract_chartevents_mesurement_from_icu(CREATININE_ID, "chartevent_creatinine.csv")
     
     sleep(2)
     dfCreatinine = pd.read_csv("./tmp/chartevent_creatinine.csv", parse_dates=["charttime"])
@@ -89,6 +85,6 @@ def markIsAkd():
     return df_icu_group
 
 if __name__ == "__main__":
-    df = markWillAkd(5 * pd.Timedelta(hours=6, minutes=12))
+    df = markWillAkd(5 * pd.Timedelta(hours=6))
     df.to_csv("./tmp/will_akd.csv")
     pass
