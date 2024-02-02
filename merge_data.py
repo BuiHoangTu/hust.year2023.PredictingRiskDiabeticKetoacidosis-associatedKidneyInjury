@@ -31,13 +31,13 @@ def mergeData(dfPatient: pd.DataFrame, mesureInterval: pd.Timedelta, mesureGroup
     
     for rowId, row in dfPatient.iterrows():
         for i in range(99):
-            # check if patient is still in icu 
-            if (row["intime"] + (i + mesureGroupLength) * mesureInterval > row["outtime"]):
-                break
-            
             startTime = row["intime"] + i * mesureInterval
             endTime = startTime + mesureGroupLength * mesureInterval # from start -> end: data for prediction
             nextTime = endTime + mesureInterval # from end -> next: time checking for akd 
+            
+            # check if patient is still in icu 
+            if (nextTime > row["outtime"]):
+                break
             
             # check if this iteration contains is_akd 
             currentPatientWillAkd = dfWillAkd[dfWillAkd["stay_id"] == row["stay_id"]]
