@@ -50,7 +50,7 @@ def mergeData(dfPatient: pd.DataFrame, mesureInterval: pd.Timedelta, mesureGroup
                 continue
 
             # get last group, check will_akd
-            newDf = pd.DataFrame(data=row, copy=True)
+            newDf = pd.DataFrame(data=[row], copy=True, columns= dfPatient.columns)
             willAkd = any(
                 (endTime <= currentPatientWillAkd["charttime"]) &
                 (currentPatientWillAkd["charttime"] < nextTime) &
