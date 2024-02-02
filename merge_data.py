@@ -13,6 +13,7 @@ def mergeData(dfPatient: pd.DataFrame, mesureInterval: pd.Timedelta, mesureGroup
 
     dfWillAkd = pd.read_csv(TEMP_PATH / "will_akd.csv", parse_dates=["charttime"])
     targetCsvColumns = list(dfPatient.columns)
+    targetCsvColumns.append("will_akd")
     
     mesuresName = PREPROCESSED_MESUREMENTS + list(IMPORTANT_MESUREMENTS_ICU.values())
     mesureMap = dict()
