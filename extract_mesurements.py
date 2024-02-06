@@ -20,7 +20,7 @@ IMPORTANT_MESUREMENTS_LABEVENT = {
     51006: "bun"    
 }
 
-def extract_chartevents_mesurement_from_icu(mesureId: int, outputFile: str):
+def extract_chartevents_mesurement_from_icu(mesureId: int, outputFile: str|None) -> pd.DataFrame:
     mesureChunks = []
 
     targetPatients = set(pd.read_csv(TEMP_PATH / "icu_target.csv", usecols=["stay_id"])["stay_id"])
@@ -37,11 +37,14 @@ def extract_chartevents_mesurement_from_icu(mesureId: int, outputFile: str):
         pass
     dfMesure = pd.concat(mesureChunks)
     
-    dfMesure.to_csv(TEMP_PATH / outputFile)
-    pass
+    if (outputFile):
+        dfMesure.to_csv(TEMP_PATH / outputFile)
+        pass
+    
+    return dfMesure
 
 
-def extract_chartevents_mesurement_from_labevent(mesureId: int, outputFile: str):
+def extract_chartevents_mesurement_from_labevent(mesureId: int, outputFile: str|None) -> pd.DataFrame:
     mesureChunks = []
 
     targetPatients = set(pd.read_csv(TEMP_PATH / "icu_target.csv", usecols=["hadm_id"])["hadm_id"])
@@ -58,8 +61,11 @@ def extract_chartevents_mesurement_from_labevent(mesureId: int, outputFile: str)
         pass
     dfMesure = pd.concat(mesureChunks)
     
-    dfMesure.to_csv(TEMP_PATH / outputFile)
-    pass
+    if (outputFile):
+        dfMesure.to_csv(TEMP_PATH / outputFile)
+        pass
+    
+    return dfMesure
 
 if __name__ == "__main__":
     for icdCode, icdName in IMPORTANT_MESUREMENTS_ICU.items():
