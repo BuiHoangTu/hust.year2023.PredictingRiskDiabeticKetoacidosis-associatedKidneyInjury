@@ -26,33 +26,33 @@ def ML_Classfication(
         **kwargs,
 ):
     """
-        机器学习分类分析
+        Machine learning classification analysis
 
         Input:
-            df_input:DataFrame 输入的待处理数据
-            group_name:str 分组名
-            validation_ratio:float 测试集比例
-            scoring:str 目标评价指标
-            method:str 使用的机器学习分类方法/模型
+            df_input:DataFrame Input data to be processed
+            group_name:str Group name
+            validation_ratio:float Test set proportion
+            scoring:str Target evaluation index
+            method:str Machine learning classification methods used/Model
                         'LogisticRegression':LogisticRegression(**kwargs),
                         'XGBClassifier':XGBClassifier(**kwargs),
                         'RandomForestClassifier':RandomForestClassifier(**kwargs),
                         'SVC':SVC(**kwargs),
                         'KNeighborsClassifier':KNeighborsClassifier(**kwargs),
-            n_splits:int 交叉验证的子集数目
-            explain:bool 是否进行模型解释
-            explain_numvar:int 需要解释的变量数
-            explain_sample:int 需要例释的样本数
-            searching:bool 是否进行自动寻参，默认为否
-            savePath:str 图片存储路径
-            **kwargs:dict 使用机器学习分类方法的参数
+            n_splits:int Number of subsets for cross-validation
+            explain:bool Whether to perform model interpretation
+            explain_numvar:int Number of variables to explain
+            explain_sample:int Number of samples requiring explanation
+            searching:bool Whether to perform automatic parameter search, defaults to No
+            savePath:str Image storage path
+            **kwargs:dict Parameters for using machine learning classification methods
 
         Return:
-            df_dict: dataframe字典，包含：
-                    df_train_result: 模型在训练集上的表现
-                    df_test_result:  模型在测试集上的表现
-            str_result: 分析结果综述
-            plot_name_list: 图片文件名列表
+            df_dict: dataframe Dictionary, containing:
+                    df_train_result: Model performance on the training set
+                    df_test_result:  Model performance on the test set
+            str_result: Summary of analysis results
+            plot_name_list: Image file name list
     """
     name_dict = {
         'LogisticRegression': 'logistic',
@@ -77,34 +77,34 @@ def ML_Classfication(
 
     list_name = [group]
 
-    plot_name_dict_save = {}  ##存储图片
-    result_model_save = {}  ##模型存储
-    resThreshold = 0  ##用于存储最终的阈值
+    plot_name_dict_save = {}  ## Store pictures
+    result_model_save = {}  ## Model storage
+    resThreshold = 0  ## Used to store the final threshold
     conf_dic_train, conf_dic_valid, conf_dic_test = {}, {}, {}
 
     if trainSet:
         df = df[features + [group] + [label]].dropna()
         for fea in features:
             if fea == label or label == group:
-                return {'error': '标签列不能在所在模型中，请重新选择数据划分标签列！'}
+                return {'error': 'The label column cannot be in the model, please reselect the label column for data division!'}
     else:
         df = df[features + [group]].dropna()
 
     binary = True
     u = np.sort(np.unique(np.array(df[group])))
     if len(u) == 2 and set(u) != set([0, 1]):
-        y_result = label_binarize(df[group], classes=[ii for ii in u])  # 将标签二值化
+        y_result = label_binarize(df[group], classes=[ii for ii in u])  # Binarize labels
         y_result_pd = pd.DataFrame(y_result, columns=[group])
         df = pd.concat([df.drop(group, axis=1), y_result_pd], axis=1)
     elif len(u) > 2:
         if len(u) > 10:
-            return {'error': '暂不允许类别数目大于10的情况。请检查因变量取值情况。'}
+            return {'error': 'The number of categories greater than 10 is not allowed for the time being. Please check the value of the dependent variable'}
         binary = False
         if scoring == 'roc_auc':
             scoring = scoring + '_ovo'
         else:
             scoring = scoring + '_macro'
-        return {'error': '暂时只支持二分类。请检查因变量取值情况。'}
+        return {'error': 'Currently only two categories are supported. Please check the value of the dependent variable'}
 
     if trainSet:
         if isinstance(df[label][0], str):
@@ -128,8 +128,8 @@ def ML_Classfication(
 
     df_dict = {}
 
-    str_result = "采用%s机器学习方法进行分类，分类变量为%s，模型中的变量包括" % (method, group)
-    str_result += '、'.join(features)
+    str_result = "The %s machine learning method is used for classification. The classification variable is %s. The variables in the model include" % (method, group)
+    str_result += '|'.join(features)
 
     if searching == True:
         if method == 'LGBMClassifier':
@@ -152,9 +152,9 @@ def ML_Classfication(
                     if int(hls_val) >= 5 and int(hls_val) <= 200:
                         hls_value = hls_value + (int(hls_val),)
                     else:
-                        return {'error': '请按照要求重新设置隐藏层宽度！'}
+                        return {'error': 'Please reset the hidden layer width as required!'}
                 except:
-                    return {'error': '请重新设神经网络模型中的隐藏层宽度！'}
+                    return {'error': 'Please reset the hidden layer width in the neural network model'}
             kwargs['hidden_layer_sizes'] = hls_value
         if (method == 'GaussianNB' and kwargs['priors'] == 'None'):
             kwargs['priors'] = None
@@ -167,11 +167,11 @@ def ML_Classfication(
                     pri_sum = float(pri_val) + pri_sum
                     pri_value = pri_value + (float(pri_val),)
                 except:
-                    return {'error': '请重新设朴素贝叶斯模型中的先验概率！'}
+                    return {'error': 'Please reset the prior probability in the naive Bayes model'}
             if len(pri_vals) == len(Y.unique()) and pri_sum == 1.0:
                 kwargs['priors'] = pri_value
             else:
-                return {'error': '请重新设朴素贝叶斯模型中的先验概率！'}
+                return {'error': 'Please reset the prior probability in the naive Bayes model'}
         clf = globals()[method](**kwargs).fit(Xtrain, Ytrain)
     elif searching == False:
         # if (method == 'SVC'): kwargs['probability'] = True
@@ -184,13 +184,13 @@ def ML_Classfication(
             kwargs['n_estimators'] = 20
         clf = globals()[method](**kwargs).fit(Xtrain, Ytrain)
 
-    str_result += "\n模型参数为:\n%s" % dic2str(clf.get_params(), clf.__class__.__name__)
-    str_result += "\n数据集样本数总计N=%d例，应变量中包含的类别信息为：\n" % (df.shape[0])
+    str_result += "\nThe model parameters are:\n%s" % dic2str(clf.get_params(), clf.__class__.__name__)
+    str_result += "\nTotal number of samples in the datasetN=%dFor example, the category information contained in the strain variable is:\n" % (df.shape[0])
     group_labels = df[group].unique()
     group_labels.sort()
     for label in group_labels:
         n = sum(df[group] == label)
-        str_result += "\t 类别(" + str(label) + ")：N=" + str(n) + "例\n"
+        str_result += "\t category(" + str(label) + "): N=" + str(n) + "example\n"
 
     plot_name_list = x5.plot_learning_curve(
         clf,
@@ -202,17 +202,18 @@ def ML_Classfication(
         dpi=dpi,
         picFormat=picFormat,
     )
-    plot_name_dict_save['学习曲线'] = plot_name_list[1]
+    plot_name_dict_save['learning curve'] = plot_name_list[1]
     plot_name_list.pop(len(plot_name_list) - 1)
-    ###画校准曲线
+    
+	### draw calibration curve
     calibration_curve_name, _ = plot_calibration_curve(clf, Xtrain, Xtest, Ytrain, Ytest, name=method, path=savePath,
                                                        smooth=smooth,
                                                        picFormat=picFormat, dpi=dpi, )
     plot_name_list.append(calibration_curve_name[0])
-    plot_name_dict_save['校准曲线'] = calibration_curve_name[1]
+    plot_name_dict_save['calibration curve'] = calibration_curve_name[1]
     if binary:
         fig = plt.figure(figsize=(4, 4), dpi=dpi)
-        # 画对角线
+        # draw diagonal lines
         plt.plot(
             [0, 1], [0, 1],
             linestyle='--',
@@ -230,14 +231,14 @@ def ML_Classfication(
     # KF = KFold(n_splits=n_splits, random_state=randomState,shuffle=True)##StratifiedKFold
     KF = StratifiedKFold(n_splits=n_splits, random_state=randomState, shuffle=True)
     for i, (train_index, valid_index) in enumerate(KF.split(Xtrain, Ytrain)):
-        # 划分训练集和验证集
+        # Divide training set and validation set
         X_train, X_valid = Xtrain.iloc[train_index], Xtrain.iloc[valid_index]
         Y_train, Y_valid = Ytrain.iloc[train_index], Ytrain.iloc[valid_index]
 
-        # 建立模型(模型已经定义)并训练
+        # Build the model (the model has been defined) and train
         model = clone(clf).fit(X_train, Y_train)
 
-        # 利用classification_metric_evaluate函数获取在验证集的预测值
+        # Use the classification_metric_evaluate function to obtain the predicted value in the validation set
         fpr_train, tpr_train, metric_dic_train, _ = classification_metric_evaluate(model, X_train, Y_train, binary)
         fpr_valid, tpr_valid, metric_dic_valid, _ = classification_metric_evaluate(model, X_valid, Y_valid, binary,
                                                                                    Threshold=metric_dic_train['cutoff'])
@@ -248,17 +249,17 @@ def ML_Classfication(
             clf = model
             resThreshold = metric_dic_train['cutoff']
 
-        # 计算所有评价指标
+        # Calculate all evaluation indicators
         for key in list_evaluate_dic_train.keys():
             list_evaluate_dic_train[key].append(metric_dic_train[key])
             list_evaluate_dic_valid[key].append(metric_dic_valid[key])
 
         if binary:
-            # interp:插值 把结果添加到tprs列表中
+            # interp: Interpolate and add the result to the tprs list
             tprs_valid.append(np.interp(mean_fpr, fpr_valid, tpr_valid))
             tprs_valid[-1][0] = 0.0
 
-            # 画图, 只需要plt.plot(fpr,tpr), 变量roc_auc只是记录auc的值, 通过auc()函数计算出来
+            # To draw a picture, you only need plt.plot(fpr,tpr). The variable roc_auc just records the value of auc and calculates it through the auc() function.
             if validationCurve:
                 plt.plot(
                     fpr_valid, tpr_valid,
@@ -267,7 +268,7 @@ def ML_Classfication(
                     i + 1, metric_dic_valid['AUC'], metric_dic_valid['AUC_L'], metric_dic_valid['AUC_U']),
                 )
 
-            ##训练集ROC
+            ##Training set ROC
             fpr_train_alls.append(fpr_train)
             tpr_train_alls.append(tpr_train)
             tprs_train.append(np.interp(mean_fpr, fpr_train, tpr_train))
@@ -284,7 +285,7 @@ def ML_Classfication(
     if binary:
         mean_tpr_valid = np.mean(tprs_valid, axis=0)
         mean_tpr_valid[-1] = 1.0
-        mean_auc = auc(mean_fpr, mean_tpr_valid)  # 计算平均AUC值
+        mean_auc = auc(mean_fpr, mean_tpr_valid)  # Calculate average AUC value
         aucs_lower, aucs_upper = ci(list_evaluate_dic_valid['AUC'])
         plt.plot(
             mean_fpr, mean_tpr_valid,
@@ -329,13 +330,13 @@ def ML_Classfication(
     plt.legend(loc='lower right', fontsize=5)
     if savePath is not None:
         plot_name_list.append(save_fig(savePath, 'ROC_curve', 'png', fig, str_time=str_time))
-        plot_name_dict_save['验证集ROC曲线'] = save_fig(savePath, 'ROC_curve', picFormat, fig, str_time=str_time)
+        plot_name_dict_save['Validation set ROC curve'] = save_fig(savePath, 'ROC_curve', picFormat, fig, str_time=str_time)
     plt.close()
 
-    ##画训练集ROC
+    ##Draw training set ROC
     if binary:
         fig = plt.figure(figsize=(4, 4), dpi=dpi)
-        # 画对角线
+        # draw diagonal lines
         plt.plot(
             [0, 1], [0, 1],
             linestyle='--',
@@ -356,7 +357,7 @@ def ML_Classfication(
 
         mean_tpr_train = np.mean(tprs_train, axis=0)
         mean_tpr_train[-1] = 1.0
-        mean_auc_train = auc(mean_fpr, mean_tpr_train)  # 计算平均AUC值
+        mean_auc_train = auc(mean_fpr, mean_tpr_train)  # Calculate average AUC value
         plt.plot(
             mean_fpr, mean_tpr_train,
             color='b',
@@ -373,14 +374,14 @@ def ML_Classfication(
         plt.legend(loc='lower right', fontsize=5)
         if savePath is not None:
             plot_name_list.append(save_fig(savePath, 'ROC_curve_train', 'png', fig, str_time=str_time))
-            plot_name_dict_save['训练集ROC曲线'] = save_fig(savePath, 'ROC_curve_train', picFormat, fig, str_time=str_time)
+            plot_name_dict_save['Training set ROC curve'] = save_fig(savePath, 'ROC_curve_train', picFormat, fig, str_time=str_time)
         plt.close()
 
-        plot_name_list.reverse()  ###所有图片倒置
+        plot_name_list.reverse()  ### All images upside down
 
-        ###画测试集ROC
+        ### Draw test set ROC
         fig = plt.figure(figsize=(4, 4), dpi=dpi)
-        # 画对角线
+        # draw diagonal lines
         plt.plot(
             [0, 1], [0, 1],
             linestyle='--',
@@ -411,7 +412,7 @@ def ML_Classfication(
         plt.legend(loc='lower right', fontsize=5)
         if savePath is not None:
             plot_name_list.append(save_fig(savePath, 'ROC_curve_test', 'png', fig, str_time=str_time))
-            plot_name_dict_save['测试集ROC曲线'] = save_fig(savePath, 'ROC_curve_test', picFormat, fig, str_time=str_time)
+            plot_name_dict_save['Test set ROC curve'] = save_fig(savePath, 'ROC_curve_test', picFormat, fig, str_time=str_time)
         plt.close()
 
     # df_test_result = df_test_result.applymap(lambda x: round_dec(x, d=decimal_num))
@@ -424,7 +425,7 @@ def ML_Classfication(
         df_count_r = validation_ratio * 100
     diff, ratio = 0, 0
     if resultType == 1:  ##CI
-        str_result += "其中在总体样本中随机抽取测试集N=%d例(%3.2f%%)，剩余样本作为训练集进行%d折交叉验证，并在验证集中得到AUC=%5.4f(%5.4f-%5.4f)。\n最终模型在测试集中的AUC=%5.4f，准确度=%5.4f。\n" % (
+        str_result += "Among them, the test set N=%d examples (%3.2f%%) were randomly selected from the overall sample, and the remaining samples were used as training sets for %d-fold cross-validation, and AUC=%5.4f(%5.4f-%) was obtained in the validation set 5.4f). \nThe AUC of the final model in the test set=%5.4f, and the accuracy=%5.4f. \n" % (
             df_count_c,
             df_count_r,
             n_splits,
@@ -432,29 +433,29 @@ def ML_Classfication(
             mean_dic_valid['AUC_L'],
             mean_dic_valid['AUC_U'],
             df_test_result['AUC'].values[0],
-            df_test_result['准确度'].values[0]
+            df_test_result['Accuracy'].values[0]
         )
         diff = mean_dic_valid['AUC'] - float(df_test_result.loc['Mean', 'AUC'])
         ratio = diff / float(df_test_result.loc['Mean', 'AUC'])
     elif resultType == 0:  ##SD
-        str_result += "其中在总体样本中随机抽取测试集N=%d例(%3.2f%%)，剩余样本作为训练集进行%d折交叉验证，并在验证集中得到AUC=%5.4f±%5.4f。\n最终模型在测试集中的AUC=%5.4f，准确度=%5.4f。\n" % (
+        str_result += "Among them, the test set N=%d examples (%3.2f%%) were randomly selected from the overall sample, and the remaining samples were used as training sets for %d-fold cross-validation, and AUC=%5.4f±%5.4f was obtained in the validation set. \nThe AUC of the final model in the test set=%5.4f, and the accuracy=%5.4f. \n" % (
             df_count_c,
             df_count_r,
             n_splits,
             mean_dic_valid['AUC'],
             stdv_dic_valid['AUC'],
             df_test_result['AUC'].values[0],
-            df_test_result['准确度'].values[0]
+            df_test_result['Accuracy'].values[0]
         )
         diff = float(stdv_dic_valid['AUC']) - float(df_test_result.loc['Mean', 'AUC'])
         ratio = diff / float(df_test_result.loc['Mean', 'AUC'])
 
     if (not np.isnan(float(diff)) and diff > 0 and (ratio > 0.1)):
-        str_result += '注意到AUC指标下验证集表现超出测试集{}，约{}%，可能存在过拟合现象。建议更换模型或重新设置参数。'.format(round(diff, decimal_num),
+        str_result += 'It is noted that the performance of the validation set under the AUC index exceeds the test set by {} by about {}%, and there may be overfitting. It is recommended to change the model or reset the parameters.'.format(round(diff, decimal_num),
                                                                                    round(ratio * 100, decimal_num))
     else:
-        str_result += '鉴于AUC指标下验证集表现未超出测试集或超出比小于10%，可认为拟合成功，{}模型可以用于此数据集的分类建模任务。'.format(name_dict[method])
-    str_result += '\n如果想进一步对比更多分类模型的表现，可使用左侧栏智能分析中的‘分类多模型综合分析’功能。'
+        str_result += 'Since the performance of the validation set under the AUC index does not exceed that of the test set or the excess ratio is less than 10%, it can be considered that the fitting is successful and the {} model can be used for the classification modeling task of this data set.'.format(name_dict[method])
+    str_result += "\nIf you want to further compare the performance of more classification models, you can use the ‘Classification Multi-Model Comprehensive Analysis’ function in the intelligent analysis on the left column."
 
     df_test_result = df_test_result.applymap(lambda x: round_dec(x, d=decimal_num))
 
@@ -479,14 +480,14 @@ def ML_Classfication(
         df_valid_result.iloc[0, 0] = str(round_dec(float(df_valid_result.iloc[0, 0]), d=decimal_num)) + '(' + \
                                      str(round_dec(float(df_valid_result.iloc[0, -2]), d=decimal_num)) + '-' + \
                                      str(round_dec(float(df_valid_result.iloc[0, -1]), d=decimal_num)) + ')'
-        df_train_result.rename(columns={"AUC": 'AUC(95%CI)', 'cutoff': 'cutoff(95%CI)', '准确度': '准确度(95%CI)',
-                                        '灵敏度': '灵敏度(95%CI)', '特异度': '特异度(95%CI)',
-                                        '阳性预测值': '阳性预测值(95%CI)', '阴性预测值': '阴性预测值(95%CI)',
-                                        'F1分数': 'F1分数(95%CI)', 'Kappa': 'Kappa(95%CI)'}, inplace=True)
-        df_valid_result.rename(columns={"AUC": 'AUC(95%CI)', 'cutoff': 'cutoff(95%CI)', '准确度': '准确度(95%CI)',
-                                        '灵敏度': '灵敏度(95%CI)', '特异度': '特异度(95%CI)',
-                                        '阳性预测值': '阳性预测值(95%CI)', '阴性预测值': '阴性预测值(95%CI)',
-                                        'F1分数': 'F1分数(95%CI)', 'Kappa': 'Kappa(95%CI)'}, inplace=True)
+        df_train_result.rename(columns={"AUC": 'AUC(95%CI)', 'cutoff': 'cutoff(95%CI)', 'Accuracy': 'Accuracy(95%CI)',
+                                        'Sensitivity': 'Sensitivity(95%CI)', 'Specificity': 'Specificity(95%CI)',
+                                        'positive predictive value': 'positive predictive value(95%CI)', 'negative predictive value': 'negative predictive value(95%CI)',
+                                        'F1 score': 'F1 score(95%CI)', 'Kappa': 'Kappa(95%CI)'}, inplace=True)
+        df_valid_result.rename(columns={"AUC": 'AUC(95%CI)', 'cutoff': 'cutoff(95%CI)', 'Accuracy': 'Accuracy(95%CI)',
+                                        'Sensitivity': 'Sensitivity(95%CI)', 'Specificity': 'Specificity(95%CI)',
+                                        'positive predictive value': 'positive predictive value(95%CI)', 'negative predictive value': 'negative predictive value(95%CI)',
+                                        'F1 score': 'F1 score(95%CI)', 'Kappa': 'Kappa(95%CI)'}, inplace=True)
         df_test_result.iloc[0, 0] = str(df_test_result.iloc[0, 0]) + ' (' + str(df_test_result.iloc[0, -2]) + '-' + str(
             df_test_result.iloc[0, -1]) + ')'
         df_test_result.rename(columns={"AUC": 'AUC (95%CI)'}, inplace=True)
@@ -503,39 +504,39 @@ def ML_Classfication(
         df_train_result = pd.DataFrame([mean_dic_train], index=['Mean'])
         df_valid_result = pd.DataFrame([mean_dic_valid], index=['Mean'])
 
-        df_train_result.rename(columns={"AUC": 'AUC(SD)', 'cutoff': 'cutoff(SD)', '准确度': '准确度(SD)',
-                                        '灵敏度': '灵敏度(SD)', '特异度': '特异度(SD)',
-                                        '阳性预测值': '阳性预测值(SD)', '阴性预测值': '阴性预测值(SD)',
-                                        'F1分数': 'F1分数(SD)', 'Kappa': 'Kappa(SD)'}, inplace=True)
-        df_valid_result.rename(columns={"AUC": 'AUC(SD)', 'cutoff': 'cutoff(SD)', '准确度': '准确度(SD)',
-                                        '灵敏度': '灵敏度(SD)', '特异度': '特异度(SD)',
-                                        '阳性预测值': '阳性预测值(SD)', '阴性预测值': '阴性预测值(SD)',
-                                        'F1分数': 'F1分数(SD)', 'Kappa': 'Kappa(SD)'}, inplace=True)
+        df_train_result.rename(columns={"AUC": 'AUC(SD)', 'cutoff': 'cutoff(SD)', 'Accuracy': 'Accuracy(SD)',
+                                        'Sensitivity': 'Sensitivity(SD)', 'Specificity': 'Specificity(SD)',
+                                        'positive predictive value': 'positive predictive value(SD)', 'negative predictive value': 'negative predictive value(SD)',
+                                        'F1 score': 'F1 score(SD)', 'Kappa': 'Kappa(SD)'}, inplace=True)
+        df_valid_result.rename(columns={"AUC": 'AUC(SD)', 'cutoff': 'cutoff(SD)', 'Accuracy': 'Accuracy(SD)',
+                                        'Sensitivity': 'Sensitivity(SD)', 'Specificity': 'Specificity(SD)',
+                                        'positive predictive value': 'positive predictive value(SD)', 'negative predictive value': 'negative predictive value(SD)',
+                                        'F1 score': 'F1 score(SD)', 'Kappa': 'Kappa(SD)'}, inplace=True)
 
     df_dictjq = {
-        '训练集结果汇总': df_train_result.iloc[0:2, 0:8],
-        '验证集结果汇总': df_valid_result.iloc[0:2, 0:8],
-        '测试集结果汇总': df_test_result.iloc[0:2, 0:8],
+        'Summary of training set results': df_train_result.iloc[0:2, 0:8],
+        'Summary of validation set results': df_valid_result.iloc[0:2, 0:8],
+        'Summary of test set results': df_test_result.iloc[0:2, 0:8],
     }
     df_dict.update(df_dictjq)
 
     plot_name_dict = {
-        '训练集ROC曲线图': plot_name_list[0],
-        '验证集ROC曲线图': plot_name_list[1],
-        '测试集ROC曲线图': plot_name_list[4],
-        '学习曲线图': plot_name_list[3],
-        '模型校准曲线': plot_name_list[2],
+        'Training set ROC curve chart': plot_name_list[0],
+        'Validation set ROC curve chart': plot_name_list[1],
+        'Test set ROC curve chart': plot_name_list[4],
+        'learning curve chart': plot_name_list[3],
+        'Model calibration curve': plot_name_list[2],
     }
 
-    if binary:  ###画DCA曲线
+    if binary:  ###Draw DCA curve
         DCA_dict = {}
         prob_pos, p_serie, net_benefit_serie, net_benefit_serie_All = calculate_net_benefit(clf, Xtest, Ytest)
         DCA_dict[name_dict[method]] = {'p_serie': p_serie, 'net_b_s': net_benefit_serie,
                                        'net_b_s_A': net_benefit_serie_All}
         decision_curve_p = plot_decision_curves(DCA_dict, colors=colors, name='Test', savePath=savePath, dpi=dpi,
                                                 picFormat=picFormat)
-        plot_name_dict['测试集DCA曲线图'] = decision_curve_p[0]
-        plot_name_dict_save['测试集DCA曲线图'] = decision_curve_p[1]
+        plot_name_dict['Test set DCA curve chart'] = decision_curve_p[0]
+        plot_name_dict_save['Test set DCA curve chart'] = decision_curve_p[1]
 
     if explain or modelSave:
         import shap
@@ -546,7 +547,7 @@ def ML_Classfication(
 
         result_model_save['modelShapValue'] = list(med[0])
         result_model_save['modelName'] = method
-        result_model_save['modelClass'] = '机器学习分类'
+        result_model_save['modelClass'] = 'Machine learning classification'
         result_model_save['Threshold'] = resThreshold
 
     df_shapValue = Xtest
@@ -563,21 +564,21 @@ def ML_Classfication(
                     if (flage1 and f(df_shapValue.iloc[i:i + 1, :])[0] >= resThreshold and Ytest.iloc[i,] == 1):
                         df_shapValue_show = pd.concat([df_shapValue_show, df_shapValue.iloc[i:i + 1, :]], axis=0)
                         shapValue_list.append(i)
-                        shapValue_name.append('shap_样本_预测值为1实际值为1')
+                        shapValue_name.append('shap_sample_predicted value is 1 actual value is 1')
                         flage1 = False
                     elif (flage2 and f(df_shapValue.iloc[i:i + 1, :])[0] >= resThreshold and Ytest.iloc[i,] == 0):
                         df_shapValue_show = pd.concat([df_shapValue_show, df_shapValue.iloc[i:i + 1, :]], axis=0)
                         shapValue_list.append(i)
-                        shapValue_name.append('shap_样本_预测值为1实际值为0')
+                        shapValue_name.append('shap_sample_predicted value is 1 and actual value is 0')
                         flage2 = False
                     elif (flage3 and f(df_shapValue.iloc[i:i + 1, :])[0] < resThreshold and Ytest.iloc[i,] == 1):
                         df_shapValue_show = pd.concat([df_shapValue_show, df_shapValue.iloc[i:i + 1, :]], axis=0)
-                        shapValue_name.append('shap_样本_预测值为0实际值为1')
+                        shapValue_name.append('shap_sample_predicted value is 0 and actual value is 1')
                         shapValue_list.append(i)
                         flage3 = False
                     elif (flage4 and f(df_shapValue.iloc[i:i + 1, :])[0] < resThreshold and Ytest.iloc[i,] == 0):
                         df_shapValue_show = pd.concat([df_shapValue_show, df_shapValue.iloc[i:i + 1, :]], axis=0)
-                        shapValue_name.append('shap_样本_预测值为0实际值为0')
+                        shapValue_name.append('shap_sample_predicted value is 0 actual value is 0')
                         shapValue_list.append(i)
                         flage4 = False
 
@@ -586,7 +587,7 @@ def ML_Classfication(
             else:
                 df_shapValue_show = pd.concat([df_shapValue_show, df_shapValue.iloc[0:explain_sample, :]], axis=0)
                 shapValue_list.extend(i for i in range(explain_sample))
-                shapValue_name.extend('shap_样本_' + str(i) for i in range(explain_sample))
+                shapValue_name.extend('shap_sample_' + str(i) for i in range(explain_sample))
 
         elif shapSet == 1:
             df_shapValue = Xtrain
@@ -596,22 +597,22 @@ def ML_Classfication(
 
                     if (flage1 and f(df_shapValue.iloc[i:i + 1, :])[0] >= resThreshold and Ytrain.iloc[i,] == 1):
                         df_shapValue_show = pd.concat([df_shapValue_show, df_shapValue.iloc[i:i + 1, :]], axis=0)
-                        shapValue_name.append('shap_样本_预测值为1实际值为1')
+                        shapValue_name.append('shap_sample_predicted value is 1 actual value is 1')
                         shapValue_list.append(i)
                         flage1 = False
                     elif (flage2 and f(df_shapValue.iloc[i:i + 1, :])[0] >= resThreshold and Ytrain.iloc[i,] == 0):
                         df_shapValue_show = pd.concat([df_shapValue_show, df_shapValue.iloc[i:i + 1, :]], axis=0)
-                        shapValue_name.append('shap_样本_预测值为1实际值为0')
+                        shapValue_name.append('shap_sample_predicted value is 1 and actual value is 0')
                         shapValue_list.append(i)
                         flage2 = False
                     elif (flage3 and f(df_shapValue.iloc[i:i + 1, :])[0] < resThreshold and Ytrain.iloc[i,] == 1):
                         df_shapValue_show = pd.concat([df_shapValue_show, df_shapValue.iloc[i:i + 1, :]], axis=0)
-                        shapValue_name.append('shap_样本_预测值为0实际值为1')
+                        shapValue_name.append('shap_sample_predicted value is 0 and actual value is 1')
                         shapValue_list.append(i)
                         flage3 = False
                     elif (flage4 and f(df_shapValue.iloc[i:i + 1, :])[0] < resThreshold and Ytrain.iloc[i,] == 0):
                         df_shapValue_show = pd.concat([df_shapValue_show, df_shapValue.iloc[i:i + 1, :]], axis=0)
-                        shapValue_name.append('shap_样本_预测值为0实际值为0')
+                        shapValue_name.append('shap_sample_predicted value is 0 actual value is 0')
                         shapValue_list.append(i)
                         flage4 = False
 
@@ -620,7 +621,7 @@ def ML_Classfication(
             else:
                 df_shapValue_show = pd.concat([df_shapValue_show, df_shapValue.iloc[0:explain_sample, :]], axis=0)
                 shapValue_list.extend(i for i in range(explain_sample))
-                shapValue_name.extend('shap_样本_' + str(i) for i in range(explain_sample))
+                shapValue_name.extend('shap_sample_' + str(i) for i in range(explain_sample))
         elif shapSet == 0:
             df_shapValue = pd.concat([Xtrain, Xtest], axis=0)
             df_shapValue_Y = pd.concat([Ytrain, Ytest], axis=0)
@@ -631,25 +632,25 @@ def ML_Classfication(
                     if (flage1 and f(df_shapValue.iloc[i:i + 1, :])[0] >= resThreshold and df_shapValue_Y.iloc[
                         i,] == 1):
                         df_shapValue_show = pd.concat([df_shapValue_show, df_shapValue.iloc[i:i + 1, :]], axis=0)
-                        shapValue_name.append('shap_样本_预测值为1实际值为1')
+                        shapValue_name.append('shap_sample_predicted value is 1 actual value is 1')
                         shapValue_list.append(i)
                         flage1 = False
                     elif (flage2 and f(df_shapValue.iloc[i:i + 1, :])[0] >= resThreshold and df_shapValue_Y.iloc[
                         i,] == 0):
                         df_shapValue_show = pd.concat([df_shapValue_show, df_shapValue.iloc[i:i + 1, :]], axis=0)
-                        shapValue_name.append('shap_样本_预测值为1实际值为0')
+                        shapValue_name.append('shap_sample_predicted value is 1 and actual value is 0')
                         shapValue_list.append(i)
                         flage2 = False
                     elif (flage3 and f(df_shapValue.iloc[i:i + 1, :])[0] < resThreshold and df_shapValue_Y.iloc[
                         i,] == 1):
                         df_shapValue_show = pd.concat([df_shapValue_show, df_shapValue.iloc[i:i + 1, :]], axis=0)
-                        shapValue_name.append('shap_样本_预测值为0实际值为1')
+                        shapValue_name.append('shap_sample_predicted value is 0 and actual value is 1')
                         shapValue_list.append(i)
                         flage3 = False
                     elif (flage4 and f(df_shapValue.iloc[i:i + 1, :])[0] < resThreshold and df_shapValue_Y.iloc[
                         i,] == 0):
                         df_shapValue_show = pd.concat([df_shapValue_show, df_shapValue.iloc[i:i + 1, :]], axis=0)
-                        shapValue_name.append('shap_样本_预测值为0实际值为0')
+                        shapValue_name.append('shap_sample_predicted value is 0 actual value is 0')
                         shapValue_list.append(i)
                         flage4 = False
 
@@ -658,7 +659,7 @@ def ML_Classfication(
             else:
                 df_shapValue_show = pd.concat([df_shapValue_show, df_shapValue.iloc[0:explain_sample, :]], axis=0)
                 shapValue_list.extend(i for i in range(explain_sample))
-                shapValue_name.extend('shap_样本_' + str(i) for i in range(explain_sample))
+                shapValue_name.extend('shap_sample_' + str(i) for i in range(explain_sample))
         explainer = shap.KernelExplainer(f, med)
         shap_values = explainer.shap_values(df_shapValue)
 
@@ -668,16 +669,16 @@ def ML_Classfication(
             fig = shap.summary_plot(shap_values, df_shapValue, show=False)
 
             if savePath is not None:
-                plot_name_dict['SHAP_变量贡献度总结'] = save_fig(savePath, 'shap_summary', 'png', fig, str_time=str_time)
-                plot_name_dict_save['SHAP_变量贡献度总结'] = save_fig(savePath, 'shap_summary', picFormat, fig,
+                plot_name_dict['SHAP_Variable contribution summary'] = save_fig(savePath, 'shap_summary', 'png', fig, str_time=str_time)
+                plot_name_dict_save['SHAP_Variable contribution summary'] = save_fig(savePath, 'shap_summary', picFormat, fig,
                                                                str_time=str_time)
             plt.close()
 
             fig1 = shap.summary_plot(shap_values, df_shapValue, plot_type='bar', show=False)
 
             if savePath is not None:
-                plot_name_dict['SHAP_重要性图'] = save_fig(savePath, 'shap_import', 'png', fig1, str_time=str_time)
-                plot_name_dict_save['SHAP_重要性图'] = save_fig(savePath, 'shap_import', picFormat, fig1,
+                plot_name_dict['SHAP_Importance Map'] = save_fig(savePath, 'shap_import', 'png', fig1, str_time=str_time)
+                plot_name_dict_save['SHAP_Importance Map'] = save_fig(savePath, 'shap_import', picFormat, fig1,
                                                             str_time=str_time)
             plt.close()
 
@@ -687,7 +688,7 @@ def ML_Classfication(
             # for i in range(explain_numvar):
             #     fig = pdp_global.visualize(key=i)
             #     if savePath is not None:
-            #         plot_name_dict['微分依赖度_变量{}'.format(i+1)] = save_fig(savePath, 'partial_dependence_{}'.format(features[i]), '.jpeg', fig)
+            #         plot_name_dict['Differential Dependence_Variable{}'.format(i+1)] = save_fig(savePath, 'partial_dependence_{}'.format(features[i]), '.jpeg', fig)
             #     plt.close()
 
         if explain_sample > 0:
@@ -710,10 +711,10 @@ def ML_Classfication(
                 # # LIME explain
                 # fig = lime_local.visualize(key=i)
                 # if savePath is not None:
-                #     plot_name_dict['LIME_样本{}'.format(i+1)] = save_fig(savePath, 'lime_{}'.format(i), '.jpeg', fig)
+                #     plot_name_dict['LIME_Sample{}'.format(i+1)] = save_fig(savePath, 'lime_{}'.format(i), '.jpeg', fig)
                 # plt.close()
 
-    result_dict = {'str_result': {'分析结果描述': str_result}, 'tables': df_dict,
+    result_dict = {'str_result': {'Description of analysis results': str_result}, 'tables': df_dict,
                    'pics': plot_name_dict, 'save_pics': plot_name_dict_save,
                    'model': result_model_save}
     return result_dict
@@ -722,7 +723,7 @@ def ML_Classfication(
 
 
 # -------------------------------------------------------------
-# ----------------------分类多模型综合分析------------------------
+# ----------------------Classification multi-model comprehensive analysis------------------------
 # -------------------------------------------------------------
 def two_groups_classfication_multimodels(
         df_input,
@@ -744,13 +745,13 @@ def two_groups_classfication_multimodels(
         **kwargs,
 ):
     """
-        df_input:Dataframe
-        features:自变量list
-        group：因变量str
-        testsize: 测试集比例
-        boostrap：重采样次数
-        searching:bool 是否进行自动寻参，默认为否
-        savePath:str 图片存储路径
+        df_input: Dataframe
+        features: Argument list
+        group: dependent variable str
+        testsize: Test set proportion
+        boostrap:Number of resamples
+        searching:bool Whether to perform automatic parameter search,Default is no
+        savePath:str Image storage path
     """
     str_time = str(datetime.datetime.now().hour) + str(datetime.datetime.now().minute) + str(
         datetime.datetime.now().second)
@@ -765,13 +766,13 @@ def two_groups_classfication_multimodels(
 
     u = np.sort(np.unique(np.array(dftemp[group])))
     if len(u) == 2 and set(u) != set([0, 1]):
-        y_result = label_binarize(dftemp[group], classes=[ii for ii in u])  # 将标签二值化
+        y_result = label_binarize(dftemp[group], classes=[ii for ii in u])  # Binarize labels
         y_result_pd = pd.DataFrame(y_result, columns=[group])
         df = pd.concat([dftemp.drop(group, axis=1), y_result_pd], axis=1)
         x = df[features]
         y = df[[group]]
     elif len(u) > 2:
-        return {'error': '暂时只支持二分类。请检查因变量取值情况。'}
+        return {'error': 'Currently only supports two categories.Please check the value of the dependent variable.'}
 
     name_dict = {
         'LogisticRegression': 'logistic',
@@ -800,7 +801,7 @@ def two_groups_classfication_multimodels(
             # 'DecisionTreeClassifier',
             # 'BaggingClassifier',
         ]
-    str_result = '已采用多种机器学习模型尝试完成数据样本分类任务，包括：{}。各模型的参数值选取情况如下所示：\n\n'.format(methods)
+    str_result = 'A variety of machine learning models have been used to try to complete the data sample classification task,include:{}.The selection of parameter values ​​for each model is as follows::\n\n'.format(methods)
 
     plot_name_list = []
     plot_name_dict_save = {}
@@ -808,7 +809,7 @@ def two_groups_classfication_multimodels(
 
     fig, ax = plt.subplots(figsize=(4, 4), dpi=dpi)
 
-    # 画对角线
+    # draw diagonal lines
     ax.plot(
         [0, 1], [0, 1],
         linestyle='--',
@@ -874,7 +875,7 @@ def two_groups_classfication_multimodels(
                         me_count = False
                         continue
                 if me_count:
-                    return {'error': '请设置要调参的模型！'}
+                    return {'error': 'Please set the model to be adjusted!'}
             if method in method_dicts.keys():
                 method_dict = {}
                 if (method == 'SVC'):
@@ -890,9 +891,9 @@ def two_groups_classfication_multimodels(
                             if int(hls_val) >= 5 and int(hls_val) <= 200:
                                 hls_value = hls_value + (int(hls_val),)
                             else:
-                                return {'error': '请按照要求重新设置隐藏层宽度！'}
+                                return {'error': 'Please reset the hidden layer width as required!'}
                         except:
-                            return {'error': '请重新设神经网络模型中的隐藏层宽度！'}
+                            return {'error': 'Please reset the hidden layer width in the neural network model!'}
                     method_dict['hidden_layer_sizes'] = hls_value
                 if (method == 'GaussianNB' and method_dict['priors'] == 'None'):
                     method_dict['priors'] = None
@@ -905,11 +906,11 @@ def two_groups_classfication_multimodels(
                             pri_sum = float(pri_val) + pri_sum
                             pri_value = pri_value + (float(pri_val),)
                         except:
-                            return {'error': '请重新设朴素贝叶斯模型中的先验概率！'}
+                            return {'error': 'Please reset the prior probability in the naive Bayes model!'}
                     if len(pri_vals) == len(y.unique()) and pri_sum == 1.0:
                         method_dict['priors'] = pri_value
                     else:
-                        return {'error': '请重新设朴素贝叶斯模型中的先验概率！'}
+                        return {'error': 'Please reset the prior probability in the naive Bayes model!'}
                 selected_model = globals()[method](**method_dict)
             else:
                 if method == 'LGBMClassifier':
@@ -934,7 +935,7 @@ def two_groups_classfication_multimodels(
             # KF = KFold(n_splits=boostrap, random_state=42,shuffle=True)
             KF = StratifiedKFold(n_splits=boostrap, random_state=randomState, shuffle=True)
             for i_k, (train_index, valid_index) in enumerate(KF.split(x, y)):
-                # 划分训练集和验证集
+                # Divide training set and validation set
                 Xtrain, Xtest = x.iloc[train_index], x.iloc[valid_index]
                 Ytrain, Ytest = y.iloc[train_index], y.iloc[valid_index]
                 data_all.update({i_k: {'Xtrain': Xtrain, 'Ytrain': Ytrain, 'Xtest': Xtest, 'Ytest': Ytest}})
@@ -988,7 +989,7 @@ def two_groups_classfication_multimodels(
                 fraction_of_positives, mean_predicted_value = calibration_curve(Ytest, prob_pos,
                                                                                 n_bins=10)
 
-            # 利用classification_metric_evaluate函数获取在测试集的预测值
+            # Use the classification_metric_evaluate function to obtain the predicted value in the test set
             try:
                 fpr_train, tpr_train, metric_dic_train, _ = classification_metric_evaluate(model, Xtrain, Ytrain)
 
@@ -997,15 +998,15 @@ def two_groups_classfication_multimodels(
                                                                                             'cutoff'])
                 metric_dic_test.update({'cutoff': metric_dic_train['cutoff']})
             except Exception as e:
-                return {'error': '数据不均衡，至少有一组验证集中存在结局全部为0或者1的数据！请选择另外一种方法重采样（交叉验证）的方法处理！'}
+                return {'error': 'The data is unbalanced. There is at least one set of data in the validation set with all endings being 0 or 1! Please choose another method of resampling (cross-validation)!'}
 
-            # interp:插值 把结果添加到tprs列表中
+            # interp:interpolation Add the results to the tprs list
             tprs_train.append(np.interp(mean_fpr, fpr_train, tpr_train))
             tprs_test.append(np.interp(mean_fpr, fpr_test, tpr_test))
             tprs_train[-1][0] = 0.0
             tprs_test[-1][0] = 0.0
 
-            # 计算所有评价指标
+            # Calculate all evaluation indicators
             for key in list_evaluate_dic_train.keys():
                 list_evaluate_dic_train[key].append(metric_dic_train[key])
                 list_evaluate_dic_test[key].append(metric_dic_test[key])
@@ -1021,7 +1022,7 @@ def two_groups_classfication_multimodels(
         X_test_ps.append(X_test_p)
         Y_test_ps.append(Y_test_p)
 
-        ###画校准曲线
+        ###draw calibration curve
         # X_train, X_test, Y_train, Y_test = TTS(x, y, test_size=testsize, random_state=0)
         # model_CC = clone(selected_model).fit(X_train, Y_train)
         # y_pred = model.predict(Xtest)
@@ -1092,8 +1093,8 @@ def two_groups_classfication_multimodels(
                                            str(round_dec(float(conf_dic_test[key][1]), d=decimal_num)) + ')'
         df_train_result = pd.DataFrame([result_dic_train], index=['Mean'])
         df_test_result = pd.DataFrame([result_dic_test], index=['Mean'])
-        df_train_result['分类模型'] = name_dict[method]
-        df_test_result['分类模型'] = name_dict[method]
+        df_train_result['Classification model'] = name_dict[method]
+        df_test_result['Classification model'] = name_dict[method]
 
         AUC_95CI_test.append(list(df_test_result.iloc[0, -4:-2]))
         AUC_95CI_train.append(list(df_train_result.iloc[0, -4:-2]))
@@ -1105,10 +1106,10 @@ def two_groups_classfication_multimodels(
         mean_tpr_test = np.mean(tprs_test, axis=0)
         mean_tpr_train[-1] = 1.0
         mean_tpr_test[-1] = 1.0
-        mean_auc_train = auc(mean_fpr, mean_tpr_train)  # 计算训练集平均AUC值
+        mean_auc_train = auc(mean_fpr, mean_tpr_train)  # Calculate the average AUC value of the training set
         mean_auc_test = auc(mean_fpr, mean_tpr_test)
 
-        ###画训练集ROC
+        ###Draw training set ROC
         fpr_train_alls.append(mean_fpr)
         tpr_train_alls.append(mean_tpr_train)
         train_method_alls.append(method)
@@ -1127,10 +1128,10 @@ def two_groups_classfication_multimodels(
         ax.plot(mean_fpr, mean_tpr_test, c=colors[i], label=name_dict[method] + '(AUC = %0.3f 95%%CI (%0.3f-%0.3f))' % (
             df_test_result.iloc[0, 0], df_test_result.iloc[0, -4], df_test_result.iloc[0, -3]),
                 lw=1.5, alpha=1)
-        str_result += method + ': AUC=' + str(round_dec(mean_auc_train, decimal_num)) + ';  模型参数:\n' + dic2str(
+        str_result += method + ': AUC=' + str(round_dec(mean_auc_train, decimal_num)) + ';  Model parameters:\n' + dic2str(
             selected_model.get_params(),
             method) + '\n'
-    ###模型德龙检测
+    ###Model DeLonghi Inspection
     if delong:
         delong_z, delong_p = [], []
         for i in range(boostrap):
@@ -1180,11 +1181,11 @@ def two_groups_classfication_multimodels(
     df_test_auc = []
     if savePath is not None:
         plot_name_list.append(save_fig(savePath, 'valid_ROC_curve', 'png', fig, str_time=str_time))
-        plot_name_dict_save['验证集ROC曲线'] = save_fig(savePath, 'valid_ROC_curve', picFormat, fig, str_time=str_time)
+        plot_name_dict_save['Validation set ROC curve'] = save_fig(savePath, 'valid_ROC_curve', picFormat, fig, str_time=str_time)
 
-        # 画训练集ROC
+        # Draw training set ROC
         fig1 = plt.figure(figsize=(4, 4), dpi=dpi)
-        # 画对角线
+        # draw diagonal lines
         plt.plot(
             [0, 1], [0, 1],
             linestyle='--',
@@ -1211,8 +1212,8 @@ def two_groups_classfication_multimodels(
         plt.legend(loc='lower right', fontsize=5)
 
         plot_name_list.append(save_fig(savePath, 'ROC_Train_curve', 'png', fig1, str_time=str_time))
-        plot_name_dict_save['训练集ROC曲线图'] = save_fig(savePath, 'ROC_Train_curve', picFormat, fig1, str_time=str_time)
-        plot_name_list.reverse()  ###所有图片倒置
+        plot_name_dict_save['Training set ROC curve chart'] = save_fig(savePath, 'ROC_Train_curve', picFormat, fig1, str_time=str_time)
+        plot_name_list.reverse()  ###All images upside down
 
         if boostrap != 1:
             # df_plot.drop('mean', axis=1)
@@ -1227,10 +1228,10 @@ def two_groups_classfication_multimodels(
                 dpi=dpi,
                 picFormat=picFormat,
             )
-            plot_name_dict_save['验证集多模型森林图'] = plot_name_list[len(plot_name_list) - 1]
+            plot_name_dict_save['Validation set multi-model forest plot'] = plot_name_list[len(plot_name_list) - 1]
             plot_name_list.pop(len(plot_name_list) - 1)
     plt.close()
-    ###画校准曲线
+    ###draw calibration curve
     if savePath is not None:
         from scipy.optimize import curve_fit
         from scipy.interpolate import make_interp_spline
@@ -1273,38 +1274,38 @@ def two_groups_classfication_multimodels(
         plt.close()
         plot_name = "Calibration_curve_" + str_time
         plot_name_list.append(save_fig(savePath, plot_name, 'png', fig, str_time=str_time))
-        plot_name_dict_save['验证集多模型校准曲线'] = save_fig(savePath, plot_name, picFormat, fig, str_time=str_time)
+        plot_name_dict_save['Many validation sets Model calibration curve'] = save_fig(savePath, plot_name, picFormat, fig, str_time=str_time)
 
-    ###画DCA曲线
+    ###Draw DCA curve
     if savePath is not None:
         decision_curve_p = plot_decision_curves(DCA_dict, colors=colors, name='Valid', savePath=savePath, dpi=dpi,
                                                 picFormat=picFormat)
         plot_name_list.append(decision_curve_p[0])
-        plot_name_dict_save['验证集DCA曲线图'] = decision_curve_p[1]
-    ###画PR曲线
+        plot_name_dict_save['Validation set DCA curve chart'] = decision_curve_p[1]
+    ###Draw PR curve
     if savePath is not None:
         # from sklearn.metrics import plot_precision_recall_curve
         from AnalysisFunction.X_5_SmartPlot import plot_precision_recall_curve
         fig = plot_precision_recall_curve(model_train_s, X_train_ps, Y_train_ps, name=name, picname='train')
-        plot_name_dict['训练集多模型PR曲线'] = save_fig(savePath, 'PR_train', 'png', fig, str_time=str_time)
-        plot_name_dict_save['训练集多模型PR曲线'] = save_fig(savePath, 'PR_train', picFormat, fig, str_time=str_time)
+        plot_name_dict['Training set multi-model PR curve'] = save_fig(savePath, 'PR_train', 'png', fig, str_time=str_time)
+        plot_name_dict_save['Training set multi-model PR curve'] = save_fig(savePath, 'PR_train', picFormat, fig, str_time=str_time)
         plt.close(fig)
         fig =plot_precision_recall_curve(model_train_s, X_test_ps, Y_test_ps, name=name, picname='Validation')
-        plot_name_dict['验证集多模型PR曲线'] = save_fig(savePath, 'PR_valid', 'png', fig, str_time=str_time)
-        plot_name_dict_save['验证集多模型PR曲线'] = save_fig(savePath, 'PR_vlid', picFormat, fig, str_time=str_time)
+        plot_name_dict['Validation set multi-model PR curve'] = save_fig(savePath, 'PR_valid', 'png', fig, str_time=str_time)
+        plot_name_dict_save['Validation set multi-model PR curve'] = save_fig(savePath, 'PR_vlid', picFormat, fig, str_time=str_time)
         plt.close(fig)
 
     df_train_result1 = df_0.drop([0])
     df_test_result1 = df_0_test.drop([0])
 
-    classfier = df_train_result1.pop('分类模型')
+    classfier = df_train_result1.pop('Classification model')
 
     df_train_result = df_train_result1.applymap(lambda x: round_dec(x, d=decimal_num))
-    df_train_result.insert(0, '分类模型', classfier)
+    df_train_result.insert(0, 'Classification model', classfier)
 
-    df_test_result1.pop('分类模型')
+    df_test_result1.pop('Classification model')
     df_test_result = df_test_result1.applymap(lambda x: round_dec(x, d=decimal_num))
-    df_test_result.insert(0, '分类模型', classfier)
+    df_test_result.insert(0, 'Classification model', classfier)
 
     AUC_95CI_tr = df_train_result.pop('AUC(95%CI)')
     df_train_result.insert(1, 'AUC(95%CI)', AUC_95CI_tr)
@@ -1319,76 +1320,76 @@ def two_groups_classfication_multimodels(
     else:
         df_count_r = round_dec(testsize, decimal_num)
     if isKFold:
-        str_result += '\n下示森林图展示了各模型进行' + group + '预测的ROC结果,图中的误差线为ROC均值及SD。\n' \
-                      + '模型的ROC均值及SD的是通过' + str(boostrap) + '折交叉验证,' + '模型中的变量包括' \
-                      + ','.join(features) + '。\n'
+        str_result += '\nThe forest plot below shows how each model performed' + group + 'Predicted ROC results, the error bars in the figure are the ROC mean and SD.\n' \
+                      + 'The ROC mean and SD of the model are passed' + str(boostrap) + 'fold cross validation,' + 'Variables in the model include' \
+                      + ','.join(features) + '.\n'
     else:
-        str_result += '\n下示森林图展示了各模型进行' + group + '预测的ROC结果,图中的误差线为ROC均值及SD。\n' \
-                      + '模型的ROC均值及SD的是通过多次重复采样计算，重复采样次数为' + str(boostrap) + '次,' \
-                      + '每一次重采样训练的验证集占总体样本的' + str(df_count_r * 100) + '%,训练集占' \
-                      + str((1 - df_count_r) * 100) + '%,' + '模型中的变量包括' \
-                      + ','.join(features) + '。\n'
+        str_result += '\nThe forest plot below shows how each model performed' + group + 'Predicted ROC results, the error bars in the figure are the ROC mean and SD.\n' \
+                      + 'The ROC mean and SD of the model are passed. Repeat the sampling calculation multiple times, the number of repeated sampling is' + str(boostrap) + 'Next,' \
+                      + 'The validation set for each resampling training accounts for 1% of the total sample' + str(df_count_r * 100) + '%,Training set accounts for' \
+                      + str((1 - df_count_r) * 100) + '%,' + 'Variables in the model include' \
+                      + ','.join(features) + '.\n'
 
     best_ = df_train_result.loc[df_train_result.index == 'Mean'].sort_values(by='AUC', ascending=False).head(1)
-    name_train = best_.iloc[0]['分类模型']
-    str_result += '在目前所有模型中，训练集表现最佳者为{}（依据AUC排序），在各评价标准中其在训练集对应分数分别为：\n'.format(name_train)
+    name_train = best_.iloc[0]['Classification model']
+    str_result += 'in all current models,The best performer on the training set is{}(sorted by AUC),In each evaluation criterion, their corresponding scores in the training set are respectively:\n'.format(name_train)
     for col in best_.columns[1:]:
-        str_result += '\t{}：{}\n'.format(col, best_.iloc[0][col])
+        str_result += '\t{}:{}\n'.format(col, best_.iloc[0][col])
 
     best_ = df_test_result.loc[df_test_result.index == 'Mean'].sort_values(by='AUC', ascending=False).head(1)
-    name_test = best_.iloc[0]['分类模型']
-    str_result += '验证集表现最佳者为{}（依据AUC排序），在各评价标准中其在验证集对应分数分别为：\n'.format(name_test)
+    name_test = best_.iloc[0]['Classification model']
+    str_result += 'The best performer on the validation set is{}(sorted by AUC),In each evaluation criterion, their corresponding scores in the validation set are respectively:\n'.format(name_test)
     for col in best_.columns[1:]:
-        str_result += '\t{}：{}\n'.format(col, best_.iloc[0][col])
+        str_result += '\t{}:{}\n'.format(col, best_.iloc[0][col])
 
     if (name_test == name_train):
-        str_result += '二者吻合，可以认为{}是针对此数据集的最佳模型选择。'.format(name_train)
+        str_result += 'The two are consistent,It can be considered{}is the best model choice for this dataset.'.format(name_train)
     else:
-        str_result += '二者不吻合，{}极可能存在过拟合现象，{}可能稳定性相对较好。具体模型选择可根据下表详细评分信息进行取舍。'.format(name_train, name_test)
+        str_result += 'The two do not match,{}It is very likely that there is overfitting,{}Maybe the stability is relatively good.Specific model selection can be made based on the detailed scoring information in the table below.'.format(name_train, name_test)
 
     if resultType == 0:
-        df_train_result.rename(columns={"AUC(95%CI)": 'AUC(SD)', 'cutoff': 'cutoff(SD)', '准确度': '准确度(SD)',
-                                        '灵敏度': '灵敏度(SD)', '特异度': '特异度(SD)',
-                                        '阳性预测值': '阳性预测值(SD)', '阴性预测值': '阴性预测值(SD)',
-                                        'F1分数': 'F1分数(SD)', 'Kappa': 'Kappa(SD)'}, inplace=True)
-        df_test_result.rename(columns={"AUC(95%CI)": 'AUC(SD)', 'cutoff': 'cutoff(SD)', '准确度': '准确度(SD)',
-                                       '灵敏度': '灵敏度(SD)', '特异度': '特异度(SD)',
-                                       '阳性预测值': '阳性预测值(SD)', '阴性预测值': '阴性预测值(SD)',
-                                       'F1分数': 'F1分数(SD)', 'Kappa': 'Kappa(SD)'}, inplace=True)
+        df_train_result.rename(columns={"AUC(95%CI)": 'AUC(SD)', 'cutoff': 'cutoff(SD)', 'Accuracy': 'Accuracy(SD)',
+                                        'Sensitivity': 'Sensitivity(SD)', 'Specificity': 'Specificity(SD)',
+                                        'positive predictive value': 'positive predictive value(SD)', 'negative predictive value': 'negative predictive value(SD)',
+                                        'F1 score': 'F1 score(SD)', 'Kappa': 'Kappa(SD)'}, inplace=True)
+        df_test_result.rename(columns={"AUC(95%CI)": 'AUC(SD)', 'cutoff': 'cutoff(SD)', 'Accuracy': 'Accuracy(SD)',
+                                       'Sensitivity': 'Sensitivity(SD)', 'Specificity': 'Specificity(SD)',
+                                       'positive predictive value': 'positive predictive value(SD)', 'negative predictive value': 'negative predictive value(SD)',
+                                       'F1 score': 'F1 score(SD)', 'Kappa': 'Kappa(SD)'}, inplace=True)
     elif resultType == 1:
-        df_train_result.rename(columns={'cutoff': 'cutoff(95%CI)', '准确度': '准确度(95%CI)',
-                                        '灵敏度': '灵敏度(95%CI)', '特异度': '特异度(95%CI)',
-                                        '阳性预测值': '阳性预测值(95%CI)', '阴性预测值': '阴性预测值(95%CI)',
-                                        'F1分数': 'F1分数(95%CI)', 'Kappa': 'Kappa(95%CI)'}, inplace=True)
-        df_test_result.rename(columns={'cutoff': 'cutoff(95%CI)', '准确度': '准确度(95%CI)',
-                                       '灵敏度': '灵敏度(95%CI)', '特异度': '特异度(95%CI)',
-                                       '阳性预测值': '阳性预测值(95%CI)', '阴性预测值': '阴性预测值(95%CI)',
-                                       'F1分数': 'F1分数(95%CI)', 'Kappa': 'Kappa(95%CI)'}, inplace=True)
+        df_train_result.rename(columns={'cutoff': 'cutoff(95%CI)', 'Accuracy': 'Accuracy(95%CI)',
+                                        'Sensitivity': 'Sensitivity(95%CI)', 'Specificity': 'Specificity(95%CI)',
+                                        'positive predictive value': 'positive predictive value(95%CI)', 'negative predictive value': 'negative predictive value(95%CI)',
+                                        'F1 score': 'F1 score(95%CI)', 'Kappa': 'Kappa(95%CI)'}, inplace=True)
+        df_test_result.rename(columns={'cutoff': 'cutoff(95%CI)', 'Accuracy': 'Accuracy(95%CI)',
+                                       'Sensitivity': 'Sensitivity(95%CI)', 'Specificity': 'Specificity(95%CI)',
+                                       'positive predictive value': 'positive predictive value(95%CI)', 'negative predictive value': 'negative predictive value(95%CI)',
+                                       'F1 score': 'F1 score(95%CI)', 'Kappa': 'Kappa(95%CI)'}, inplace=True)
     df_dict = {
-        '多模型分类-训练集结果汇总': df_train_result.drop(['AUC'], axis=1),
-        '多模型分类-验证集结果汇总': df_test_result.drop(['AUC'], axis=1),
+        'Multi-model classification-Summary of training set results': df_train_result.drop(['AUC'], axis=1),
+        'Multi-model classification-Summary of validation set results': df_test_result.drop(['AUC'], axis=1),
     }
     if delong:
-        df_dict.update({'delong检测Z值均值表': delong_zz})
-        df_dict.update({'delong检测P值均值表': delong_pp})
+        df_dict.update({'delong detection Z value mean table': delong_zz})
+        df_dict.update({'delong detection P value mean table': delong_pp})
 
     if boostrap != 1:
         plot_name_dict = {
-            '训练集ROC曲线图': plot_name_list[0],
-            '验证集ROC曲线图': plot_name_list[1],
-            '验证集多模型森林图': plot_name_list[2],
-            '验证集多模型校准曲线': plot_name_list[3],
-            '验证集DCA曲线图': plot_name_list[4],
+            'Training set ROC curve chart': plot_name_list[0],
+            'Validation set ROC curve chart': plot_name_list[1],
+            'Validation set multi-model forest plot': plot_name_list[2],
+            'Many validation sets Model calibration curve': plot_name_list[3],
+            'Validation set DCA curve chart': plot_name_list[4],
         }
     else:
         plot_name_dict = {
-            '训练集ROC曲线图': plot_name_list[0],
-            '验证集ROC曲线图': plot_name_list[1],
-            '验证集多模型校准曲线': plot_name_list[2],
-            '验证集DCA曲线图': plot_name_list[3],
+            'Training set ROC curve chart': plot_name_list[0],
+            'Validation set ROC curve chart': plot_name_list[1],
+            'Many validation sets Model calibration curve': plot_name_list[2],
+            'Validation set DCA curve chart': plot_name_list[3],
         }
 
-    result_dict = {'str_result': {'分析结果描述': str_result}, 'tables': df_dict,
+    result_dict = {'str_result': {'Description of analysis results': str_result}, 'tables': df_dict,
                    'pics': plot_name_dict, 'save_pics': plot_name_dict_save}
     return result_dict
 
@@ -1397,11 +1398,11 @@ def two_groups_classfication_multimodels(
 def featrueSelect(df, group, features, method='LassoCV', selectNum=None, standardization=False, savePath=None, dpi=600,
                   picFormat='jpeg', decimal_num=3):
     """
-    :param df: dataframe  整体数据
-    :param group:  str  因变量
-    :param features: list 因子
-    :param method:  str  方法
-    :param standardization: 是否标准化
+    :param df: dataframe  overall data
+    :param group:  str  dependent variable
+    :param features: list features
+    :param method:  str  method
+    :param standardization: Whether to standardize
     :param savePath:
     :param dpi:
     :param picFormat:
@@ -1421,7 +1422,7 @@ def featrueSelect(df, group, features, method='LassoCV', selectNum=None, standar
     df_temp = df[features + [group]].dropna().reset_index().drop(columns='index')
 
     # if df_temp.shape[0] * df_temp.shape[1] > 200000:
-    #     return {'error': '数据量过大：样本数为' + str(df_temp.shape[0]) + '，因子数：' + str(df_temp.shape[1]) + '。请减少样本量或者减少因子数量！'}
+    #     return {'error': '数据量过大:样本数为' + str(df_temp.shape[0]) + ',因子数:' + str(df_temp.shape[1]) + '.请减少样本量或者减少因子数量！'}
 
     if standardization:
         rresult_dict = data_standardization(df_temp, features, method='StandardScaler')
@@ -1437,9 +1438,9 @@ def featrueSelect(df, group, features, method='LassoCV', selectNum=None, standar
         #         imp_coef_fea = list(abs(coef[coef != 0]).sort_values().head(len(coef)-len(dropFeature)-searchNum).index)
         #         dropFeature.extend(imp_coef_fea)
         imp_coef = coef.drop(dropFeature)
-        # str_result = '通过'+method+"方法剔除的因子有："+str(dropFeature)+"。"
-        str_result = '通过' + method + "方法共选择出" + str(sum(coef != 0)) + "个的因子分别为：" + str(
-            result_fea) + ",其最优化正则参数为：" + str(round_dec(float(result_method.alpha_), decimal_num)) + "。"
+        # str_result = 'pass '+method+"方法剔除的因子有:"+str(dropFeature)+"."
+        str_result = 'pass ' + method + "A total of methods were selected" + str(sum(coef != 0)) + "The factors are:" + str(
+            result_fea) + ",Its optimal regular parameters are:" + str(round_dec(float(result_method.alpha_), decimal_num)) + "."
         if dropFeature != []:
             df_tab = df.drop(dropFeature, axis=1)
         else:
@@ -1463,8 +1464,8 @@ def featrueSelect(df, group, features, method='LassoCV', selectNum=None, standar
             else:
                 dropFeature.append(features[i])
         if rfecv.n_features_ != len(result_fea):
-            return {'error': '数据处理错误，请重新运行！---REF'}
-        str_result = '通过' + method + "方法共选择出" + str(rfecv.n_features_) + "个的因子分别为：" + str(result_fea) + "。"
+            return {'error': 'Data processing error,Please run again!---REF'}
+        str_result = 'pass ' + method + "A total of methods were selected" + str(rfecv.n_features_) + "The factors are:" + str(result_fea) + "."
         # Plot number of features VS. cross-validation scores
         if dropFeature != []:
             df_tab = df.drop(dropFeature, axis=1)
@@ -1474,8 +1475,8 @@ def featrueSelect(df, group, features, method='LassoCV', selectNum=None, standar
         plt.xlabel("Number of features selected")
         plt.ylabel("Cross validation score")
         plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
-        plot_name_dict['REF特征数量'] = save_fig(savePath, 'REF', 'png', fig, str_time=str_time)
-        plot_name_dict_save['REF特征数量'] = save_fig(savePath, 'REF', picFormat, fig, str_time=str_time)
+        plot_name_dict['Number of REF features'] = save_fig(savePath, 'REF', 'png', fig, str_time=str_time)
+        plot_name_dict_save['Number of REF features'] = save_fig(savePath, 'REF', picFormat, fig, str_time=str_time)
         plt.close()
     elif method == 'SVMREFCV':
 
@@ -1490,8 +1491,8 @@ def featrueSelect(df, group, features, method='LassoCV', selectNum=None, standar
             else:
                 dropFeature.append(features[i])
         if rfecv.n_features_ != len(result_fea):
-            return {'error': '数据处理错误，请重新运行！---REF'}
-        str_result = '通过' + method + "方法共选择出" + str(rfecv.n_features_) + "个的因子分别为：" + str(result_fea) + "。"
+            return {'error': 'Data processing error,Please run again!---REF'}
+        str_result = 'pass ' + method + "A total of methods were selected" + str(rfecv.n_features_) + "The factors are:" + str(result_fea) + "."
         # Plot number of features VS. cross-validation scores
         if dropFeature != []:
             df_tab = df.drop(dropFeature, axis=1)
@@ -1501,8 +1502,8 @@ def featrueSelect(df, group, features, method='LassoCV', selectNum=None, standar
         plt.xlabel("Number of features selected")
         plt.ylabel("Cross validation score")
         plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
-        plot_name_dict['REF特征数量'] = save_fig(savePath, 'REF', 'png', fig, str_time=str_time)
-        plot_name_dict_save['REF特征数量'] = save_fig(savePath, 'REF', picFormat, fig, str_time=str_time)
+        plot_name_dict['Number of REF features'] = save_fig(savePath, 'REF', 'png', fig, str_time=str_time)
+        plot_name_dict_save['Number of REF features'] = save_fig(savePath, 'REF', picFormat, fig, str_time=str_time)
         plt.close()
     elif method == 'PCA':
         if (not selectNum) or selectNum == "":
@@ -1511,7 +1512,7 @@ def featrueSelect(df, group, features, method='LassoCV', selectNum=None, standar
             if int(selectNum) <= len(features) and int(selectNum) >= 1:
                 pca = PCA(n_components=int(selectNum))
             else:
-                return {'error': '因子数目应在1到' + str(len(features)) + '之间，请重新输入筛选的因子数目！'}
+                return {'error': 'The number of factors should be between 1 and ' + str(len(features)) + 'Please re-enter the number of factors to filter!'}
         pca.fit(df_temp[features])
         result_value = np.dot(np.array(df_temp[features]), np.array(pd.DataFrame(pca.components_).T))
         pca1 = PCA(n_components=len(features))
@@ -1527,10 +1528,10 @@ def featrueSelect(df, group, features, method='LassoCV', selectNum=None, standar
         df_result = pd.DataFrame(result_value, columns=pca_feas)
         df_tab = pd.concat([df_tab, df_result], axis=1)
         if (not selectNum) or selectNum == "":
-            str_result = '通过' + method + "方法当主成分占比90%以上时，因子降维为" + str(pca.n_components_) + "维，其新的因子为：" + str(
-                pca_feas) + '。'
+            str_result = 'pass ' + method + "Method: When the principal component accounts for more than 90%, the factor dimensionality reduction is" + str(pca.n_components_) + "dimension,its new factor is:" + str(
+                pca_feas) + '.'
         else:
-            str_result = '通过' + method + "方法当降维为" + str(selectNum) + "时" + "，其新的因子为：" + str(pca_feas) + '。'
+            str_result = 'pass ' + method + "When the method reduces dimensionality to " + str(selectNum) + "times" + ",its new factor is:" + str(pca_feas) + '.'
         fig = plt.figure(figsize=(6, 6), dpi=dpi)
         plt.title('Scree Plot')
         plt.xlabel("'Factors")
@@ -1547,7 +1548,7 @@ def featrueSelect(df, group, features, method='LassoCV', selectNum=None, standar
             if int(selectNum) <= len(features) and int(selectNum) >= 1:
                 result_fea = mrmr_classif(df_temp, X=features, y=group, K=int(selectNum), return_scores=False)
             else:
-                return {'error': '因子数目应在1到' + str(len(features)) + '之间，请重新输入筛选的因子数目！'}
+                return {'error': 'The number of factors should be between 1 and ' + str(len(features)) + 'Please re-enter the number of factors to filter!'}
         dropFeature = score_features
         for fea in result_fea:
             dropFeature.remove(fea)
@@ -1555,7 +1556,7 @@ def featrueSelect(df, group, features, method='LassoCV', selectNum=None, standar
             df_tab = df.drop(dropFeature, axis=1)
         else:
             df_tab = df
-        str_result = '通过' + method + "方法共选择出" + str(len(result_fea)) + "个的因子分别为：" + str(result_fea) + "。"
+        str_result = 'pass ' + method + "A total of methods were selected" + str(len(result_fea)) + "The factors are:" + str(result_fea) + "."
         fig = plt.figure(figsize=(6, 6), dpi=dpi)
         plt.xlabel("Number of features selected")
         plt.ylabel("mRMR Score")
@@ -1586,7 +1587,7 @@ def featrueSelect(df, group, features, method='LassoCV', selectNum=None, standar
                     ff_features.append(features[i])
                 result_fea = ff_features[0:int(selectNum)]
             else:
-                return {'error': '因子数目应在1到' + str(len(features)) + '之间，请重新输入筛选的因子数目！'}
+                return {'error': 'The number of factors should be between 1 and ' + str(len(features)) + 'Please re-enter the number of factors to filter!'}
         dropFeature = ff_features
         for fea in result_fea:
             dropFeature.remove(fea)
@@ -1594,7 +1595,7 @@ def featrueSelect(df, group, features, method='LassoCV', selectNum=None, standar
             df_tab = df.drop(dropFeature, axis=1)
         else:
             df_tab = df
-        str_result = '通过' + method + "方法共选择出" + str(len(result_fea)) + "个的因子分别为：" + str(result_fea) + "。"
+        str_result = 'pass ' + method + "A total of methods were selected" + str(len(result_fea)) + "The factors are:" + str(result_fea) + "."
         fig = plt.figure(figsize=(6, 6), dpi=dpi)
         plt.xlabel("Number of features selected")
         plt.ylabel("ReliefF Score")
@@ -1603,7 +1604,7 @@ def featrueSelect(df, group, features, method='LassoCV', selectNum=None, standar
         plot_name_dict_save['ReliefF'] = save_fig(savePath, 'ReliefF', picFormat, fig, str_time=str_time)
         plt.close()
 
-    result_dict = {'str_result': {'分析结果描述': str_result}, 'tables': df_tab,
+    result_dict = {'str_result': {'Description of analysis results': str_result}, 'tables': df_tab,
                    'pics': plot_name_dict, 'save_pics': plot_name_dict_save}
     return result_dict
 
