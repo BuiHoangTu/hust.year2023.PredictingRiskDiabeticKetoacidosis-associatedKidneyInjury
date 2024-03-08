@@ -1,7 +1,18 @@
+import datetime
+import random
+from matplotlib import pyplot as plt
+
+import numpy as np
+import pandas as pd
+from sklearn import clone
+from sklearn.calibration import label_binarize
+from sklearn.model_selection import StratifiedKFold, train_test_split
+
+
 def ML_Classfication(
-        df,
-        group,
-        features,
+        df: pd.DataFrame,
+        group: str,
+        features: list[str],
         decimal_num=3,
         validation_ratio=0.15,
         scoring='roc_auc',
@@ -29,7 +40,7 @@ def ML_Classfication(
         Machine learning classification analysis
 
         Input:
-            df_input:DataFrame Input data to be processed
+            df: DataFrame Input data to be processed
             group_name:str Group name
             validation_ratio:float Test set proportion
             scoring:str Target evaluation index
@@ -94,7 +105,7 @@ def ML_Classfication(
     u = np.sort(np.unique(np.array(df[group])))
     if len(u) == 2 and set(u) != set([0, 1]):
         y_result = label_binarize(df[group], classes=[ii for ii in u])  # Binarize labels
-        y_result_pd = pd.DataFrame(y_result, columns=[group])
+        y_result_pd = pd.DataFrame(y_result, columns=[group]) # type: ignore
         df = pd.concat([df.drop(group, axis=1), y_result_pd], axis=1)
     elif len(u) > 2:
         if len(u) > 10:
@@ -124,7 +135,7 @@ def ML_Classfication(
         df = df[features + [group]].dropna()
         X = df.drop(group, axis=1)
         Y = df.loc[:, list_name].squeeze(axis=1)
-        Xtrain, Xtest, Ytrain, Ytest = TTS(X, Y, test_size=validation_ratio, random_state=randomState, )
+        Xtrain, Xtest, Ytrain, Ytest = train_test_split(X, Y, test_size=validation_ratio, random_state=randomState, )
 
     df_dict = {}
 
@@ -141,7 +152,8 @@ def ML_Classfication(
             clf = searcher(Xtrain, Ytrain);
             searcher.report()
     elif searching == 'Handle':
-        if (method == 'SVC'): kwargs['probability'] = True
+        if (method == 'SVC'): 
+            kwargs['probability'] = True
         if (method == 'RandomForestClassifier' and kwargs['max_depth'] == 'None'):
             kwargs['max_depth'] = None
         if (method == 'MLPClassifier'):
@@ -153,7 +165,7 @@ def ML_Classfication(
                         hls_value = hls_value + (int(hls_val),)
                     else:
                         return {'error': 'Please reset the hidden layer width as required!'}
-                except:
+                except Exception:
                     return {'error': 'Please reset the hidden layer width in the neural network model'}
             kwargs['hidden_layer_sizes'] = hls_value
         if (method == 'GaussianNB' and kwargs['priors'] == 'None'):
@@ -629,8 +641,7 @@ def ML_Classfication(
                 flage1, flage2, flage3, flage4 = True, True, True, True
                 for i in range(len(df_shapValue_Y)):
 
-                    if (flage1 and f(df_shapValue.iloc[i:i + 1, :])[0] >= resThreshold and df_shapValue_Y.iloc[
-                        i,] == 1):
+                    if (flage1 and f(df_shapValue.iloc[i:i + 1, :])[0] >= resThreshold and df_shapValue_Y.iloc[i,] == 1):
                         df_shapValue_show = pd.concat([df_shapValue_show, df_shapValue.iloc[i:i + 1, :]], axis=0)
                         shapValue_name.append('shap_sample_predicted value is 1 actual value is 1')
                         shapValue_list.append(i)
