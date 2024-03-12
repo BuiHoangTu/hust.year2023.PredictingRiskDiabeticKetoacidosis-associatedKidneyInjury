@@ -1,12 +1,20 @@
 import datetime
+from functools import reduce
+import math
 import random
 from matplotlib import pyplot as plt
 
 import numpy as np
 import pandas as pd
 from sklearn import clone
-from sklearn.calibration import label_binarize
+from sklearn.calibration import calibration_curve, label_binarize
+from sklearn.decomposition import PCA
+from sklearn.feature_selection import RFECV
+from sklearn.linear_model import LassoCV
+from sklearn.metrics import auc, brier_score_loss
 from sklearn.model_selection import StratifiedKFold, train_test_split
+from sklearn.svm import SVC
+from xgboost import XGBClassifier
 
 
 def ML_Classfication(
@@ -81,8 +89,7 @@ def ML_Classfication(
         'BaggingClassifier': 'Bagging',
     }
     colors = x5.CB91_Grad_BP
-    str_time = str(datetime.datetime.now().hour) + str(datetime.datetime.now().minute) + str(
-        datetime.datetime.now().second)
+    str_time = str(datetime.datetime.now().hour) + str(datetime.datetime.now().minute) + str(datetime.datetime.now().second)
     random_number = random.randint(1, 100)
     str_time = str_time + str(random_number)
 
@@ -764,8 +771,7 @@ def two_groups_classfication_multimodels(
         searching:bool Whether to perform automatic parameter search,Default is no
         savePath:str Image storage path
     """
-    str_time = str(datetime.datetime.now().hour) + str(datetime.datetime.now().minute) + str(
-        datetime.datetime.now().second)
+    str_time = str(datetime.datetime.now().hour) + str(datetime.datetime.now().minute) + str(datetime.datetime.now().second)
     random_number = random.randint(1, 100)
     str_time = str_time + str(random_number)
 
