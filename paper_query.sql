@@ -1,42 +1,44 @@
 -- Supplementary Materials
 -- ************************************CODE************************************
+
 DROP MATERIALIZED VIEW IF EXISTS kdigo_creat CASCADE;
 CREATE MATERIALIZED VIEW kdigo_creat as
 -- Extract all creatinine values from labevents around patient's ICU stay
-with cr as
+with creat_mesure as
 (
 select
-    ie.icustay_id
-  , ie.intime, ie.outtime
-  , le.valuenum as creat
-  , le.charttime
-  from icustays ie
-  left join labevents le
-    on ie.subject_id = le.subject_id
-    and le.ITEMID = 50912
-    and le.VALUENUM is not null
-    and le.CHARTTIME between (ie.intime - interval '7' day) and (ie.intime + interval '7' day)
+    icu.icustay_id
+  , icu.intime, icu.outtime
+  , lab.valuenum as value
+  , lab.charttime
+  from icustays icu
+  left join labevents lab
+    on icu.subject_id = lab.subject_id
+    and lab.ITEMID = 50912 -- creatini id
+    and lab.VALUENUM is not null
+    and lab.CHARTTIME between (icu.intime - interval '7' day) and (icu.intime + interval '7' day)
 )
+
 -- add in the lowest value in the previous 48 hours/7 days
 SELECT
-  cr.icustay_id
-  , cr.charttime
-  , cr.creat
-  , MIN(cr48.creat) AS creat_low_past_48hr
-  , MIN(cr7.creat) AS creat_low_past_7day
-FROM cr
+  creat_mesure.icustay_id
+  , creat_mesure.charttime
+  , creat_mesure.value
+  , MIN(creat48.value) AS creat_low_past_48hr
+  , MIN(creat7.value) AS creat_low_past_7day
+FROM creat_mesure
 -- add in all creatinine values in the last 48 hours
-LEFT JOIN cr cr48
-  ON cr.icustay_id = cr48.icustay_id
-  AND cr48.charttime <  cr.charttime
-  AND cr48.charttime >= (cr.charttime - INTERVAL '48' HOUR)
+LEFT JOIN creat_mesure creat48
+  ON creat_mesure.icustay_id = creat48.icustay_id
+  AND creat48.charttime <  creat_mesure.charttime
+  AND creat48.charttime >= (creat_mesure.charttime - INTERVAL '48' HOUR)
 -- add in all creatinine values in the last 7 days hours
-LEFT JOIN cr cr7
-  ON cr.icustay_id = cr7.icustay_id
-  AND cr7.charttime <  cr.charttime
-  AND cr7.charttime >= (cr.charttime - INTERVAL '7' DAY)
-GROUP BY cr.icustay_id, cr.charttime, cr.creat
-ORDER BY cr.icustay_id, cr.charttime, cr.creat;
+LEFT JOIN creat_mesure creat7
+  ON creat_mesure.icustay_id = creat7.icustay_id
+  AND creat7.charttime <  creat_mesure.charttime
+  AND creat7.charttime >= (creat_mesure.charttime - INTERVAL '7' DAY)
+GROUP BY creat_mesure.icustay_id, creat_mesure.charttime, creat_mesure.value
+ORDER BY creat_mesure.icustay_id, creat_mesure.charttime, creat_mesure.value;
 
 -- This query checks if the patient had AKI according to KDIGO.
 -- AKI is calculated every time a creatinine or urine output measurement occurs.
@@ -45,88 +47,88 @@ ORDER BY cr.icustay_id, cr.charttime, cr.creat;
 DROP MATERIALIZED VIEW IF EXISTS kdigo_stages CASCADE;
 CREATE MATERIALIZED VIEW kdigo_stages AS
 -- get creatinine stages
-with cr_stg AS
+with creat_stg AS
 (
   SELECT
-    cr.icustay_id
-    , cr.charttime
-    , cr.creat
+    creat_mesure.icustay_id
+    , creat_mesure.charttime
+    , creat_mesure.value
     , case
         -- 3x baseline
-        when cr.creat >= (cr.creat_low_past_7day*3.0) then 3
-        -- *OR* cr >= 4.0 with associated increase
-        when cr.creat >= 4
+        when creat_mesure.value >= (creat_mesure.creat_low_past_7day*3.0) then 3
+        -- *OR* creat_mesure >= 4.0 with associated increase
+        when creat_mesure.value >= 4
         -- For patients reaching Stage 3 by SCr >4.0 mg/dl
         -- require that the patient first achieve ... acute increase >= 0.3 within 48 hr
         -- *or* an increase of >= 1.5 times baseline
-        and (cr.creat_low_past_48hr <= 3.7 OR cr.creat >= (1.5*cr.creat_low_past_7day))
+        and (creat_mesure.creat_low_past_48hr <= 3.7 OR creat_mesure.value >= (1.5*creat_mesure.creat_low_past_7day))
             then 3 
         -- TODO: initiation of RRT
-        when cr.creat >= (cr.creat_low_past_7day*2.0) then 2
-        when cr.creat >= (cr.creat_low_past_48hr+0.3) then 1
-        when cr.creat >= (cr.creat_low_past_7day*1.5) then 1
+        when creat_mesure.value >= (creat_mesure.creat_low_past_7day*2.0) then 2
+        when creat_mesure.value >= (creat_mesure.creat_low_past_48hr+0.3) then 1
+        when creat_mesure.value >= (creat_mesure.creat_low_past_7day*1.5) then 1
     else 0 end as aki_stage_creat
-  FROM kdigo_creat cr
+  FROM kdigo_creat creat_mesure
 )
 -- stages for UO / creat
-, uo_stg as
+, urine_stg as
 (
   select
-      uo.icustay_id
-    , uo.charttime
-    , uo.weight
-    , uo.uo_rt_6hr
-    , uo.uo_rt_12hr
-    , uo.uo_rt_24hr
+      urine.icustay_id
+    , urine.charttime
+    , urine.weight
+    , urine.uo_rt_6hr
+    , urine.uo_rt_12hr
+    , urine.uo_rt_24hr
     -- AKI stages according to urine output
     , CASE
-        WHEN uo.uo_rt_6hr IS NULL THEN NULL
+        WHEN urine.uo_rt_6hr IS NULL THEN NULL
         -- require patient to be in ICU for at least 6 hours to stage UO
-        WHEN uo.charttime <= ie.intime + interval '6' hour THEN 0
+        WHEN urine.charttime <= icu.intime + interval '6' hour THEN 0
         -- require the UO rate to be calculated over half the period
-        -- i.e. for uo rate over 24 hours, require documentation at least 12 hr apart
-        WHEN uo.uo_tm_24hr >= 11 AND uo.uo_rt_24hr < 0.3 THEN 3
-        WHEN uo.uo_tm_12hr >= 5 AND uo.uo_rt_12hr = 0 THEN 3
-        WHEN uo.uo_tm_12hr >= 5 AND uo.uo_rt_12hr < 0.5 THEN 2
-        WHEN uo.uo_tm_6hr >= 2 AND uo.uo_rt_6hr  < 0.5 THEN 1
+        -- i.e. for urine rate over 24 hours, require documentation at least 12 hr apart
+        WHEN urine.uo_tm_24hr >= 11 AND urine.uo_rt_24hr < 0.3 THEN 3
+        WHEN urine.uo_tm_12hr >= 5 AND urine.uo_rt_12hr = 0 THEN 3
+        WHEN urine.uo_tm_12hr >= 5 AND urine.uo_rt_12hr < 0.5 THEN 2
+        WHEN urine.uo_tm_6hr >= 2 AND urine.uo_rt_6hr  < 0.5 THEN 1
     ELSE 0 END AS aki_stage_uo
-  from kdigo_uo uo
-  INNER JOIN icustays ie
-    ON uo.icustay_id = ie.icustay_id
+  from kdigo_uo urine
+  INNER JOIN icustays icu
+    ON urine.icustay_id = icu.icustay_id
 )
 -- get all charttimes documented
 , tm_stg AS
 (
     SELECT
       icustay_id, charttime
-    FROM cr_stg
+    FROM creat_stg
     UNION
     SELECT
       icustay_id, charttime
-    FROM uo_stg
+    FROM urine_stg
 )
 select
-    ie.icustay_id
+    icu.icustay_id
   , tm.charttime
-  , cr.creat
-  , cr.aki_stage_creat
-  , uo.uo_rt_6hr
-  , uo.uo_rt_12hr
-  , uo.uo_rt_24hr
-  , uo.aki_stage_uo
-  -- Classify AKI using both creatinine/urine output criteria
-  , GREATEST(cr.aki_stage_creat, uo.aki_stage_uo) AS aki_stage
-FROM icustays ie
+  , creat_mesure.value
+  , creat_mesure.aki_stage_creat
+  , urine.uo_rt_6hr
+  , urine.uo_rt_12hr
+  , urine.uo_rt_24hr
+  , urine.aki_stage_uo
+  -- Classify AKI using both creat/urine output criteria
+  , GREATEST(creat_mesure.aki_stage_creat, urine.aki_stage_uo) AS aki_stage
+FROM icustays icu
 -- get all possible charttimes as listed in tm_stg
 LEFT JOIN tm_stg tm
-  ON ie.icustay_id = tm.icustay_id
-LEFT JOIN cr_stg cr
-  ON ie.icustay_id = cr.icustay_id
-  AND tm.charttime = cr.charttime
-LEFT JOIN uo_stg uo
-  ON ie.icustay_id = uo.icustay_id
-  AND tm.charttime = uo.charttime
-order by ie.icustay_id, tm.charttime;
+  ON icu.icustay_id = tm.icustay_id
+LEFT JOIN creat_stg creat_mesure
+  ON icu.icustay_id = creat_mesure.icustay_id
+  AND tm.charttime = creat_mesure.charttime
+LEFT JOIN urine_stg urine
+  ON icu.icustay_id = urine.icustay_id
+  AND tm.charttime = urine.charttime
+order by icu.icustay_id, tm.charttime;
 
 -- This query checks if the patient had AKI during the first 7 days of their ICU
 -- stay according to the KDIGO guideline.
@@ -134,20 +136,20 @@ order by ie.icustay_id, tm.charttime;
 
 DROP MATERIALIZED VIEW IF EXISTS kdigo_stages_7day;
 CREATE MATERIALIZED VIEW kdigo_stages_7day AS
--- get the worst staging of creatinine in the first 48 hours
+-- get the worst staging of creat in the first 48 hours
 WITH cr_aki AS
 (
   SELECT
     k.icustay_id
     , k.charttime
-    , k.creat
+    , k.value
     , k.aki_stage_creat
-    , ROW_NUMBER() OVER (PARTITION BY k.icustay_id ORDER BY k.aki_stage_creat DESC, k.creat DESC) AS rn
-  FROM icustays ie
+    , ROW_NUMBER() OVER (PARTITION BY k.icustay_id ORDER BY k.aki_stage_creat DESC, k.value DESC) AS rn
+  FROM icustays icu
   INNER JOIN kdigo_stages k
-    ON ie.icustay_id = k.icustay_id
-  WHERE k.charttime > (ie.intime - interval '6' hour)
-  AND k.charttime <= (ie.intime + interval '7' day)
+    ON icu.icustay_id = k.icustay_id
+  WHERE k.charttime > (icu.intime - interval '6' hour)
+  AND k.charttime <= (icu.intime + interval '7' day)
   AND k.aki_stage_creat IS NOT NULL
 )
 -- get the worst staging of urine output in the first 48 hours
@@ -163,35 +165,35 @@ WITH cr_aki AS
       PARTITION BY k.icustay_id
       ORDER BY k.aki_stage_uo DESC, k.uo_rt_24hr DESC, k.uo_rt_12hr DESC, k.uo_rt_6hr DESC
     ) AS rn
-  FROM icustays ie
+  FROM icustays icu
   INNER JOIN kdigo_stages k
-    ON ie.icustay_id = k.icustay_id
-  WHERE k.charttime > (ie.intime - interval '6' hour)
-  AND k.charttime <= (ie.intime + interval '7' day)
+    ON icu.icustay_id = k.icustay_id
+  WHERE k.charttime > (icu.intime - interval '6' hour)
+  AND k.charttime <= (icu.intime + interval '7' day)
   AND k.aki_stage_uo IS NOT NULL
 )
--- final table is aki_stage, include worst cr/uo for convenience
+-- final table is aki_stage, include worst creat_mesure/urine for convenience
 select
-    ie.icustay_id
-  , cr.charttime as charttime_creat
-  , cr.creat
-  , cr.aki_stage_creat
-  , uo.charttime as charttime_uo
-  , uo.uo_rt_6hr
-  , uo.uo_rt_12hr
-  , uo.uo_rt_24hr
-  , uo.aki_stage_uo
+    icu.icustay_id
+  , creat_mesure.charttime as charttime_creat
+  , creat_mesure.value
+  , creat_mesure.aki_stage_creat
+  , urine.charttime as charttime_uo
+  , urine.uo_rt_6hr
+  , urine.uo_rt_12hr
+  , urine.uo_rt_24hr
+  , urine.aki_stage_uo
 
-  -- Classify AKI using both creatinine/urine output criteria
-  , GREATEST(cr.aki_stage_creat,uo.aki_stage_uo) AS aki_stage_7day
-  , CASE WHEN GREATEST(cr.aki_stage_creat, uo.aki_stage_uo) > 0 THEN 1 ELSE 0 END AS aki_7day
+  -- Classify AKI using both creat/urine output criteria
+  , GREATEST(creat_mesure.aki_stage_creat,urine.aki_stage_uo) AS aki_stage_7day
+  , CASE WHEN GREATEST(creat_mesure.aki_stage_creat, urine.aki_stage_uo) > 0 THEN 1 ELSE 0 END AS aki_7day
 
-FROM icustays ie
-LEFT JOIN cr_aki cr
-  ON ie.icustay_id = cr.icustay_id
-  AND cr.rn = 1
-LEFT JOIN uo_aki uo
-  ON ie.icustay_id = uo.icustay_id
-  AND uo.rn = 1
-order by ie.icustay_id;
+FROM icustays icu
+LEFT JOIN cr_aki creat_mesure
+  ON icu.icustay_id = creat_mesure.icustay_id
+  AND creat_mesure.rn = 1
+LEFT JOIN uo_aki urine
+  ON icu.icustay_id = urine.icustay_id
+  AND urine.rn = 1
+order by icu.icustay_id;
 *******************************************************************************
