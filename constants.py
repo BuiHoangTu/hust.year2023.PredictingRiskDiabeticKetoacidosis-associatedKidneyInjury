@@ -50,22 +50,22 @@ DKA_CODE_V10 = [
 
 # Define CKD stage 5 codes
 CKD5_CODE_V9 = [
-    "40301",
-    "40311",
-    "40391",
+    "40301", # Hypertensive chronic kidney disease, malignant, with chronic kidney disease stage V or end stage renal disease
+    "40311", # Hypertensive chronic kidney disease, benign, with chronic kidney disease stage V or end stage renal disease
+    "40391", # Hypertensive chronic kidney disease, unspecified, with chronic kidney disease stage V or end stage renal disease
     "40402",
     "40403",
     "40412",
     "40413",
     "40492",
     "40493",
-    "5855",
-    "5856",
+    "5855", # Stage 5 
+    "5856", # End stage renal disease
 ]
 CKD5_CODE_V10 = [
-    "N185",
-    "N186",  # stage 5 and End stage renal disease
     "I120",
     "I1311",
     "I132",
+    "N185", # stage 5
+    "N186", # End stage renal disease
 ]
