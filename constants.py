@@ -23,7 +23,7 @@ IMPORTANT_MESUREMENTS_LABEVENT = {
 
 # Define ICD-9/10 codes for DKA
 DKA_CODE_V9 = [
-    "24910",
+    "24910", # Secondary diabetes mellitus with ketoacidosis
     "24911",
     "25010",
     "25011",
@@ -31,19 +31,19 @@ DKA_CODE_V9 = [
     "25013",
 ]
 DKA_CODE_V10 = [
-    "E81",
+    "E81", # Diabetes mellitus due to underlying condition with ketoacidosis
     "E810",
     "E811",
-    "E091",
-    "E0910",
-    "E0911",
-    "E101",
+    # "E091", # Drug or chemical induced diabetes mellitus with ketoacidosis
+    # "E0910",
+    # "E0911",
+    "E101", # Type 1 diabetes mellitus with ketoacidosis
     "E1010",
     "E1011",
-    "E111",
+    "E111", # Type 2 diabetes mellitus with ketoacidosis
     "E1110",
     "E1111",
-    "E131",
+    "E131", # Other specified diabetes mellitus with ketoacidosis
     "E1310",
     "E1311",
 ]
