@@ -1,3 +1,8 @@
+if __name__ == "__main__":
+    print("This file is used for data storing purpose only.")
+    exit(0)
+
+
 # mimic PATH (in which there are hosp and icu data)
 from pathlib import Path
 
@@ -31,12 +36,12 @@ DKA_CODE_V9 = [
     "25013",
 ]
 DKA_CODE_V10 = [
-    "E81", # Diabetes mellitus due to underlying condition with ketoacidosis
-    "E810",
-    "E811",
-    # "E091", # Drug or chemical induced diabetes mellitus with ketoacidosis
-    # "E0910",
-    # "E0911",
+    "E081", # Diabetes mellitus due to underlying condition with ketoacidosis
+    "E0810",
+    "E0811",
+    "E091", # Drug or chemical induced diabetes mellitus with ketoacidosis
+    "E0910",
+    "E0911",
     "E101", # Type 1 diabetes mellitus with ketoacidosis
     "E1010",
     "E1011",
@@ -63,9 +68,11 @@ CKD5_CODE_V9 = [
     "5856", # End stage renal disease
 ]
 CKD5_CODE_V10 = [
-    "I120",
+    "I120", # Hypertensive
     "I1311",
     "I132",
     "N185", # stage 5
     "N186", # End stage renal disease
 ]
+
+
