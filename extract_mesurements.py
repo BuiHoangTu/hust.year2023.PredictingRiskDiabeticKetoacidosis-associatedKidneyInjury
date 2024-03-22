@@ -1,12 +1,6 @@
-from pathlib import Path
 import pandas as pd
 
-# mimic PATH (in which there are hosp and icu data)
-MIMIC_PATH = Path("../mimiciv2.2/")
-
-# temporary path
-TEMP_PATH = Path("tmp")
-TEMP_PATH.mkdir(parents=True, exist_ok=True)
+from constants import MIMIC_PATH, TEMP_PATH
 
 # other important mesurements 
 IMPORTANT_MESUREMENTS_ICU = {
