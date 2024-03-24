@@ -8,7 +8,7 @@ def markAkdCreatinine():
     
 
     Returns:
-        pd.DataFrame: creatinine mesure 24h within icu admission, 
+        pd.DataFrame: creatinine mesure 7d within icu admission, 
         added "aki_stage_creat" indicating akd stage of patients by the mesure 
     """
 
@@ -25,8 +25,6 @@ def markAkdCreatinine():
         dfCreatinine = pd.read_csv(TEMP_PATH / LAB_CREAT_FILE_NAME, parse_dates=["charttime"], usecols=usingColumns) 
         pass
 
-    ######### paper_query method ####
-
     # icu_stay filtered
     dfTargetPatients = pd.read_csv(TEMP_PATH / "target_patients.csv", usecols=["stay_id", "intime", "outtime", "subject_id"], parse_dates=["intime", "outtime"])
 
@@ -39,12 +37,14 @@ def markAkdCreatinine():
     )
 
     dfCreatMesure = dfCreatMesure[
+        # previous mesures for baseline 
         (dfCreatMesure["charttime"] >= (dfCreatMesure["intime"] - pd.Timedelta(days=7))) &
+        # mesures for detecting akd
         (dfCreatMesure["charttime"] <= (dfCreatMesure["intime"] + pd.Timedelta(days=7)))
     ]
 
     # compute min value by slide window of n hours
-    # shift this min value down
+    # shift this min value down to remove current
     def calculateMinNHours(dfGroup: pd.DataFrame, n):
         dfGroup.set_index("intime", inplace=True)
         
@@ -83,8 +83,6 @@ def markAkdCreatinine():
         elif ((value >= value48h + 0.3) or (value >= value7d * 1.5)):
             dfCreatMesure.at[i, "aki_stage_creat"] = 1
         pass
-
-    #################################
     return dfCreatMesure
 
 if __name__ == "__main__":
