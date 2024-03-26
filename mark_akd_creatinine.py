@@ -3,6 +3,9 @@ import pandas as pd
 from constants import TEMP_PATH
 from extract_mesurements import extractLabEventMesures
 
+LAB_CREAT_STAGE_FILE_NAME = "akd_creatinine.csv"
+ICU_CREAT_STAGE_FILE_NAME = "icu_akd_stage_creat.csv"
+
 def markAkdCreatinine():
     """read creatinine mesures and determine in which mesure patients are possitive
     
@@ -85,7 +88,30 @@ def markAkdCreatinine():
         pass
     return dfCreatMesure
 
+def markIcuCreatinine():
+    """Mark which icu_stay will got which akd_stage in 7 days by creatinine (get worst stage)
+    """
+
+    usingColumns = ["stay_id", "aki_stage_creat"]
+
+    if (TEMP_PATH / LAB_CREAT_STAGE_FILE_NAME).exists():
+        dfCreatinineStage = pd.read_csv(TEMP_PATH / LAB_CREAT_STAGE_FILE_NAME)
+        pass
+    else:
+        dfCreatinineStage = markAkdCreatinine()
+        dfCreatinineStage.to_csv(TEMP_PATH / LAB_CREAT_STAGE_FILE_NAME)
+        pass
+
+    dfCreatinineStage = dfCreatinineStage[usingColumns]
+
+    dfIcuCreatinineStage = dfCreatinineStage.groupby("stay_id")["aki_stage_creat"].max().reset_index()
+    
+    return dfIcuCreatinineStage
+
+    pass
+
 if __name__ == "__main__":
-    df = markAkdCreatinine()
-    df.to_csv(TEMP_PATH / "akd_creatinine.csv")
+    dfCreatinineStage = markIcuCreatinine()
+    dfCreatinineStage.to_csv(TEMP_PATH / ICU_CREAT_STAGE_FILE_NAME)
+    print("Icu creatinine stage is outputed to", ICU_CREAT_STAGE_FILE_NAME)
     pass
