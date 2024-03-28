@@ -31,7 +31,7 @@ def extractWithStayId(
         # remove chunk id
         chunk = chunk.iloc[:, 1:]
 
-        isIdRow = chunk["itemid"] in itemId
+        isIdRow = chunk["itemid"].isin(itemId)
         isInTargetPatients = chunk["stay_id"].isin(targetPatients)
 
         filteredChunk = chunk[isIdRow & isInTargetPatients]
@@ -94,7 +94,7 @@ def extractWithHadmId(
         # remove chunk id
         chunk = chunk.iloc[:, 1:]
 
-        isIdRow = chunk["itemid"] in itemId
+        isIdRow = chunk["itemid"].isin(itemId)
         isInTargetPatients = chunk["hadm_id"].isin(targetPatients)
 
         filteredChunk = chunk[isIdRow & isInTargetPatients]
