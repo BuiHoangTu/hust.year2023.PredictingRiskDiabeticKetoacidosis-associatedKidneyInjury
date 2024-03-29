@@ -13,6 +13,8 @@ MIMIC_PATH = Path("../mimiciv2.2/")
 TEMP_PATH = Path("tmp")
 TEMP_PATH.mkdir(parents=True, exist_ok=True)
 
+SQL_PATH = Path("sql_query")
+
 IMPORTANT_MESUREMENTS_ICU = {
     227519: "urine_output",
     224639: "weight",

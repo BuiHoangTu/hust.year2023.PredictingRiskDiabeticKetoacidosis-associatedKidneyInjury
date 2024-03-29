@@ -11,7 +11,7 @@ WITH uo AS (
             WHEN oe.itemid = 227488 AND oe.value > 0 THEN -1 * oe.value
             ELSE oe.value
         END AS urineoutput
-    FROM `physionet-data.mimiciv_icu.outputevents` oe
+    FROM outputevents oe
     WHERE itemid IN
         (
             226559 -- Foley

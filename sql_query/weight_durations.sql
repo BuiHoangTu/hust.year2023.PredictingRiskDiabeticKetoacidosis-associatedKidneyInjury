@@ -8,7 +8,7 @@ WITH wt_stg AS (
             ELSE 'daily' END AS weight_type
         -- TODO: eliminate obvious outliers if there is a reasonable weight
         , c.valuenum AS weight
-    FROM `physionet-data.mimiciv_icu.chartevents` c
+    FROM chartevents c
     WHERE c.valuenum IS NOT NULL
         AND c.itemid IN
         (
@@ -39,11 +39,11 @@ WITH wt_stg AS (
         , ie.intime, ie.outtime
         , wt_stg1.weight_type
         , CASE WHEN wt_stg1.weight_type = 'admit' AND wt_stg1.rn = 1
-            THEN DATETIME_SUB(ie.intime, INTERVAL '2' HOUR)
+            THEN datetime(ie.intime, '-2 hours')
             ELSE wt_stg1.charttime END AS starttime
         , wt_stg1.weight
     FROM wt_stg1
-    INNER JOIN `physionet-data.mimiciv_icu.icustays` ie
+    INNER JOIN icustays ie
         ON ie.stay_id = wt_stg1.stay_id
 )
 
@@ -54,7 +54,7 @@ WITH wt_stg AS (
         , starttime
         , COALESCE(
             LEAD(starttime) OVER (PARTITION BY stay_id ORDER BY starttime)
-            , DATETIME_ADD(outtime, INTERVAL '2' HOUR)
+            , datetime(outtime, '+2 hours')
         ) AS endtime
         , weight
         , weight_type
@@ -73,7 +73,7 @@ WITH wt_stg AS (
             ) OVER (PARTITION BY stay_id ORDER BY starttime)
             -- impute ICU discharge as the end of the final weight measurement
             -- plus a 2 hour "fuzziness" window
-            , DATETIME_ADD(outtime, INTERVAL '2' HOUR)
+            , datetime(outtime, '+2 hours')
         ) AS endtime
         , weight
         , weight_type
@@ -88,11 +88,11 @@ WITH wt_stg AS (
 , wt_fix AS (
     SELECT ie.stay_id
         -- we add a 2 hour "fuzziness" window
-        , DATETIME_SUB(ie.intime, INTERVAL '2' HOUR) AS starttime
+        , datetime(ie.intime, '-2 hours') AS starttime
         , wt.starttime AS endtime
         , wt.weight
         , wt.weight_type
-    FROM `physionet-data.mimiciv_icu.icustays` ie
+    FROM icustays ie
     INNER JOIN
         -- the below subquery returns one row for each unique stay_id
         -- the row contains: the first starttime and the corresponding weight
