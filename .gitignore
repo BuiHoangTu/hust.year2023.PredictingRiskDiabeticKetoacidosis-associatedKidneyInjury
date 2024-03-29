@@ -19,4 +19,4 @@ note.md
 package_check.py
 paper_based.py
 main.py
-test*.ipynb
+test*
