@@ -1,4 +1,3 @@
-import os
 import pandas as pd
 from constants import TEMP_PATH
 from extract_mesurements import extractChartEventMesures, extractOutputEvents
@@ -32,20 +31,12 @@ def markAkdUrineOutput():
 
     URINE_OUTPUT_FILE_NAME = "urine_output.csv"
     usingColumns = ["stay_id", "charttime", "itemid"]
-    if not os.path.exists(TEMP_PATH / URINE_OUTPUT_FILE_NAME):
-        dfUrine = extractOutputEvents(
-            OUTPUT_EVENT_URINE_IDs, URINE_OUTPUT_FILE_NAME
-        )
-        dfUrine = dfUrine[usingColumns]
-        dfUrine["charttime"] = pd.to_datetime(dfUrine["charttime"])
-        pass
-    else:
-        dfUrine = pd.read_csv(
-            TEMP_PATH / URINE_OUTPUT_FILE_NAME,
-            parse_dates=["charttime"],
-            usecols=usingColumns,
-        )
-        pass
+    dfUrine = extractOutputEvents(
+        OUTPUT_EVENT_URINE_IDs, URINE_OUTPUT_FILE_NAME
+    )
+    dfUrine = dfUrine[usingColumns]
+    dfUrine["charttime"] = pd.to_datetime(dfUrine["charttime"])
+
 
     dfUrine.loc[(dfUrine["itemid"] == INVERT_URINE_ID) & (dfUrine["valuenum"] > 0), "valuenum"] *= 1
 
@@ -63,12 +54,8 @@ def markAkdUrineOutput():
     EVENT_ID = 220045
     CHART_EVENT_FILE_220045 = "chartevent" + str(EVENT_ID)
 
-    if ((TEMP_PATH / CHART_EVENT_FILE_220045).exists()):
-        dfChartEvent220045 = pd.read_csv(TEMP_PATH / CHART_EVENT_FILE_220045)
-        pass 
-    else:
-        dfChartEvent220045 = extractChartEventMesures(EVENT_ID, CHART_EVENT_FILE_220045)
-        pass
+    dfChartEvent220045 = extractChartEventMesures(EVENT_ID, CHART_EVENT_FILE_220045)
+
     dfChartEvent220045["charttime"] = pd.to_datetime(dfChartEvent220045["charttime"])
 
     dfTm = pd.merge(dfIcuPatients, dfChartEvent220045, on="stay_id", how="inner")
@@ -125,7 +112,7 @@ def markAkdUrineOutput():
 
     # merge df
     dfCreatMesure = dfIcuPatients.merge(
-        dfUrine,
+        dfSumUrine,
         on="subject_id",
         how="left",
         suffixes=("_patient", "_creat"),

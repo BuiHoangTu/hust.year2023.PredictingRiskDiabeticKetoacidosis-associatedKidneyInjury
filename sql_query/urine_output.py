@@ -24,12 +24,9 @@ def extractUrineOutput():
         227489,
     ]
     CHARTED_URINE_FILE = "urine_output.csv"
-    if (TEMP_PATH / CHARTED_URINE_FILE).exists():
-        dfOutputeventsUrine = pd.read_csv(TEMP_PATH / CHARTED_URINE_FILE)
-        pass
-    else:
-        dfOutputeventsUrine = extractOutputEvents(OUTPUT_EVENT_URINE_IDs, CHARTED_URINE_FILE)
-        pass
+
+    dfOutputeventsUrine = extractOutputEvents(OUTPUT_EVENT_URINE_IDs, CHARTED_URINE_FILE)
+        
     dfOutputeventsUrine["charttime"] = pd.to_datetime(dfOutputeventsUrine["charttime"])
 
     result = pd.DataFrame()

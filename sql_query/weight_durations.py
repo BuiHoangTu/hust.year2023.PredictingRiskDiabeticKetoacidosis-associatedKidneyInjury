@@ -10,12 +10,9 @@ WEIGHT_DURATIONS_FILE = "weight_durations.csv"
 
 def extractWeight():
     WEIGHT_FILE = "chartevents_weight.csv"
-    if (TEMP_PATH / WEIGHT_FILE).exists():
-        dfCharteventsWeight = pd.read_csv(TEMP_PATH / WEIGHT_FILE)
-        pass
-    else:
-        dfCharteventsWeight = extractChartEventMesures([226512, 224639], WEIGHT_FILE)
-        pass
+
+    dfCharteventsWeight = extractChartEventMesures([226512, 224639], WEIGHT_FILE)
+
     dfCharteventsWeight["charttime"] = pd.to_datetime(dfCharteventsWeight["charttime"])
 
     dfTargetPatients = pd.read_csv(TEMP_PATH / "target_patients.csv")
@@ -36,5 +33,5 @@ def extractWeight():
     if result is None:
         raise ResultEmptyException()
     result.to_csv(TEMP_PATH / WEIGHT_DURATIONS_FILE)
-    
+
     return result

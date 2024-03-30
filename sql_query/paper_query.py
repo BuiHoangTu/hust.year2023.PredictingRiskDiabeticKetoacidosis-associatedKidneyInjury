@@ -12,12 +12,8 @@ AKD_FILE = "akd.csv"
 
 def extractAkd():
     MARKED_CREAT_FILE = LAB_CREAT_STAGE_FILE_NAME
-    if (TEMP_PATH / MARKED_CREAT_FILE).exists():
-        dfCreatStg = pd.read_csv(TEMP_PATH / MARKED_CREAT_FILE)
-        pass
-    else:
-        dfCreatStg = extractChartEventMesures(220045, MARKED_CREAT_FILE)
-        pass
+
+    dfCreatStg = extractChartEventMesures(220045, MARKED_CREAT_FILE)
 
     if (TEMP_PATH / UO_RATE_FILE).exists():
         dfUoRate = pd.read_csv(TEMP_PATH / UO_RATE_FILE)

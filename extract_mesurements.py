@@ -8,11 +8,11 @@ IMPORTANT_MESUREMENTS_ICU = {
     227519: "urine_output",
     224639: "weight",
     227457: "plt",
-    220615: "creatinine"
+    220615: "creatinine",
 }
 
 IMPORTANT_MESUREMENTS_LABEVENT = {
-    51006: "bun"    
+    51006: "bun",
 }
 
 
@@ -25,7 +25,9 @@ def extractWithStayId(
 
     mesureChunks = []
 
-    targetPatients = set(pd.read_csv(TEMP_PATH / "target_patients.csv", usecols=["stay_id"])["stay_id"])
+    targetPatients = set(
+        pd.read_csv(TEMP_PATH / "target_patients.csv", usecols=["stay_id"])["stay_id"]
+    )
 
     for chunk in source:
         # remove chunk id
@@ -46,8 +48,11 @@ def extractWithStayId(
     return dfMesure
 
 
-def extractOutputEvents(itemId: int|list[int], outputFile:str|None) -> pd.DataFrame:
-    """Extract chartevent of my target patients
+def extractOutputEvents(
+    itemId: int | list[int], outputFile: str | None
+) -> pd.DataFrame:
+    """Extract chartevent of my target patients, save to outputFile if not None.
+    This will try return content of outputFile beforehand.
 
     Args:
         mesureId (int|list[int]): id of the mesure(s) need extracting
@@ -57,13 +62,20 @@ def extractOutputEvents(itemId: int|list[int], outputFile:str|None) -> pd.DataFr
         pd.DataFrame: mesure and its data
     """
 
+    if outputFile is not None:
+        if (TEMP_PATH / outputFile).exists():
+            return pd.read_csv(TEMP_PATH / outputFile)
+
     source = pd.read_csv(MIMIC_PATH / "icu" / "outputevents.csv", chunksize=10000)
-    
+
     return extractWithStayId(itemId, source, outputFile)
 
 
-def extractChartEventMesures(itemId: int|list[int], outputFile: str|None) -> pd.DataFrame:
-    """Extract chartevent of my target patients
+def extractChartEventMesures(
+    itemId: int | list[int], outputFile: str | None
+) -> pd.DataFrame:
+    """Extract chartevent of my target patients, save to outputFile if not None.
+    This will try return content of outputFile beforehand.
 
     Args:
         mesureId (int|list[int]): id of the mesure(s) need extracting
@@ -73,8 +85,12 @@ def extractChartEventMesures(itemId: int|list[int], outputFile: str|None) -> pd.
         pd.DataFrame: mesure and its data
     """
 
+    if outputFile is not None:
+        if (TEMP_PATH / outputFile).exists():
+            return pd.read_csv(TEMP_PATH / outputFile)
+
     source = pd.read_csv(MIMIC_PATH / "icu" / "chartevents.csv", chunksize=10000)
-    
+
     return extractWithStayId(itemId, source, outputFile)
 
 
@@ -109,8 +125,11 @@ def extractWithHadmId(
     return dfMesure
 
 
-def extractLabEventMesures(mesureId: int|list[int], outputFile: str|None) -> pd.DataFrame:
-    """Extract labevent of my target patients
+def extractLabEventMesures(
+    mesureId: int | list[int], outputFile: str | None
+) -> pd.DataFrame:
+    """Extract labevent of my target patients, save to outputFile if not None.
+    This will try return content of outputFile beforehand.
 
     Args:
         mesureId (int|list[int]): id of the mesure(s) need extracting
@@ -119,15 +138,19 @@ def extractLabEventMesures(mesureId: int|list[int], outputFile: str|None) -> pd.
     Returns:
         pd.DataFrame: mesure and its data
     """
-    
+
+    if outputFile is not None:
+        if (TEMP_PATH / outputFile).exists():
+            return pd.read_csv(TEMP_PATH / outputFile)
+
     source = pd.read_csv(MIMIC_PATH / "hosp" / "labevents.csv", chunksize=10000)
-    
+
     return extractWithHadmId(mesureId, source, outputFile)
 
 
 if __name__ == "__main__":
     # extractChartEventMesures()
-    
+
     # for icdCode, icdName in IMPORTANT_MESUREMENTS_ICU.items():
     #     extract_chartevents_mesurement_from_icu(icdCode, "chartevent_" + icdName + ".csv")
     #     pass
