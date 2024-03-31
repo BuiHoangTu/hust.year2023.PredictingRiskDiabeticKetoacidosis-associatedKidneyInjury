@@ -5,10 +5,13 @@ from constants import SQL_PATH, TEMP_PATH
 from extract_mesurements import extractOutputEvents
 from sql_query.query_exceptions import ResultEmptyException
 
-URINE_OUTPUT_FILE = "urine_output.csv"
-
 
 def extractUrineOutput():
+    URINE_OUTPUT_FILE = "urine_output.csv"
+    
+    if (TEMP_PATH / URINE_OUTPUT_FILE).exists():
+        return pd.read_csv(TEMP_PATH / URINE_OUTPUT_FILE)
+
     OUTPUT_EVENT_URINE_IDs = [
         226559,
         226560,
@@ -26,7 +29,7 @@ def extractUrineOutput():
     CHARTED_URINE_FILE = "urine_output.csv"
 
     dfOutputeventsUrine = extractOutputEvents(OUTPUT_EVENT_URINE_IDs, CHARTED_URINE_FILE)
-        
+
     dfOutputeventsUrine["charttime"] = pd.to_datetime(dfOutputeventsUrine["charttime"])
 
     result = pd.DataFrame()

@@ -5,15 +5,16 @@ from constants import SQL_PATH, TEMP_PATH
 from extract_mesurements import extractChartEventMesures
 from sql_query.query_exceptions import ResultEmptyException
 from sql_query.urine_output import extractUrineOutput
-from sql_query.weight_durations import WEIGHT_DURATIONS_FILE, extractWeight
-
-UO_RATE_FILE = "urine_output_rate.csv"
+from sql_query.weight_durations import extractWeight
 
 
 def extractOURate():
-    CHARTED_220045_FILE = "chartevents_220045.csv"
+    UO_RATE_FILE = "urine_output_rate.csv"
 
-    dfChartevents220045 = extractChartEventMesures(220045, CHARTED_220045_FILE)
+    if (TEMP_PATH / UO_RATE_FILE).exists():
+        return pd.read_csv(TEMP_PATH / UO_RATE_FILE)
+
+    dfChartevents220045 = extractChartEventMesures(220045, "chartevents_220045.csv")
 
     dfChartevents220045["charttime"] = pd.to_datetime(dfChartevents220045["charttime"])
 
@@ -23,12 +24,7 @@ def extractOURate():
 
     dfUrineOutput = extractUrineOutput()
 
-    if (TEMP_PATH / WEIGHT_DURATIONS_FILE).exists():
-        dfWeightDuration = pd.read_csv(TEMP_PATH / WEIGHT_DURATIONS_FILE)
-        pass
-    else:
-        dfWeightDuration = extractWeight()
-        pass
+    dfWeightDuration = extractWeight()
 
     result = pd.DataFrame()
     with open(SQL_PATH / "urine_output_rate.sql", "r") as queryStr:

@@ -2,25 +2,20 @@ import pandas as pd
 from pandasql import sqldf
 
 from constants import SQL_PATH, TEMP_PATH
-from extract_mesurements import extractChartEventMesures
-from mark_akd_creatinine import LAB_CREAT_STAGE_FILE_NAME
+from mark_akd_creatinine import markAkdCreatinine
 from sql_query.query_exceptions import ResultEmptyException
-from sql_query.urine_output_rate import UO_RATE_FILE, extractOURate
-
-AKD_FILE = "akd.csv"
+from sql_query.urine_output_rate import extractOURate
 
 
 def extractAkd():
-    MARKED_CREAT_FILE = LAB_CREAT_STAGE_FILE_NAME
+    AKD_FILE = "akd.csv"
 
-    dfCreatStg = extractChartEventMesures(220045, MARKED_CREAT_FILE)
+    if (TEMP_PATH / AKD_FILE).exists():
+        return pd.read_csv(TEMP_PATH / AKD_FILE)
 
-    if (TEMP_PATH / UO_RATE_FILE).exists():
-        dfUoRate = pd.read_csv(TEMP_PATH / UO_RATE_FILE)
-        pass
-    else:
-        dfUoRate = extractOURate()
-        pass
+    dfCreatStg = markAkdCreatinine()
+
+    dfUoRate = extractOURate()
 
     dfTargetPatients = pd.read_csv(TEMP_PATH / "target_patients.csv")
     dfTargetPatients["intime"] = pd.to_datetime(dfTargetPatients["intime"])

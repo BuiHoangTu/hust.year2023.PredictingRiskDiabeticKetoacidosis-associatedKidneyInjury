@@ -2,7 +2,7 @@ import pandas as pd
 from constants import TEMP_PATH
 from extract_mesurements import extractLabEventMesures
 
-LAB_CREAT_STAGE_FILE_NAME = "akd_creatinine.csv"
+MESURES_CREAT_STAGE_FILE_NAME = "akd_creatinine.csv"
 ICU_CREAT_STAGE_FILE_NAME = "icu_akd_stage_creat.csv"
 
 
@@ -14,6 +14,9 @@ def markAkdCreatinine():
         pd.DataFrame: creatinine mesure 7d within icu admission,
         added "aki_stage_creat" indicating akd stage of patients by the mesure
     """
+
+    if (TEMP_PATH / MESURES_CREAT_STAGE_FILE_NAME).exists():
+        return pd.read_csv(TEMP_PATH / MESURES_CREAT_STAGE_FILE_NAME)
 
     LAB_CREAT_ID = 50912
 
@@ -87,6 +90,8 @@ def markAkdCreatinine():
         elif (value >= value48h + 0.3) or (value >= value7d * 1.5):
             dfCreatMesure.at[i, "aki_stage_creat"] = 1
         pass
+    dfCreatMesure.to_csv(TEMP_PATH / MESURES_CREAT_STAGE_FILE_NAME)
+
     return dfCreatMesure
 
 
@@ -95,13 +100,8 @@ def markIcuCreatinine():
 
     usingColumns = ["stay_id", "aki_stage_creat"]
 
-    if (TEMP_PATH / LAB_CREAT_STAGE_FILE_NAME).exists():
-        dfCreatinineStage = pd.read_csv(TEMP_PATH / LAB_CREAT_STAGE_FILE_NAME)
-        pass
-    else:
-        dfCreatinineStage = markAkdCreatinine()
-        dfCreatinineStage.to_csv(TEMP_PATH / LAB_CREAT_STAGE_FILE_NAME)
-        pass
+    dfCreatinineStage = markAkdCreatinine()
+    pass
 
     dfCreatinineStage = dfCreatinineStage[usingColumns]
 
@@ -110,8 +110,6 @@ def markIcuCreatinine():
     )
 
     return dfIcuCreatinineStage
-
-    pass
 
 
 if __name__ == "__main__":

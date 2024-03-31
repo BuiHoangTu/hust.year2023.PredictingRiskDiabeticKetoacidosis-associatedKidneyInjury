@@ -5,13 +5,14 @@ from constants import SQL_PATH, TEMP_PATH
 from extract_mesurements import extractChartEventMesures
 from sql_query.query_exceptions import ResultEmptyException
 
-WEIGHT_DURATIONS_FILE = "weight_durations.csv"
-
 
 def extractWeight():
-    WEIGHT_FILE = "chartevents_weight.csv"
-
-    dfCharteventsWeight = extractChartEventMesures([226512, 224639], WEIGHT_FILE)
+    WEIGHT_DURATIONS_FILE = "weight_durations.csv"
+    
+    if (TEMP_PATH / WEIGHT_DURATIONS_FILE).exists():
+        return pd.read_csv(TEMP_PATH / WEIGHT_DURATIONS_FILE)
+    
+    dfCharteventsWeight = extractChartEventMesures([226512, 224639], "chartevents_weight.csv")
 
     dfCharteventsWeight["charttime"] = pd.to_datetime(dfCharteventsWeight["charttime"])
 
