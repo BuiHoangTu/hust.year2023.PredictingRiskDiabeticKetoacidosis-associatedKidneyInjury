@@ -55,6 +55,10 @@ select
   , urine.aki_stage_uo
   -- Classify AKI using both creat/urine output criteria
   , CASE
+      -- let it null to remove row if needed
+      -- WHEN creat_mesure.aki_stage_creat IS NULL AND urine.aki_stage_uo IS NULL THEN 0
+      WHEN creat_mesure.aki_stage_creat IS NULL THEN urine.aki_stage_uo
+      WHEN urine.aki_stage_uo IS NULL THEN creat_mesure.aki_stage_creat 
       WHEN creat_mesure.aki_stage_creat >= urine.aki_stage_uo THEN creat_mesure.aki_stage_creat
       ELSE urine.aki_stage_uo
     END AS aki_stage
