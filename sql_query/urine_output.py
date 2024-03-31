@@ -26,7 +26,7 @@ def extractUrineOutput():
         227488,
         227489,
     ]
-    CHARTED_URINE_FILE = "urine_output.csv"
+    CHARTED_URINE_FILE = "urine_mesures.csv"
 
     dfOutputeventsUrine = extractOutputEvents(OUTPUT_EVENT_URINE_IDs, CHARTED_URINE_FILE)
 
