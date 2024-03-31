@@ -16,6 +16,10 @@ def extractAkd():
     dfCreatStg = markAkdCreatinine()
 
     dfUoRate = extractOURate()
+    # convert columns' names between 2 sql
+    dfUoRate["uo_rt_6hr"] = dfUoRate["uo_mlkghr_6hr"]
+    dfUoRate["uo_rt_12hr"] = dfUoRate["uo_mlkghr_12hr"]
+    dfUoRate["uo_rt_24hr"] = dfUoRate["uo_mlkghr_24hr"]
 
     dfTargetPatients = pd.read_csv(TEMP_PATH / "target_patients.csv")
     dfTargetPatients["intime"] = pd.to_datetime(dfTargetPatients["intime"])

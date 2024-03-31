@@ -20,20 +20,16 @@ WITH tm AS (
     SELECT 
         tm.stay_id,
         CASE
-            WHEN lag_charttime IS NULL THEN CAST((strftime('%s', charttime) - strftime('%s', intime_hr)) / 60 AS INTEGER)
-            ELSE CAST((strftime('%s', charttime) - strftime('%s', lag_charttime)) / 60 AS INTEGER)
+            WHEN LAG(charttime) OVER w IS NULL 
+                THEN CAST((strftime('%s', charttime) - strftime('%s', intime_hr)) / 60 AS INTEGER)
+            ELSE CAST((strftime('%s', charttime) - strftime('%s', LAG(charttime) OVER w)) / 60 AS INTEGER)
         END AS tm_since_last_uo,
-        uo.charttime AS charttime,
+        uo.charttime,
         uo.urineoutput
-    FROM (
-        SELECT
-            uo.stay_id,
-            uo.urineoutput,
-            uo.charttime,
-            LAG(uo.charttime) OVER (PARTITION BY uo.stay_id ORDER BY uo.charttime) AS lag_charttime
-        FROM urine_output uo
-    ) uo
-    INNER JOIN tm ON tm.stay_id = uo.stay_id
+    FROM tm
+    INNER JOIN urine_output uo
+        ON tm.stay_id = uo.stay_id
+    WINDOW w as (PARTITION BY tm.stay_id ORDER BY charttime)
 )
 
 , ur_stg AS (
@@ -41,14 +37,22 @@ WITH tm AS (
         -- Total UO over the last 24 hours
         SUM(DISTINCT io.urineoutput) AS uo,
         -- UO over a 6 hour period
-        SUM(CASE WHEN strftime('%s', io.charttime) - strftime('%s', iosum.charttime) <= 21600 THEN iosum.urineoutput ELSE null END) AS urineoutput_6hr,
-        SUM(CASE WHEN strftime('%s', io.charttime) - strftime('%s', iosum.charttime) <= 21600 THEN iosum.tm_since_last_uo ELSE null END) / 3600.0 AS uo_tm_6hr,
+        SUM(CASE WHEN strftime('%s', io.charttime) - strftime('%s', iosum.charttime) < 21600 
+            THEN iosum.urineoutput 
+            ELSE null END) AS urineoutput_6hr,
+        SUM(CASE WHEN strftime('%s', io.charttime) - strftime('%s', iosum.charttime) < 21600 
+            THEN iosum.tm_since_last_uo 
+            ELSE null END) / 60.0 AS uo_tm_6hr,
         -- UO over a 12 hour period
-        SUM(CASE WHEN strftime('%s', io.charttime) - strftime('%s', iosum.charttime) <= 43200 THEN iosum.urineoutput ELSE null END) AS urineoutput_12hr,
-        SUM(CASE WHEN strftime('%s', io.charttime) - strftime('%s', iosum.charttime) <= 43200 THEN iosum.tm_since_last_uo ELSE null END) / 3600.0 AS uo_tm_12hr,
+        SUM(CASE WHEN strftime('%s', io.charttime) - strftime('%s', iosum.charttime) < 43200 
+            THEN iosum.urineoutput 
+            ELSE null END) AS urineoutput_12hr,
+        SUM(CASE WHEN strftime('%s', io.charttime) - strftime('%s', iosum.charttime) < 43200 
+            THEN iosum.tm_since_last_uo 
+            ELSE null END) / 60.0 AS uo_tm_12hr,
         -- UO over a 24 hour period
         SUM(iosum.urineoutput) AS urineoutput_24hr,
-        SUM(iosum.tm_since_last_uo) / 3600.0 AS uo_tm_24hr
+        SUM(iosum.tm_since_last_uo) / 60.0 AS uo_tm_24hr
     FROM uo_tm io
     -- Joining to get all UO measurements over a 24 hour period
     LEFT JOIN uo_tm iosum
@@ -63,9 +67,9 @@ SELECT
     , ur.charttime
     , wd.weight
     , ur.uo
-    , ur.urineoutput_6hr as uo_rt_6hr
-    , ur.urineoutput_12hr as uo_rt_12hr
-    , ur.urineoutput_24hr as uo_rt_24hr
+    , ur.urineoutput_6hr
+    , ur.urineoutput_12hr
+    , ur.urineoutput_24hr 
     , CASE
         WHEN
             uo_tm_6hr >= 6 THEN ROUND(

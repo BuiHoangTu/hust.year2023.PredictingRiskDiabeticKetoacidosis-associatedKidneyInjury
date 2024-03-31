@@ -14,8 +14,8 @@ def extractOURate():
     if (TEMP_PATH / UO_RATE_FILE).exists():
         return pd.read_csv(TEMP_PATH / UO_RATE_FILE)
 
+    # bpm - heart rate 
     dfChartevents220045 = extractChartEventMesures(220045, "chartevents_220045.csv")
-
     dfChartevents220045["charttime"] = pd.to_datetime(dfChartevents220045["charttime"])
 
     dfTargetPatients = pd.read_csv(TEMP_PATH / "target_patients.csv")
