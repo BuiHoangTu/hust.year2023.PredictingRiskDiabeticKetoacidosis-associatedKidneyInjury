@@ -1,5 +1,5 @@
 import pandas as pd
-from constants import TEMP_PATH
+from constants import TARGET_PATIENT_FILE, TEMP_PATH
 from extract_mesurements import extractLabEventMesures
 
 MESURES_CREAT_STAGE_FILE_NAME = "akd_creatinine.csv"
@@ -28,7 +28,7 @@ def markAkdCreatinine():
 
     # icu_stay filtered
     dfTargetPatients = pd.read_csv(
-        TEMP_PATH / "target_patients.csv",
+        TEMP_PATH / TARGET_PATIENT_FILE,
         usecols=["stay_id", "intime", "outtime", "subject_id"],
         parse_dates=["intime", "outtime"],
     )

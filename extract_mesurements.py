@@ -1,7 +1,7 @@
 import pandas as pd
 from pandas.io.parsers import TextFileReader
 
-from constants import MIMIC_PATH, TEMP_PATH
+from constants import MIMIC_PATH, TARGET_PATIENT_FILE, TEMP_PATH
 
 # other important mesurements
 IMPORTANT_MESUREMENTS_ICU = {
@@ -26,7 +26,7 @@ def extractWithStayId(
     mesureChunks = []
 
     targetPatients = set(
-        pd.read_csv(TEMP_PATH / "target_patients.csv", usecols=["stay_id"])["stay_id"]
+        pd.read_csv(TEMP_PATH / TARGET_PATIENT_FILE, usecols=["stay_id"])["stay_id"]
     )
 
     for chunk in source:
@@ -103,7 +103,7 @@ def extractWithHadmId(
     mesureChunks = []
 
     targetPatients = set(
-        pd.read_csv(TEMP_PATH / "target_patients.csv", usecols=["hadm_id"])["hadm_id"]
+        pd.read_csv(TEMP_PATH / TARGET_PATIENT_FILE, usecols=["hadm_id"])["hadm_id"]
     )
 
     for chunk in source:

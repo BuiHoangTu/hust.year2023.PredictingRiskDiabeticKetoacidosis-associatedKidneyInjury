@@ -1,7 +1,7 @@
 import pandas as pd
 from pandasql import sqldf
 
-from constants import SQL_PATH, TEMP_PATH
+from constants import SQL_PATH, TARGET_PATIENT_FILE, TEMP_PATH
 from sql_query.query_exceptions import ResultEmptyException
 from sql_query.stage_per_mesure import extractAkdPerMesure
 
@@ -12,7 +12,7 @@ def extractAkdPerPatient():
     if (TEMP_PATH / PATIENT_STAGE_FILE).exists():
         return pd.read_csv(TEMP_PATH / PATIENT_STAGE_FILE)
 
-    dfTargetPatients = pd.read_csv(TEMP_PATH / "target_patients.csv")
+    dfTargetPatients = pd.read_csv(TEMP_PATH / TARGET_PATIENT_FILE)
     dfTargetPatients["intime"] = pd.to_datetime(dfTargetPatients["intime"])
     dfTargetPatients["outtime"] = pd.to_datetime(dfTargetPatients["outtime"])
 

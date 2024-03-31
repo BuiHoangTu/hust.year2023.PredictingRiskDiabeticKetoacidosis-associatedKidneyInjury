@@ -1,5 +1,5 @@
 import pandas as pd
-from constants import TEMP_PATH
+from constants import TARGET_PATIENT_FILE, TEMP_PATH
 from extract_mesurements import extractChartEventMesures, extractOutputEvents
 
 
@@ -46,7 +46,7 @@ def markAkdUrineOutput():
     ######### urine output rate #########
     # icu_stay filtered
     dfIcuPatients = pd.read_csv(
-        TEMP_PATH / "target_patients.csv",
+        TEMP_PATH / TARGET_PATIENT_FILE,
         usecols=["stay_id", "intime", "outtime", "subject_id"],
         parse_dates=["intime", "outtime"],
     )
@@ -99,7 +99,7 @@ def markAkdUrineOutput():
     uo_24hr = dfUrStg.groupby(['stay_id', 'charttime'])['urineoutput_sum'].sum()
     uo_tm_24hr = dfUrStg.groupby(['stay_id', 'charttime'])['tm_since_last_uo_sum'].sum() / 60.0
 
-    result_df = pd.DataFrame({
+    result_df = pd.DataFrame({  # noqa: F841
         'uo': uo_24hr,
         'urineoutput_6hr': uo_6hr,
         'uo_tm_6hr': uo_tm_6hr,

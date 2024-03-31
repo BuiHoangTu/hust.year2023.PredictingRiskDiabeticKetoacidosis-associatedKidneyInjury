@@ -1,7 +1,7 @@
 import pandas as pd
 from pandasql import sqldf
 
-from constants import SQL_PATH, TEMP_PATH
+from constants import SQL_PATH, TARGET_PATIENT_FILE, TEMP_PATH
 from extract_mesurements import extractChartEventMesures
 from sql_query.query_exceptions import ResultEmptyException
 
@@ -16,7 +16,7 @@ def extractWeight():
 
     dfCharteventsWeight["charttime"] = pd.to_datetime(dfCharteventsWeight["charttime"])
 
-    dfTargetPatients = pd.read_csv(TEMP_PATH / "target_patients.csv")
+    dfTargetPatients = pd.read_csv(TEMP_PATH / TARGET_PATIENT_FILE)
     dfTargetPatients["intime"] = pd.to_datetime(dfTargetPatients["intime"])
     dfTargetPatients["outtime"] = pd.to_datetime(dfTargetPatients["outtime"])
 

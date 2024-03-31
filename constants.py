@@ -77,4 +77,4 @@ CKD5_CODE_V10 = [
     "N186", # End stage renal disease
 ]
 
-
+TARGET_PATIENT_FILE = "target_patients.csv"
