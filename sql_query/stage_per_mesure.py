@@ -7,11 +7,11 @@ from sql_query.query_exceptions import ResultEmptyException
 from sql_query.urine_output_rate import extractOURate
 
 
-def extractAkd():
-    AKD_FILE = "akd.csv"
+def extractAkdPerMesure():
+    MESURE_STAGE_FILE = "stage_per_mesure.csv"
 
-    if (TEMP_PATH / AKD_FILE).exists():
-        return pd.read_csv(TEMP_PATH / AKD_FILE)
+    if (TEMP_PATH / MESURE_STAGE_FILE).exists():
+        return pd.read_csv(TEMP_PATH / MESURE_STAGE_FILE)
 
     dfCreatStg = markAkdCreatinine()
 
@@ -39,6 +39,6 @@ def extractAkd():
 
     if result is None:
         raise ResultEmptyException()
-    result.to_csv(TEMP_PATH / AKD_FILE)
+    result.to_csv(TEMP_PATH / MESURE_STAGE_FILE)
 
     return result
