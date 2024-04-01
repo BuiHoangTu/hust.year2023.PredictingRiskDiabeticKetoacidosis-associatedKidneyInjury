@@ -1,6 +1,6 @@
 import shutil
+import subprocess
 import sys
-
 from constants import TEMP_PATH
 
 
@@ -20,7 +20,22 @@ def cleanTempPath():
     print(f"All files and folders in '{TEMP_PATH}' have been moved to '{BAK_PATH}'.")
 
 
+def run():
+    process = subprocess.Popen(
+        "jupyter nbconvert --execute --inplace main.ipynb",
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        shell=True,
+    )
+    output, error = process.communicate()
+    return output, error
+
+
 if __name__ == "__main__":
     if any("clear" in argv for argv in sys.argv):
         cleanTempPath()
+        pass
+    if "run" in sys.argv:
+        run()
+        pass
     pass
