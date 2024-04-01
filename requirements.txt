@@ -1,0 +1,5 @@
+jupyter-core
+nbconvert
+ipykernel
+pandas
+pandasql
