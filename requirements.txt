@@ -1,5 +1,6 @@
 jupyter-core
 nbconvert
+nbformat
 ipykernel
 pandas
 pandasql
