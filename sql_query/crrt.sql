@@ -110,7 +110,7 @@ WITH crrt_settings AS (
             AND ce.value IN ('Clotted') THEN 1
             ELSE NULL
         END AS clotted
-    FROM `physionet-data.mimiciv_icu.chartevents` ce
+    FROM chartevents ce
     WHERE ce.itemid IN (
             -- MetaVision ITEMIDs
             227290 -- CRRT Mode
