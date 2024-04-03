@@ -6,7 +6,7 @@ from extract_mesurements import extractChartEventMesures
 from sql_query.query_exceptions import ResultEmptyException
 
 
-def extractWeight():
+def extractWeightDuration():
     WEIGHT_DURATIONS_FILE = "weight_durations.csv"
     
     if (TEMP_PATH / WEIGHT_DURATIONS_FILE).exists():

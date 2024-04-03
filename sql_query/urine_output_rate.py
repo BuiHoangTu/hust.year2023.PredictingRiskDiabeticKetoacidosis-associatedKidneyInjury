@@ -5,7 +5,7 @@ from constants import SQL_PATH, TARGET_PATIENT_FILE, TEMP_PATH
 from extract_mesurements import extractChartEventMesures
 from sql_query.query_exceptions import ResultEmptyException
 from sql_query.urine_output import extractUrineOutput
-from sql_query.weight_durations import extractWeight
+from sql_query.weight_durations import extractWeightDuration
 
 
 def extractOURate():
@@ -24,7 +24,7 @@ def extractOURate():
 
     dfUrineOutput = extractUrineOutput()
 
-    dfWeightDuration = extractWeight()
+    dfWeightDuration = extractWeightDuration()
 
     result = pd.DataFrame()
     with open(SQL_PATH / "urine_output_rate.sql", "r") as queryStr:
