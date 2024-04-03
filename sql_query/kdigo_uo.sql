@@ -2,23 +2,22 @@ WITH uo_stg1 AS (
     SELECT ie.stay_id,
         uo.charttime,
         CAST(
-            DATETIME_DIFF(charttime, intime, SECOND) AS INTEGER
+            strftime('%s', charttime) - strftime('%s', intime) AS INTEGER
         ) AS seconds_since_admit,
         COALESCE(
-            DATETIME_DIFF(
-                charttime,
+            strftime('%s', charttime) - strftime(
+                '%s',
                 LAG(charttime) OVER (
                     PARTITION BY ie.stay_id
                     ORDER BY charttime
-                ),
-                SECOND
+                )
             ) / 3600.0 -- noqa: L016
 ,
             1
         ) AS hours_since_previous_row,
         urineoutput
-    FROM `physionet-data.mimiciv_icu.icustays` ie
-        INNER JOIN `physionet-data.mimiciv_derived.urine_output` uo ON ie.stay_id = uo.stay_id
+    FROM icustays ie
+        INNER JOIN urine_output uo ON ie.stay_id = uo.stay_id
 ),
 uo_stg2 AS (
     SELECT stay_id,
@@ -100,6 +99,6 @@ SELECT ur.stay_id,
     uo_tm_12hr,
     uo_tm_24hr
 FROM uo_stg2 ur
-    LEFT JOIN `physionet-data.mimiciv_derived.weight_durations` wd ON ur.stay_id = wd.stay_id
+    LEFT JOIN weight_durations wd ON ur.stay_id = wd.stay_id
     AND ur.charttime >= wd.starttime
     AND ur.charttime < wd.endtime;

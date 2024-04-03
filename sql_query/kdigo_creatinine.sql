@@ -4,12 +4,12 @@ WITH cr AS (
         ie.stay_id,
         le.charttime,
         AVG(le.valuenum) AS creat
-    FROM `physionet-data.mimiciv_icu.icustays` ie
-        LEFT JOIN `physionet-data.mimiciv_hosp.labevents` le ON ie.subject_id = le.subject_id
+    FROM icustays ie
+        LEFT JOIN labevents le ON ie.subject_id = le.subject_id
         AND le.itemid = 50912
         AND le.valuenum IS NOT NULL
         AND le.valuenum <= 150
-        AND le.charttime >= DATETIME_SUB(ie.intime, INTERVAL '7' DAY)
+        AND le.charttime >= datetime(ie.intime, '-7 days')
         AND le.charttime <= ie.outtime
     GROUP BY ie.hadm_id,
         ie.stay_id,
@@ -23,7 +23,7 @@ cr48 AS (
     FROM cr -- add in all creatinine values in the last 48 hours
         LEFT JOIN cr cr48 ON cr.stay_id = cr48.stay_id
         AND cr48.charttime < cr.charttime
-        AND cr48.charttime >= DATETIME_SUB(cr.charttime, INTERVAL '48' HOUR)
+        AND cr48.charttime >= datetime(cr.charttime, '-48 hours')
     GROUP BY cr.stay_id,
         cr.charttime
 ),
@@ -35,7 +35,7 @@ cr7 AS (
     FROM cr -- add in all creatinine values in the last 7 days
         LEFT JOIN cr cr7 ON cr.stay_id = cr7.stay_id
         AND cr7.charttime < cr.charttime
-        AND cr7.charttime >= DATETIME_SUB(cr.charttime, INTERVAL '7' DAY)
+        AND cr7.charttime >= datetime(cr.charttime, '-7 days')
     GROUP BY cr.stay_id,
         cr.charttime
 )

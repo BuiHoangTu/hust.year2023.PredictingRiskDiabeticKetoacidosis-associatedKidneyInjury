@@ -26,7 +26,7 @@ WITH cr_stg AS (
             WHEN cr.creat >= (cr.creat_low_past_7day * 1.5) THEN 1
             ELSE 0
         END AS aki_stage_creat
-    FROM `physionet-data.mimiciv_derived.kdigo_creatinine` cr
+    FROM kdigo_creatinine cr
 ) -- stages for UO / creat
 ,
 uo_stg AS (
@@ -39,7 +39,7 @@ uo_stg AS (
 ,
         CASE
             WHEN uo.uo_rt_6hr IS NULL THEN NULL -- require patient to be in ICU for at least 6 hours to stage UO
-            WHEN uo.charttime <= DATETIME_ADD(ie.intime, INTERVAL '6' HOUR) THEN 0 -- require the UO rate to be calculated over the
+            WHEN uo.charttime <= datetime(icu.intime, '+6 hour') THEN 0 -- require the UO rate to be calculated over the
             -- duration specified in KDIGO
             -- Stage 3: <0.3 ml/kg/h for >=24 hours
             WHEN uo.uo_tm_24hr >= 24
@@ -52,8 +52,8 @@ uo_stg AS (
             AND uo.uo_rt_6hr < 0.5 THEN 1
             ELSE 0
         END AS aki_stage_uo
-    FROM `physionet-data.mimiciv_derived.kdigo_uo` uo
-        INNER JOIN `physionet-data.mimiciv_icu.icustays` ie ON uo.stay_id = ie.stay_id
+    FROM kdigo_uo uo
+        INNER JOIN icustays ie ON uo.stay_id = ie.stay_id
 ) -- get CRRT data
 ,
 crrt_stg AS (
@@ -63,7 +63,7 @@ crrt_stg AS (
             WHEN charttime IS NOT NULL THEN 3
             ELSE NULL
         END AS aki_stage_crrt
-    FROM `physionet-data.mimiciv_derived.crrt`
+    FROM crrt
     WHERE crrt_mode IS NOT NULL
 ) -- get all charttimes documented
 ,
@@ -96,7 +96,7 @@ SELECT ie.subject_id,
     uo.aki_stage_uo,
     crrt.aki_stage_crrt -- Classify AKI using both creatinine/urine output criteria
 ,
-    GREATEST(
+    MAX(
         COALESCE(cr.aki_stage_creat, 0),
         COALESCE(uo.aki_stage_uo, 0),
         COALESCE(crrt.aki_stage_crrt, 0)
@@ -115,7 +115,7 @@ SELECT ie.subject_id,
     -- out any discontinuity.
 ,
     MAX(
-        GREATEST(
+        MAX(
             COALESCE(cr.aki_stage_creat, 0),
             COALESCE(uo.aki_stage_uo, 0),
             COALESCE(crrt.aki_stage_crrt, 0)
@@ -124,7 +124,7 @@ SELECT ie.subject_id,
         PARTITION BY ie.subject_id
         ORDER BY DATETIME_DIFF(tm.charttime, ie.intime, SECOND) RANGE BETWEEN 21600 PRECEDING AND CURRENT ROW
     ) AS aki_stage_smoothed
-FROM `physionet-data.mimiciv_icu.icustays` ie -- get all possible charttimes as listed in tm_stg
+FROM icustays ie -- get all possible charttimes as listed in tm_stg
     LEFT JOIN tm_stg tm ON ie.stay_id = tm.stay_id
     LEFT JOIN cr_stg cr ON ie.stay_id = cr.stay_id
     AND tm.charttime = cr.charttime
