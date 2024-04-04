@@ -1,29 +1,36 @@
 import pandas as pd
 from pandasql import sqldf
 
-from constants import SQL_PATH, TARGET_PATIENT_FILE, TEMP_PATH
-from extract_mesurements import extractLabEventMesures
-from sql_query.query_exceptions import ResultEmptyException
+from constants import AKD_SQL_PATH, TARGET_PATIENT_FILE, TEMP_PATH
+from akd_stage.crrt import extractCrrt
+from akd_stage.kdigo_creatinine import extractKdigoCreatinine
+from akd_stage.kdigo_uo import extractKdigoUrineOutput
+from akd_stage.query_exceptions import ResultEmptyException
 
 
-def extractKdigoCreatinine():
-    OUTPUT_FILE = "kdigo_creatinine.csv"
+def extractKdigoStages():
+    OUTPUT_FILE = "kdigo_stages.csv"
 
     if (TEMP_PATH / OUTPUT_FILE).exists():
         return pd.read_csv(TEMP_PATH / OUTPUT_FILE)
+
+    dfKdigoCreat = extractKdigoCreatinine()
+
+    dfKdigoUO = extractKdigoUrineOutput()
 
     dfTargetPatients = pd.read_csv(TEMP_PATH / TARGET_PATIENT_FILE)
     dfTargetPatients["intime"] = pd.to_datetime(dfTargetPatients["intime"])
     dfTargetPatients["outtime"] = pd.to_datetime(dfTargetPatients["outtime"])
 
-    LABEVENT_FILE = "labevent_50912.csv"
-    dfLabevent = extractLabEventMesures(50912, LABEVENT_FILE)
+    dfCrrt = extractCrrt()
 
     result = pd.DataFrame()
-    with open(SQL_PATH / "kdigo_creatitnine.sql", "r") as queryStr:
+    with open(AKD_SQL_PATH / "kdigo_stages.sql", "r") as queryStr:
         map = {
+            "kdigo_creatinine": dfKdigoCreat,
+            "kdigo_uo": dfKdigoUO,
             "icustays": dfTargetPatients,
-            "labevents": dfLabevent,
+            "crrt": dfCrrt,
         }
 
         result = sqldf(queryStr.read(), map)

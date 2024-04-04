@@ -1,33 +1,28 @@
 import pandas as pd
 from pandasql import sqldf
 
-from constants import SQL_PATH, TARGET_PATIENT_FILE, TEMP_PATH
-from sql_query.query_exceptions import ResultEmptyException
-from sql_query.urine_output import extractUrineOutput
-from sql_query.weight_durations import extractWeightDuration
+from constants import AKD_SQL_PATH, TARGET_PATIENT_FILE, TEMP_PATH
+from akd_stage.kdigo_stages import extractKdigoStages
+from akd_stage.query_exceptions import ResultEmptyException
 
 
-def extractKdigoUrineOutput():
-    OUTPUT_FILE = "kdigo_uo.csv"
+def extractKdigoStages7day():
+    OUTPUT_FILE = "kdigo_stages_7day.csv"
 
     if (TEMP_PATH / OUTPUT_FILE).exists():
         return pd.read_csv(TEMP_PATH / OUTPUT_FILE)
-
 
     dfTargetPatients = pd.read_csv(TEMP_PATH / TARGET_PATIENT_FILE)
     dfTargetPatients["intime"] = pd.to_datetime(dfTargetPatients["intime"])
     dfTargetPatients["outtime"] = pd.to_datetime(dfTargetPatients["outtime"])
 
-    dfUO = extractUrineOutput() 
-
-    dfWeightDuration = extractWeightDuration() 
+    dfKdigoStage = extractKdigoStages()
 
     result = pd.DataFrame()
-    with open(SQL_PATH / "kdigo_uo.sql", "r") as queryStr:
+    with open(AKD_SQL_PATH / "kdigo_stages_7day.sql", "r") as queryStr:
         map = {
             "icustays": dfTargetPatients,
-            "urine_output": dfUO,
-            "weight_durations": dfWeightDuration,
+            "kdigo_stages": dfKdigoStage,
         }
 
         result = sqldf(queryStr.read(), map)

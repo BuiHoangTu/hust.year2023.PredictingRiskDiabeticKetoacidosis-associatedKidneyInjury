@@ -1,11 +1,11 @@
 import pandas as pd
 from pandasql import sqldf
 
-from constants import SQL_PATH, TARGET_PATIENT_FILE, TEMP_PATH
+from constants import AKD_SQL_PATH, TARGET_PATIENT_FILE, TEMP_PATH
 from extract_mesurements import extractChartEventMesures
-from sql_query.query_exceptions import ResultEmptyException
-from sql_query.urine_output import extractUrineOutput
-from sql_query.weight_durations import extractWeightDuration
+from akd_stage.query_exceptions import ResultEmptyException
+from akd_stage.urine_output import extractUrineOutput
+from akd_stage.weight_durations import extractWeightDuration
 
 
 def extractOURate():
@@ -27,7 +27,7 @@ def extractOURate():
     dfWeightDuration = extractWeightDuration()
 
     result = pd.DataFrame()
-    with open(SQL_PATH / "urine_output_rate.sql", "r") as queryStr:
+    with open(AKD_SQL_PATH / "urine_output_rate.sql", "r") as queryStr:
         map = {
             "target_patients": dfTargetPatients,
             "chartevents": dfChartevents220045,

@@ -1,9 +1,9 @@
 import pandas as pd
 from pandasql import sqldf
 
-from constants import SQL_PATH, TEMP_PATH
+from constants import AKD_SQL_PATH, TEMP_PATH
 from extract_mesurements import extractChartEventMesures
-from sql_query.query_exceptions import ResultEmptyException
+from akd_stage.query_exceptions import ResultEmptyException
 
 
 def extractCrrt():
@@ -40,7 +40,7 @@ def extractCrrt():
     dfChartEventCrrt["charttime"] = pd.to_datetime(dfChartEventCrrt["charttime"])
 
     result = pd.DataFrame()
-    with open(SQL_PATH / "crrt.sql", "r") as queryStr:
+    with open(AKD_SQL_PATH / "crrt.sql", "r") as queryStr:
         map = {
             "chartevents": dfChartEventCrrt,
         }
