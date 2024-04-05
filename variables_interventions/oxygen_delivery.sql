@@ -11,7 +11,7 @@ WITH ce_stg1 AS (
         valuenum,
         valueuom,
         storetime
-    FROM `physionet-data.mimiciv_icu.chartevents` ce
+    FROM chartevents ce
     WHERE ce.value IS NOT NULL
         AND ce.itemid IN (
             223834 -- o2 flow
@@ -67,7 +67,7 @@ o2 AS (
             itemid
             ORDER BY value
         ) AS rn
-    FROM `physionet-data.mimiciv_icu.chartevents`
+    FROM chartevents
     WHERE itemid = 226732 -- oxygen delivery device(s)
 ),
 stg AS (

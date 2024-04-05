@@ -26,7 +26,7 @@ WITH ce AS (
         END AS valuenum,
         valueuom,
         storetime
-    FROM `physionet-data.mimiciv_icu.chartevents` ce
+    FROM chartevents ce
     WHERE ce.value IS NOT NULL
         AND ce.stay_id IS NOT NULL
         AND ce.itemid IN (
