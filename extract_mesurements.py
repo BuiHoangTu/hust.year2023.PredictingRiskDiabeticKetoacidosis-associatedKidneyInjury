@@ -30,9 +30,6 @@ def extractWithStayId(
     )
 
     for chunk in source:
-        # remove chunk id
-        chunk = chunk.iloc[:, 1:]
-
         isIdRow = chunk["itemid"].isin(itemId)
         isInTargetPatients = chunk["stay_id"].isin(targetPatients)
 
@@ -107,9 +104,6 @@ def extractWithHadmId(
     )
 
     for chunk in source:
-        # remove chunk id
-        chunk = chunk.iloc[:, 1:]
-
         isIdRow = chunk["itemid"].isin(itemId)
         isInTargetPatients = chunk["hadm_id"].isin(targetPatients)
 
