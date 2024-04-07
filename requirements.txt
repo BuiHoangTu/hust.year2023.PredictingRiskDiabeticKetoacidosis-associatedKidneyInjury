@@ -1,5 +1,8 @@
+## core packages for jupyter notebook
 jupyter-core
 nbconvert
 ipykernel
+
+## data reading 
 pandas
 pandasql
