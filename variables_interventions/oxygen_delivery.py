@@ -1,5 +1,5 @@
 import pandas as pd
-from pandasql import sqldf
+from constants import queryPostgresDf
 
 from constants import VAR_INTERVENTION_PATH, TEMP_PATH
 from akd_stage.query_exceptions import ResultEmptyException
@@ -22,7 +22,7 @@ def extractOxygenDelivery():
             "chartevents": dfChartEvent,
         }
 
-        result = sqldf(queryStr.read(), map)
+        result = queryPostgresDf(queryStr.read(), map)
         pass
 
     if result is None:

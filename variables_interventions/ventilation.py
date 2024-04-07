@@ -1,5 +1,5 @@
 import pandas as pd
-from pandasql import sqldf
+from constants import queryPostgresDf
 
 from constants import VAR_INTERVENTION_PATH, TARGET_PATIENT_FILE, TEMP_PATH
 from akd_stage.query_exceptions import ResultEmptyException
@@ -22,7 +22,7 @@ def extractMechVent():
     dfTargetPatients["outtime"] = pd.to_datetime(dfTargetPatients["outtime"])
 
     result = pd.DataFrame()
-    with open(VAR_INTERVENTION_PATH / "urine_output_rate.sql", "r") as queryStr:
+    with open(VAR_INTERVENTION_PATH / "ventilation.sql", "r") as queryStr:
         map = {
             "ventilator_setting": dfVentSetting,
             "oxygen_delivery": dfOxygen,
@@ -30,7 +30,7 @@ def extractMechVent():
             "icustays": dfTargetPatients,
         }
 
-        result = sqldf(queryStr.read(), map)
+        result = queryPostgresDf(queryStr.read(), map)
         pass
 
     if result is None:
