@@ -19,7 +19,7 @@ def extractKdigoStages7day():
     dfKdigoStage = extractKdigoStages()
 
     result = pd.DataFrame()
-    with open(AKD_SQL_PATH / "kdigo_stages_7day.sql", "r") as queryStr:
+    with open(AKD_SQL_PATH / "kdigo_stages_7day.sqlite", "r") as queryStr:
         map = {
             "icustays": dfTargetPatients,
             "kdigo_stages": dfKdigoStage,

@@ -26,7 +26,7 @@ def extractAkdPerMesure():
     dfTargetPatients["outtime"] = pd.to_datetime(dfTargetPatients["outtime"])
 
     result = pd.DataFrame()
-    with open(AKD_SQL_PATH / "stage_per_mesure.sql", "r") as queryStr:
+    with open(AKD_SQL_PATH / "stage_per_mesure.sqlite", "r") as queryStr:
         map = {
             "target_patients": dfTargetPatients,
             "kdigo_creat": dfCreatStg,
