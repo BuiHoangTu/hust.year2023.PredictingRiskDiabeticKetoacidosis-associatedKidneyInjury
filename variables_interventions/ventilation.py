@@ -14,8 +14,10 @@ def extractMechVent():
         return pd.read_csv(TEMP_PATH / OUTPUT_FILE)
 
     dfVentSetting = extractVentilatorSetting()
+    dfVentSetting["charttime"] = pd.to_datetime(dfVentSetting["charttime"], format="ISO8601")
 
     dfOxygen = extractOxygenDelivery()
+    dfOxygen["charttime"] = pd.to_datetime(dfOxygen["charttime"], format="ISO8601")
 
     dfTargetPatients = pd.read_csv(TEMP_PATH / TARGET_PATIENT_FILE)
     dfTargetPatients["intime"] = pd.to_datetime(dfTargetPatients["intime"])
