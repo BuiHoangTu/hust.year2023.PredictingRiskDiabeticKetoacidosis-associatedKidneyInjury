@@ -32,7 +32,7 @@ def run():
 
 
 if __name__ == "__main__":
-    if any("clear" in argv for argv in sys.argv):
+    if any("clean" in argv for argv in sys.argv):
         cleanTempPath()
         pass
     if "run" in sys.argv:

@@ -1,5 +1,5 @@
 import pandas as pd
-from pandasql import sqldf
+from constants import queryPostgresDf
 
 from constants import AKD_SQL_PATH, TARGET_PATIENT_FILE, TEMP_PATH
 from akd_stage.query_exceptions import ResultEmptyException
@@ -30,7 +30,7 @@ def extractKdigoUrineOutput():
             "weight_durations": dfWeightDuration,
         }
 
-        result = sqldf(queryStr.read(), map)
+        result = queryPostgresDf(queryStr.read(), map)
         pass
 
     if result is None:

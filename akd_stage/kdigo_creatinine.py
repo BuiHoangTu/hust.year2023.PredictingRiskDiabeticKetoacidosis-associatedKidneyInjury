@@ -1,5 +1,5 @@
 import pandas as pd
-from pandasql import sqldf
+from constants import queryPostgresDf
 
 from constants import AKD_SQL_PATH, TARGET_PATIENT_FILE, TEMP_PATH
 from extract_mesurements import extractLabEventMesures
@@ -13,11 +13,12 @@ def extractKdigoCreatinine():
         return pd.read_csv(TEMP_PATH / OUTPUT_FILE)
 
     dfTargetPatients = pd.read_csv(TEMP_PATH / TARGET_PATIENT_FILE)
-    dfTargetPatients["intime"] = pd.to_datetime(dfTargetPatients["intime"])
-    dfTargetPatients["outtime"] = pd.to_datetime(dfTargetPatients["outtime"])
+    dfTargetPatients["intime"] = pd.to_datetime(dfTargetPatients["intime"], format="ISO8601")
+    dfTargetPatients["outtime"] = pd.to_datetime(dfTargetPatients["outtime"], format="ISO8601")
 
     LABEVENT_FILE = "labevent_50912.csv"
     dfLabevent = extractLabEventMesures(50912, LABEVENT_FILE)
+    dfLabevent["charttime"] = pd.to_datetime(dfLabevent["charttime"], format="ISO8601")
 
     result = pd.DataFrame()
     with open(AKD_SQL_PATH / "kdigo_creatinine.sql", "r") as queryStr:
@@ -26,7 +27,7 @@ def extractKdigoCreatinine():
             "labevents": dfLabevent,
         }
 
-        result = sqldf(queryStr.read(), map)
+        result = queryPostgresDf(queryStr.read(), map)
         pass
 
     if result is None:

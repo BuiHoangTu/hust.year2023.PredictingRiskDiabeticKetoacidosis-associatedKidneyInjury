@@ -20,7 +20,7 @@ def extractAkdPerPatient():
     dfStagePerMesure["creat"] = dfStagePerMesure["value"]
 
     result = pd.DataFrame()
-    with open(AKD_SQL_PATH / "kdigo_stages_7day.org.sql", "r") as queryStr:
+    with open(AKD_SQL_PATH / "kdigo_stages_7day_org.sqlite", "r") as queryStr:
         map = {
             "target_patients": dfTargetPatients,
             "kdigo_stages": dfStagePerMesure,

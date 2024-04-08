@@ -6,3 +6,5 @@ ipykernel
 ## data reading 
 pandas
 pandasql
+# postgresql driver, an installed postgresql is required
+psycopg2
