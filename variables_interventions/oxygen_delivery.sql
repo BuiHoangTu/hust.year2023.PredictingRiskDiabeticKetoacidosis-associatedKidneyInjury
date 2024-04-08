@@ -3,7 +3,6 @@ WITH ce_stg1 AS (
         ce.stay_id,
         ce.charttime,
         CASE
-            -- merge o2 flows into a single row
             WHEN itemid IN (223834, 227582) THEN 223834
             ELSE itemid
         END AS itemid,
@@ -11,17 +10,20 @@ WITH ce_stg1 AS (
         valuenum,
         valueuom,
         storetime
-    FROM chartevents ce
-    WHERE ce.value IS NOT NULL
+    FROM chartevents AS ce
+    WHERE NOT ce.value IS NULL
         AND ce.itemid IN (
-            223834 -- o2 flow
+            223834
+            /* o2 flow */
 ,
-            227582 -- bipap o2 flow
-            -- below flow rate is *not* o2 flow, and not included
-            -- , 224691 -- Flow Rate (L)
-            -- additional o2 flow is its own column
+            227582
+            /* bipap o2 flow */
+            /* below flow rate is *not* o2 flow, and not included */
+            /* , 224691 -- Flow Rate (L) */
+            /* additional o2 flow is its own column */
 ,
-            227287 -- additional o2 flow
+            227287
+            /* additional o2 flow */
         )
 ),
 ce_stg2 AS (
@@ -31,31 +33,31 @@ ce_stg2 AS (
         itemid,
         value,
         valuenum,
-        valueuom -- retain only 1 row per charttime
-        -- prioritizing the last documented value
-        -- primarily used to subselect o2 flows
-,
+        valueuom,
+        /* retain only 1 row per charttime */
+        /* prioritizing the last documented value */
+        /* primarily used to subselect o2 flows */
         ROW_NUMBER() OVER (
             PARTITION BY subject_id,
             charttime,
             itemid
-            ORDER BY storetime DESC
+            ORDER BY storetime DESC NULLS LAST
         ) AS rn
-    FROM ce_stg1 ce
+    FROM ce_stg1 AS ce
 ),
 o2 AS (
-    -- The below ITEMID can have multiple entries for charttime/storetime
-    -- These are valid entries, and should be retained in derived tables.
-    --   224181 -- Small Volume Neb Drug #1       | Respiratory | Text
-    -- , 227570 -- Small Volume Neb Drug/Dose #1  | Respiratory | Text
-    -- , 224833 -- SBT Deferred                   | Respiratory | Text
-    -- , 224716 -- SBT Stopped                    | Respiratory | Text
-    -- , 224740 -- RSBI Deferred                  | Respiratory | Text
-    -- , 224829 -- Trach Tube Type                | Respiratory | Text
-    -- , 226732 -- O2 Delivery Device(s)          | Respiratory | Text
-    -- , 226873 -- Inspiratory Ratio              | Respiratory | Numeric
-    -- , 226871 -- Expiratory Ratio               | Respiratory | Numeric
-    -- maximum of 4 o2 devices on at once
+    /* The below ITEMID can have multiple entries for charttime/storetime */
+    /* These are valid entries, and should be retained in derived tables. */
+    /*   224181 -- Small Volume Neb Drug #1       | Respiratory | Text */
+    /* , 227570 -- Small Volume Neb Drug/Dose #1  | Respiratory | Text */
+    /* , 224833 -- SBT Deferred                   | Respiratory | Text */
+    /* , 224716 -- SBT Stopped                    | Respiratory | Text */
+    /* , 224740 -- RSBI Deferred                  | Respiratory | Text */
+    /* , 224829 -- Trach Tube Type                | Respiratory | Text */
+    /* , 226732 -- O2 Delivery Device(s)          | Respiratory | Text */
+    /* , 226873 -- Inspiratory Ratio              | Respiratory | Numeric */
+    /* , 226871 -- Expiratory Ratio               | Respiratory | Numeric */
+    /* maximum of 4 o2 devices on at once */
     SELECT subject_id,
         stay_id,
         charttime,
@@ -65,10 +67,11 @@ o2 AS (
             PARTITION BY subject_id,
             charttime,
             itemid
-            ORDER BY value
+            ORDER BY value NULLS FIRST
         ) AS rn
     FROM chartevents
-    WHERE itemid = 226732 -- oxygen delivery device(s)
+    WHERE itemid = 226732
+        /* oxygen delivery device(s) */
 ),
 stg AS (
     SELECT COALESCE(ce.subject_id, o2.subject_id) AS subject_id,
@@ -79,9 +82,10 @@ stg AS (
         ce.valuenum,
         o2.o2_device,
         o2.rn
-    FROM ce_stg2 ce
+    FROM ce_stg2 AS ce
         FULL OUTER JOIN o2 ON ce.subject_id = o2.subject_id
-        AND ce.charttime = o2.charttime -- limit to 1 row per subject_id/charttime/itemid from ce_stg2
+        AND ce.charttime = o2.charttime
+        /* limit to 1 row per subject_id/charttime/itemid from ce_stg2 */
     WHERE ce.rn = 1
 )
 SELECT subject_id,
@@ -98,8 +102,8 @@ SELECT subject_id,
             WHEN itemid = 227287 THEN valuenum
             ELSE NULL
         END
-    ) AS o2_flow_additional -- ensure we retain all o2 devices for the patient
-,
+    ) AS o2_flow_additional,
+    /* ensure we retain all o2 devices for the patient */
     MAX(
         CASE
             WHEN rn = 1 THEN o2_device
