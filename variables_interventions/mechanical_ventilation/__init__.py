@@ -9,5 +9,5 @@ def extractMechVent():
             "InvasiveVent",
         ]
     )
-    
-    return df
+
+    return df[["stay_id", "mechanical_ventilation"]]
