@@ -3,11 +3,11 @@ from constants import queryPostgresDf
 
 from constants import VAR_INTERVENTION_PATH, TARGET_PATIENT_FILE, TEMP_PATH
 from akd_stage.query_exceptions import ResultEmptyException
-from variables_interventions.oxygen_delivery import extractOxygenDelivery
-from variables_interventions.ventilator_setting import extractVentilatorSetting
+from variables_interventions.mechanical_ventilation.oxygen_delivery import extractOxygenDelivery
+from variables_interventions.mechanical_ventilation.ventilator_setting import extractVentilatorSetting
 
 
-def extractMechVent():
+def extractVentilation():
     OUTPUT_FILE = "ventilation.csv"
 
     if (TEMP_PATH / OUTPUT_FILE).exists():
@@ -37,13 +37,6 @@ def extractMechVent():
 
     if result is None:
         raise ResultEmptyException()
-
-    result["mechanical_ventilation"] = result["ventilation_status"].isin(
-        [
-            "Tracheostomy",
-            "InvasiveVent",
-        ]
-    )
     result.to_csv(TEMP_PATH / OUTPUT_FILE)
 
     return result

@@ -1,5 +1,8 @@
-from akd_stage.crrt import extractCrrt
+from variables_interventions.mechanical_ventilation import extractMechVent
+from variables_interventions.use_crrt import extractUseCrrt
 
 
 def extractInterventions() :
-    return extractCrrt()
+    extractUseCrrt()
+    extractMechVent()
+    
