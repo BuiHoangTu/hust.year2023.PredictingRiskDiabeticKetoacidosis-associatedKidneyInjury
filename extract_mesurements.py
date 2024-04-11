@@ -48,7 +48,7 @@ def extractWithStayId(
 def extractOutputEvents(
     itemId: int | list[int], outputFile: str | None
 ) -> pd.DataFrame:
-    """Extract chartevent of my target patients, save to outputFile if not None.
+    """Extract output event of my target patients, save to outputFile if not None.
     This will try return content of outputFile beforehand.
 
     Args:
@@ -64,6 +64,27 @@ def extractOutputEvents(
             return pd.read_csv(TEMP_PATH / outputFile)
 
     source = pd.read_csv(MIMIC_PATH / "icu" / "outputevents.csv", chunksize=10000)
+
+    return extractWithStayId(itemId, source, outputFile)
+
+
+def extractInputEvents(itemId: int | list[int], outputFile: str | None) -> pd.DataFrame:
+    """Extract input event of my target patients, save to outputFile if not None.
+    This will try return content of outputFile beforehand.
+
+    Args:
+        mesureId (int|list[int]): id of the mesure(s) need extracting
+        outputFile (str | None): File name to store after extract
+
+    Returns:
+        pd.DataFrame: mesure and its data
+    """
+
+    if outputFile is not None:
+        if (TEMP_PATH / outputFile).exists():
+            return pd.read_csv(TEMP_PATH / outputFile)
+
+    source = pd.read_csv(MIMIC_PATH / "icu" / "inputevents.csv", chunksize=10000)
 
     return extractWithStayId(itemId, source, outputFile)
 
