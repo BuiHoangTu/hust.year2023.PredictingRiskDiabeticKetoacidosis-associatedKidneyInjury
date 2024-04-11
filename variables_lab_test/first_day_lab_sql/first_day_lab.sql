@@ -8,8 +8,8 @@ WITH cbc AS (
     MAX(platelet) AS platelets_max,
     MIN(wbc) AS wbc_min,
     MAX(wbc) AS wbc_max
-  FROM mimiciv_icu.icustays AS ie
-    LEFT JOIN mimiciv_derived.complete_blood_count AS le ON le.subject_id = ie.subject_id
+  FROM icustays AS ie
+    LEFT JOIN complete_blood_count AS le ON le.subject_id = ie.subject_id
     AND le.charttime >= ie.intime - INTERVAL '6 HOUR'
     AND le.charttime <= ie.intime + INTERVAL '1 DAY'
   GROUP BY ie.stay_id
@@ -40,8 +40,8 @@ chem AS (
     MAX(sodium) AS sodium_max,
     MIN(potassium) AS potassium_min,
     MAX(potassium) AS potassium_max
-  FROM mimiciv_icu.icustays AS ie
-    LEFT JOIN mimiciv_derived.chemistry AS le ON le.subject_id = ie.subject_id
+  FROM icustays AS ie
+    LEFT JOIN chemistry AS le ON le.subject_id = ie.subject_id
     AND le.charttime >= ie.intime - INTERVAL '6 HOUR'
     AND le.charttime <= ie.intime + INTERVAL '1 DAY'
   GROUP BY ie.stay_id
@@ -68,8 +68,8 @@ diff AS (
     MAX(metamyelocytes) AS metas_max,
     MIN(nrbc) AS nrbc_min,
     MAX(nrbc) AS nrbc_max
-  FROM mimiciv_icu.icustays AS ie
-    LEFT JOIN mimiciv_derived.blood_differential AS le ON le.subject_id = ie.subject_id
+  FROM icustays AS ie
+    LEFT JOIN blood_differential AS le ON le.subject_id = ie.subject_id
     AND le.charttime >= ie.intime - INTERVAL '6 HOUR'
     AND le.charttime <= ie.intime + INTERVAL '1 DAY'
   GROUP BY ie.stay_id
@@ -89,7 +89,7 @@ coag AS (
     MIN(ptt) AS ptt_min,
     MAX(ptt) AS ptt_max
   FROM mimiciv_icu.icustays AS ie
-    LEFT JOIN mimiciv_derived.coagulation AS le ON le.subject_id = ie.subject_id
+    LEFT JOIN coagulation AS le ON le.subject_id = ie.subject_id
     AND le.charttime >= ie.intime - INTERVAL '6 HOUR'
     AND le.charttime <= ie.intime + INTERVAL '1 DAY'
   GROUP BY ie.stay_id
@@ -118,8 +118,8 @@ enz AS (
     MAX(ggt) AS ggt_max,
     MIN(ld_ldh) AS ld_ldh_min,
     MAX(ld_ldh) AS ld_ldh_max
-  FROM mimiciv_icu.icustays AS ie
-    LEFT JOIN mimiciv_derived.enzyme AS le ON le.subject_id = ie.subject_id
+  FROM icustays AS ie
+    LEFT JOIN enzyme AS le ON le.subject_id = ie.subject_id
     AND le.charttime >= ie.intime - INTERVAL '6 HOUR'
     AND le.charttime <= ie.intime + INTERVAL '1 DAY'
   GROUP BY ie.stay_id
@@ -217,7 +217,7 @@ SELECT ie.subject_id,
   ggt_max,
   ld_ldh_min,
   ld_ldh_max
-FROM mimiciv_icu.icustays AS ie
+FROM icustays AS ie
   LEFT JOIN cbc ON ie.stay_id = cbc.stay_id
   LEFT JOIN chem ON ie.stay_id = chem.stay_id
   LEFT JOIN diff ON ie.stay_id = diff.stay_id
