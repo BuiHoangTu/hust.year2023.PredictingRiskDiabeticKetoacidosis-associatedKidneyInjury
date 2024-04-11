@@ -2,7 +2,7 @@ import pandas as pd
 from constants import queryPostgresDf
 
 from constants import VAR_INTERVENTION_PATH, TARGET_PATIENT_FILE, TEMP_PATH
-from akd_stage.query_exceptions import ResultEmptyException
+from query_exceptions import ResultEmptyException
 from variables_interventions.mechanical_ventilation.oxygen_delivery import extractOxygenDelivery
 from variables_interventions.mechanical_ventilation.ventilator_setting import extractVentilatorSetting
 

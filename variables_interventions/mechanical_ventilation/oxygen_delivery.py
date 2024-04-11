@@ -2,7 +2,7 @@ import pandas as pd
 from constants import queryPostgresDf
 
 from constants import VAR_INTERVENTION_PATH, TEMP_PATH
-from akd_stage.query_exceptions import ResultEmptyException
+from query_exceptions import ResultEmptyException
 from extract_mesurements import extractChartEventMesures
 
 

@@ -2,7 +2,7 @@ import pandas as pd
 from constants import queryPostgresDf
 
 from constants import AKD_SQL_PATH, TARGET_PATIENT_FILE, TEMP_PATH
-from akd_stage.query_exceptions import ResultEmptyException
+from query_exceptions import ResultEmptyException
 from akd_stage.urine_output import extractUrineOutput
 from akd_stage.weight_durations import extractWeightDuration
 

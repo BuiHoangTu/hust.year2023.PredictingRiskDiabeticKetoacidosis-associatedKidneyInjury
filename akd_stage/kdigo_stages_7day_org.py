@@ -2,7 +2,7 @@ import pandas as pd
 from pandasql import sqldf
 
 from constants import AKD_SQL_PATH, TARGET_PATIENT_FILE, TEMP_PATH
-from akd_stage.query_exceptions import ResultEmptyException
+from query_exceptions import ResultEmptyException
 from akd_stage.stage_per_mesure import extractAkdPerMesure
 
 

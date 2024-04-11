@@ -5,7 +5,7 @@ from constants import AKD_SQL_PATH, TARGET_PATIENT_FILE, TEMP_PATH
 from akd_stage.crrt import extractCrrt
 from akd_stage.kdigo_creatinine import extractKdigoCreatinine
 from akd_stage.kdigo_uo import extractKdigoUrineOutput
-from akd_stage.query_exceptions import ResultEmptyException
+from query_exceptions import ResultEmptyException
 
 
 def extractKdigoStages():

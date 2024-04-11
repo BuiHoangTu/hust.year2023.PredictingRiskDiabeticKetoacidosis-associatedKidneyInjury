@@ -3,7 +3,7 @@ from constants import queryPostgresDf
 
 from constants import AKD_SQL_PATH, TEMP_PATH
 from extract_mesurements import extractOutputEvents
-from akd_stage.query_exceptions import ResultEmptyException
+from query_exceptions import ResultEmptyException
 
 
 def extractUrineOutput():

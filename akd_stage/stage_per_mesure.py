@@ -3,7 +3,7 @@ from pandasql import sqldf
 
 from constants import AKD_SQL_PATH, TARGET_PATIENT_FILE, TEMP_PATH
 from mark_akd_creatinine import markAkdCreatinine
-from akd_stage.query_exceptions import ResultEmptyException
+from query_exceptions import ResultEmptyException
 from akd_stage.urine_output_rate import extractOURate
 
 

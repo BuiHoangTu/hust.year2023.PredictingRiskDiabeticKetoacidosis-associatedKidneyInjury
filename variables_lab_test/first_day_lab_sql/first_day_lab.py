@@ -2,7 +2,7 @@ import pandas as pd
 from constants import VAR_LAB_TEST_PATH, queryPostgresDf
 
 from constants import TEMP_PATH
-from akd_stage.query_exceptions import ResultEmptyException
+from query_exceptions import ResultEmptyException
 from extract_target_patients import extractTargetPatients
 
 
