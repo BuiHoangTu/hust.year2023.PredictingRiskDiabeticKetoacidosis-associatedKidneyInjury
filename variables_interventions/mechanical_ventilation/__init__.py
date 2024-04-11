@@ -26,4 +26,7 @@ def extractMechVent():
         & (dfMerged["endtime"] < (dfMerged["intime"] + pd.Timedelta(hours=24)))
     ]
 
-    return dfMerged[["stay_id", "mechanical_ventilation"]]
+    dfMerged = dfMerged[["stay_id", "mechanical_ventilation"]]
+    dfMerged = dfMerged[dfMerged["mechanical_ventilation"]]
+
+    return dfMerged.drop_duplicates("stay_id")
