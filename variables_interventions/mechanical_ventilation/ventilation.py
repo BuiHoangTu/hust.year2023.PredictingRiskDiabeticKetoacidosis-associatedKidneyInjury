@@ -24,7 +24,7 @@ def extractVentilation():
     dfTargetPatients["outtime"] = pd.to_datetime(dfTargetPatients["outtime"])
 
     result = pd.DataFrame()
-    with open(VAR_INTERVENTION_PATH / "ventilation.sql", "r") as queryStr:
+    with open(VAR_INTERVENTION_PATH / "mechanical_ventilation" / "ventilation.sql", "r") as queryStr:
         map = {
             "ventilator_setting": dfVentSetting,
             "oxygen_delivery": dfOxygen,

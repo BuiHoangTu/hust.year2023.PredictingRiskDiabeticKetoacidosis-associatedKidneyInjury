@@ -16,10 +16,12 @@ TEMP_PATH = Path("tmp")
 TEMP_PATH.mkdir(parents=True, exist_ok=True)
 
 AKD_SQL_PATH = Path("akd_stage")
-AKD_SQL_PATH.mkdir(parents=True, exist_ok=True)
+# AKD_SQL_PATH.mkdir(parents=True, exist_ok=True)
 
 VAR_INTERVENTION_PATH = Path("variables_interventions")
-VAR_INTERVENTION_PATH.mkdir(parents=True, exist_ok=True)
+# VAR_INTERVENTION_PATH.mkdir(parents=True, exist_ok=True)
+
+VAR_LAB_TEST_PATH = Path("variables_lab_test")
 
 IMPORTANT_MESUREMENTS_ICU = {
     227519: "urine_output",

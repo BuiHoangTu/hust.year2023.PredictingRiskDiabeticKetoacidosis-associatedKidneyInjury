@@ -33,7 +33,7 @@ def extractVentilatorSetting():
     dfChartevent = extractChartEventMesures(CHARTEVENT_IDs, CHARTED_FILE)
 
     result = pd.DataFrame()
-    with open(VAR_INTERVENTION_PATH / "ventilator_setting.sql", "r") as queryStr:
+    with open(VAR_INTERVENTION_PATH / "mechanical_ventilation" / "ventilator_setting.sql", "r") as queryStr:
         map = {
             "chartevents": dfChartevent,
         }

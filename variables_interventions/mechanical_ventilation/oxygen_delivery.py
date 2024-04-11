@@ -17,7 +17,7 @@ def extractOxygenDelivery():
     dfChartEvent = extractChartEventMesures(CHARTED_IDs, CHARTED_FILE)
 
     result = pd.DataFrame()
-    with open(VAR_INTERVENTION_PATH / "oxygen_delivery.sql", "r") as queryStr:
+    with open(VAR_INTERVENTION_PATH / "mechanical_ventilation" / "oxygen_delivery.sql", "r") as queryStr:
         map = {
             "chartevents": dfChartEvent,
         }
