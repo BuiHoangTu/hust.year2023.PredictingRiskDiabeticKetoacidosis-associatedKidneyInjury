@@ -9,12 +9,12 @@ from middle_query import first_day_lab
 
 
 def runSql():
-    GCS_OUTPUT_PATH = TEMP_PATH / "gcs.csv"
+    GCS_OUTPUT_PATH = TEMP_PATH / "first_day_sofa.csv"
 
     if (GCS_OUTPUT_PATH).exists():
         return pd.read_csv(GCS_OUTPUT_PATH)
 
-    queryStr = (Path(__file__).parent / "gcs.sql").read_text()
+    queryStr = (Path(__file__).parent / "./first_day_sofa.sql").read_text()
     map = {
         "icustays": extractTargetPatients(),
         "norepinephrine": None,
