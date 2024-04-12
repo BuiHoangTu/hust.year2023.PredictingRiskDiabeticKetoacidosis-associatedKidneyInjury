@@ -1,5 +1,5 @@
-from middle_query.first_day_gcs import runSql
+from middle_query import first_day_gcs
 
 
 def extractGsc():
-    return runSql()
+    return first_day_gcs.runSql()
