@@ -1,12 +1,13 @@
+from pathlib import Path
 import pandas as pd
-from constants import VAR_LAB_TEST_PATH, queryPostgresDf
+from constants import queryPostgresDf
 
 from constants import TEMP_PATH
 from query_exceptions import ResultEmptyException
 from extract_target_patients import extractTargetPatients
 
 
-def extractCrrt():
+def runSql():
     CRRT_OUTPUT_FILE = "first_day_lab.csv"
 
     if (TEMP_PATH / CRRT_OUTPUT_FILE).exists():
@@ -22,7 +23,7 @@ def extractCrrt():
         "coagulation": None,
         "enzyme": None,
     }
-    result = queryPostgresDf((VAR_LAB_TEST_PATH / "first_day_lab_sql" / "first_day_lab.sql").read_text(), map)
+    result = queryPostgresDf((Path(__file__).parent / "first_day_lab_sql" / "first_day_lab.sql").read_text(), map)
 
     if result is None:
         raise ResultEmptyException()
