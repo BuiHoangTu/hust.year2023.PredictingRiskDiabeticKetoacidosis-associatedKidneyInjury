@@ -23,7 +23,7 @@ def runSql():
         "coagulation": None,
         "enzyme": None,
     }
-    result = queryPostgresDf((Path(__file__).parent / "first_day_lab_sql" / "first_day_lab.sql").read_text(), map)
+    result = queryPostgresDf((Path(__file__).parent / "first_day_lab.sql").read_text(), map)
 
     if result is None:
         raise ResultEmptyException()
