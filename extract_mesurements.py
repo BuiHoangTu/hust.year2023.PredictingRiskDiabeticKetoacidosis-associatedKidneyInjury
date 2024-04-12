@@ -87,7 +87,7 @@ def extractInputEvents(itemId: int | list[int], outputFile: str | None) -> pd.Da
     """
 
     if outputFile is not None and (TEMP_PATH / outputFile).exists():
-            res = pd.read_csv(TEMP_PATH / outputFile)
+        res = pd.read_csv(TEMP_PATH / outputFile)
 
     else:
         source = pd.read_csv(MIMIC_PATH / "icu" / "inputevents.csv", chunksize=10000)
@@ -96,7 +96,8 @@ def extractInputEvents(itemId: int | list[int], outputFile: str | None) -> pd.Da
 
         pass
 
-    res["charttime"] = pd.to_datetime(res["charttime"])
+    res["starttime"] = pd.to_datetime(res["starttime"])
+    res["endtime"] = pd.to_datetime(res["endtime"])
 
     return res
 
