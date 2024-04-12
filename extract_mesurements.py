@@ -59,8 +59,7 @@ def extractOutputEvents(
         pd.DataFrame: mesure and its data
     """
 
-    if outputFile is not None:
-        if (TEMP_PATH / outputFile).exists():
+    if outputFile is not None and (TEMP_PATH / outputFile).exists():
             res = pd.read_csv(TEMP_PATH / outputFile)
 
     else:
@@ -87,8 +86,7 @@ def extractInputEvents(itemId: int | list[int], outputFile: str | None) -> pd.Da
         pd.DataFrame: mesure and its data
     """
 
-    if outputFile is not None:
-        if (TEMP_PATH / outputFile).exists():
+    if outputFile is not None and (TEMP_PATH / outputFile).exists():
             res = pd.read_csv(TEMP_PATH / outputFile)
 
     else:
@@ -117,9 +115,8 @@ def extractChartEventMesures(
         pd.DataFrame: mesure and its data
     """
 
-    if outputFile is not None:
-        if (TEMP_PATH / outputFile).exists():
-            res = pd.read_csv(TEMP_PATH / outputFile)
+    if outputFile is not None and (TEMP_PATH / outputFile).exists():
+        res = pd.read_csv(TEMP_PATH / outputFile)
 
     else:
         source = pd.read_csv(MIMIC_PATH / "icu" / "chartevents.csv", chunksize=10000)
@@ -175,9 +172,9 @@ def extractLabEventMesures(
         pd.DataFrame: mesure and its data
     """
 
-    if outputFile is not None:
-        if (TEMP_PATH / outputFile).exists():
+    if outputFile is not None and (TEMP_PATH / outputFile).exists():
             res = pd.read_csv(TEMP_PATH / outputFile)
+            pass
 
     else:
         source = pd.read_csv(MIMIC_PATH / "hosp" / "labevents.csv", chunksize=10000)

@@ -23,6 +23,8 @@ VAR_INTERVENTION_PATH = Path("variables_interventions")
 
 VAR_LAB_TEST_PATH = Path("variables_lab_test")
 
+VAR_SCORE_SYS_PATH = Path("variables_scoring_systems")
+
 IMPORTANT_MESUREMENTS_ICU = {
     227519: "urine_output",
     224639: "weight",
