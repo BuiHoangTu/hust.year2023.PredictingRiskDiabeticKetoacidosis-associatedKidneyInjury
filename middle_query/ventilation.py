@@ -1,10 +1,11 @@
+from pathlib import Path
 import pandas as pd
 from constants import queryPostgresDf
 
-from constants import VAR_INTERVENTION_PATH, TARGET_PATIENT_FILE, TEMP_PATH
+from constants import TARGET_PATIENT_FILE, TEMP_PATH
 from query_exceptions import ResultEmptyException
-from variables_interventions.mechanical_ventilation.oxygen_delivery import extractOxygenDelivery
-from variables_interventions.mechanical_ventilation.ventilator_setting import extractVentilatorSetting
+from middle_query.oxygen_delivery import extractOxygenDelivery
+from middle_query.ventilator_setting import extractVentilatorSetting
 
 
 def extractVentilation():
@@ -24,7 +25,7 @@ def extractVentilation():
     dfTargetPatients["outtime"] = pd.to_datetime(dfTargetPatients["outtime"])
 
     result = pd.DataFrame()
-    with open(VAR_INTERVENTION_PATH / "mechanical_ventilation" / "ventilation.sql", "r") as queryStr:
+    with open(Path(__file__).parent/ "ventilation.sql", "r") as queryStr:
         map = {
             "ventilator_setting": dfVentSetting,
             "oxygen_delivery": dfOxygen,

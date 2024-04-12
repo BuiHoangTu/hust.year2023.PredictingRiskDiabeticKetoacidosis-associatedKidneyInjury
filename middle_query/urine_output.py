@@ -1,8 +1,9 @@
 import pandas as pd
 from constants import queryPostgresDf
 
-from constants import AKD_SQL_PATH, TEMP_PATH
+from constants import TEMP_PATH
 from extract_mesurements import extractOutputEvents
+from middle_query import SQL_PATH
 from query_exceptions import ResultEmptyException
 
 
@@ -33,7 +34,7 @@ def extractUrineOutput():
     dfOutputeventsUrine["charttime"] = pd.to_datetime(dfOutputeventsUrine["charttime"])
 
     result = pd.DataFrame()
-    with open(AKD_SQL_PATH / "urine_output.sql", "r") as queryStr:
+    with open(SQL_PATH / "urine_output.sql", "r") as queryStr:
         map = {
             "outputevents": dfOutputeventsUrine,
         }

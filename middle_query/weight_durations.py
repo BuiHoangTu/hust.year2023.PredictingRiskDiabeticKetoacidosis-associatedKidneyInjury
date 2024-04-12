@@ -1,8 +1,9 @@
 import pandas as pd
 from constants import queryPostgresDf
 
-from constants import AKD_SQL_PATH, TARGET_PATIENT_FILE, TEMP_PATH
+from constants import TARGET_PATIENT_FILE, TEMP_PATH
 from extract_mesurements import extractChartEventMesures
+from middle_query import SQL_PATH
 from query_exceptions import ResultEmptyException
 
 
@@ -21,7 +22,7 @@ def extractWeightDuration():
     dfTargetPatients["outtime"] = pd.to_datetime(dfTargetPatients["outtime"])
 
     result = pd.DataFrame()
-    with open(AKD_SQL_PATH / "weight_durations.sql", "r") as queryStr:
+    with open(SQL_PATH / "weight_durations.sql", "r") as queryStr:
         map = {
             "target_patients": dfTargetPatients,
             "chartevents": dfCharteventsWeight,

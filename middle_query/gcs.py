@@ -1,11 +1,12 @@
+from pathlib import Path
 import pandas as pd
 
-from constants import TEMP_PATH, VAR_SCORE_SYS_PATH, queryPostgresDf
+from constants import TEMP_PATH, queryPostgresDf
 from extract_mesurements import extractChartEventMesures
 from query_exceptions import ResultEmptyException
 
 
-def extractAllGcs():
+def runSql():
     GCS_OUTPUT_PATH = TEMP_PATH / "gcs.csv"
 
     if (GCS_OUTPUT_PATH).exists():
@@ -19,7 +20,7 @@ def extractAllGcs():
 
     dfChartEvents = extractChartEventMesures(CHART_EVENT_IDs, "charted_gcs.csv")
 
-    queryStr = (VAR_SCORE_SYS_PATH / "gsc" / "gcs.sql").read_text()
+    queryStr = (Path(__file__).parent / "gcs.sql").read_text()
     map = {
         "chartevents": dfChartEvents,
     }

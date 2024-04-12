@@ -1,8 +1,9 @@
+from pathlib import Path
 import pandas as pd
 from pandasql import sqldf
 
-from constants import AKD_SQL_PATH, TARGET_PATIENT_FILE, TEMP_PATH
-from akd_stage.kdigo_stages import extractKdigoStages
+from constants import TARGET_PATIENT_FILE, TEMP_PATH
+from middle_query.kdigo_stages import extractKdigoStages
 from query_exceptions import ResultEmptyException
 
 
@@ -19,7 +20,7 @@ def extractKdigoStages7day():
     dfKdigoStage = extractKdigoStages()
 
     result = pd.DataFrame()
-    with open(AKD_SQL_PATH / "kdigo_stages_7day.sqlite", "r") as queryStr:
+    with open(Path(__file__).parent / "kdigo_stages_7day.sqlite", "r") as queryStr:
         map = {
             "icustays": dfTargetPatients,
             "kdigo_stages": dfKdigoStage,

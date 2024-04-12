@@ -1,5 +1,5 @@
 from reduce_mesurements import reduceByCharttime
-from variables_interventions.mechanical_ventilation.ventilation import (
+from middle_query.ventilation import (
     extractVentilation,
 )
 

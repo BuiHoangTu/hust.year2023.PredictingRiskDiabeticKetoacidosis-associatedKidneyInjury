@@ -1,7 +1,8 @@
+from pathlib import Path
 import pandas as pd
 from constants import queryPostgresDf
 
-from constants import VAR_INTERVENTION_PATH, TEMP_PATH
+from constants import TEMP_PATH
 from query_exceptions import ResultEmptyException
 from extract_mesurements import extractChartEventMesures
 
@@ -17,7 +18,7 @@ def extractOxygenDelivery():
     dfChartEvent = extractChartEventMesures(CHARTED_IDs, CHARTED_FILE)
 
     result = pd.DataFrame()
-    with open(VAR_INTERVENTION_PATH / "mechanical_ventilation" / "oxygen_delivery.sql", "r") as queryStr:
+    with open(Path(__file__).parent / "oxygen_delivery.sql", "r") as queryStr:
         map = {
             "chartevents": dfChartEvent,
         }

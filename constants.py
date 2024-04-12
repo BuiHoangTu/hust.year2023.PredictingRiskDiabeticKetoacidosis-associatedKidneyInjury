@@ -15,16 +15,6 @@ MIMIC_PATH = Path("../mimiciv2.2/")
 TEMP_PATH = Path("tmp")
 TEMP_PATH.mkdir(parents=True, exist_ok=True)
 
-AKD_SQL_PATH = Path("akd_stage")
-# AKD_SQL_PATH.mkdir(parents=True, exist_ok=True)
-
-VAR_INTERVENTION_PATH = Path("variables_interventions")
-# VAR_INTERVENTION_PATH.mkdir(parents=True, exist_ok=True)
-
-VAR_LAB_TEST_PATH = Path("variables_lab_test")
-
-VAR_SCORE_SYS_PATH = Path("variables_scoring_systems")
-
 IMPORTANT_MESUREMENTS_ICU = {
     227519: "urine_output",
     224639: "weight",

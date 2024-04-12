@@ -1,4 +1,4 @@
-from akd_stage.crrt import extractCrrt
+from middle_query.crrt import extractCrrt
 from reduce_mesurements import reduceByCharttime
 
 

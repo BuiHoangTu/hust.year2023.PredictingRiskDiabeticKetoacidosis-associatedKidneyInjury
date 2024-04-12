@@ -1,12 +1,13 @@
+from pathlib import Path
 import pandas as pd
 
-from constants import TEMP_PATH, VAR_SCORE_SYS_PATH, queryPostgresDf
+from constants import TEMP_PATH, queryPostgresDf
 from extract_target_patients import extractTargetPatients
 from query_exceptions import ResultEmptyException
-from variables_scoring_systems.gsc.gcs import extractAllGcs
+import middle_query.gcs as gcs
 
 
-def extractFisrtDayGcs():
+def runSql():
     GCS_OUTPUT_PATH = TEMP_PATH / "first_day_gcs.csv"
 
     if (GCS_OUTPUT_PATH).exists():
@@ -14,10 +15,10 @@ def extractFisrtDayGcs():
 
     dfPatient = extractTargetPatients()
 
-    queryStr = (VAR_SCORE_SYS_PATH / "gsc" / "first_day_gcs.sql").read_text()
+    queryStr = (Path(__file__).parent / "first_day_gcs.sql").read_text()
     map = {
         "icustays": dfPatient,
-        "gcs": extractAllGcs(),
+        "gcs": gcs.runSql(),
     }
 
     result = queryPostgresDf(queryStr, map)

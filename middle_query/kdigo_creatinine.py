@@ -1,27 +1,27 @@
 import pandas as pd
 from constants import queryPostgresDf
 
-from constants import AKD_SQL_PATH, TARGET_PATIENT_FILE, TEMP_PATH
+from constants import TEMP_PATH
 from extract_mesurements import extractLabEventMesures
+from extract_target_patients import extractTargetPatients
+from middle_query import SQL_PATH
 from query_exceptions import ResultEmptyException
 
 
 def extractKdigoCreatinine():
-    OUTPUT_FILE = "kdigo_creatinine.csv"
+    OUTPUT_PATH = TEMP_PATH / "kdigo_creatinine.csv"
 
-    if (TEMP_PATH / OUTPUT_FILE).exists():
-        return pd.read_csv(TEMP_PATH / OUTPUT_FILE)
+    if (OUTPUT_PATH).exists():
+        return pd.read_csv(OUTPUT_PATH)
 
-    dfTargetPatients = pd.read_csv(TEMP_PATH / TARGET_PATIENT_FILE)
-    dfTargetPatients["intime"] = pd.to_datetime(dfTargetPatients["intime"], format="ISO8601")
-    dfTargetPatients["outtime"] = pd.to_datetime(dfTargetPatients["outtime"], format="ISO8601")
+    dfTargetPatients = extractTargetPatients()
 
     LABEVENT_FILE = "labevent_50912.csv"
     dfLabevent = extractLabEventMesures(50912, LABEVENT_FILE)
     dfLabevent["charttime"] = pd.to_datetime(dfLabevent["charttime"], format="ISO8601")
 
     result = pd.DataFrame()
-    with open(AKD_SQL_PATH / "kdigo_creatinine.sql", "r") as queryStr:
+    with open(SQL_PATH / "kdigo_creatinine.sql", "r") as queryStr:
         map = {
             "icustays": dfTargetPatients,
             "labevents": dfLabevent,
@@ -32,6 +32,6 @@ def extractKdigoCreatinine():
 
     if result is None:
         raise ResultEmptyException()
-    result.to_csv(TEMP_PATH / OUTPUT_FILE)
+    result.to_csv(OUTPUT_PATH)
 
     return result
