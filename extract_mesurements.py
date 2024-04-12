@@ -61,11 +61,18 @@ def extractOutputEvents(
 
     if outputFile is not None:
         if (TEMP_PATH / outputFile).exists():
-            return pd.read_csv(TEMP_PATH / outputFile)
+            res = pd.read_csv(TEMP_PATH / outputFile)
 
-    source = pd.read_csv(MIMIC_PATH / "icu" / "outputevents.csv", chunksize=10000)
+    else:
+        source = pd.read_csv(MIMIC_PATH / "icu" / "outputevents.csv", chunksize=10000)
 
-    return extractWithStayId(itemId, source, outputFile)
+        res = extractWithStayId(itemId, source, outputFile)
+
+        pass
+
+    res["charttime"] = pd.to_datetime(res["charttime"])
+
+    return res
 
 
 def extractInputEvents(itemId: int | list[int], outputFile: str | None) -> pd.DataFrame:
@@ -82,11 +89,18 @@ def extractInputEvents(itemId: int | list[int], outputFile: str | None) -> pd.Da
 
     if outputFile is not None:
         if (TEMP_PATH / outputFile).exists():
-            return pd.read_csv(TEMP_PATH / outputFile)
+            res = pd.read_csv(TEMP_PATH / outputFile)
 
-    source = pd.read_csv(MIMIC_PATH / "icu" / "inputevents.csv", chunksize=10000)
+    else:
+        source = pd.read_csv(MIMIC_PATH / "icu" / "inputevents.csv", chunksize=10000)
 
-    return extractWithStayId(itemId, source, outputFile)
+        res = extractWithStayId(itemId, source, outputFile)
+
+        pass
+
+    res["charttime"] = pd.to_datetime(res["charttime"])
+
+    return res
 
 
 def extractChartEventMesures(
@@ -105,11 +119,18 @@ def extractChartEventMesures(
 
     if outputFile is not None:
         if (TEMP_PATH / outputFile).exists():
-            return pd.read_csv(TEMP_PATH / outputFile)
+            res = pd.read_csv(TEMP_PATH / outputFile)
 
-    source = pd.read_csv(MIMIC_PATH / "icu" / "chartevents.csv", chunksize=10000)
+    else:
+        source = pd.read_csv(MIMIC_PATH / "icu" / "chartevents.csv", chunksize=10000)
 
-    return extractWithStayId(itemId, source, outputFile)
+        res = extractWithStayId(itemId, source, outputFile)
+
+        pass
+
+    res["charttime"] = pd.to_datetime(res["charttime"])
+
+    return res
 
 
 def extractWithHadmId(
@@ -156,11 +177,17 @@ def extractLabEventMesures(
 
     if outputFile is not None:
         if (TEMP_PATH / outputFile).exists():
-            return pd.read_csv(TEMP_PATH / outputFile)
+            res = pd.read_csv(TEMP_PATH / outputFile)
 
-    source = pd.read_csv(MIMIC_PATH / "hosp" / "labevents.csv", chunksize=10000)
+    else:
+        source = pd.read_csv(MIMIC_PATH / "hosp" / "labevents.csv", chunksize=10000)
+        res = extractWithHadmId(mesureId, source, outputFile)
 
-    return extractWithHadmId(mesureId, source, outputFile)
+        pass
+
+    res["charttime"] = pd.to_datetime(res["charttime"])
+    
+    return res
 
 
 if __name__ == "__main__":
