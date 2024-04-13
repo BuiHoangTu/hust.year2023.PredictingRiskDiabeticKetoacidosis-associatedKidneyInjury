@@ -7,10 +7,12 @@ from query_exceptions import ResultEmptyException
 
 
 def runSql():
-    GCS_OUTPUT_PATH = TEMP_PATH / "gcs.csv"
+    THIS_FILE = Path(__file__)
+    
+    OUTPUT_PATH = TEMP_PATH / (THIS_FILE.name + ".csv")
 
-    if (GCS_OUTPUT_PATH).exists():
-        return pd.read_csv(GCS_OUTPUT_PATH)
+    if (OUTPUT_PATH).exists():
+        return pd.read_csv(OUTPUT_PATH)
 
     CHART_EVENT_IDs = [
         223901,
@@ -18,9 +20,9 @@ def runSql():
         220739,
     ]
 
-    dfChartEvents = extractChartEventMesures(CHART_EVENT_IDs, "charted_gcs.csv")
+    dfChartEvents = extractChartEventMesures(CHART_EVENT_IDs, "charted_" + THIS_FILE.name + ".csv")
 
-    queryStr = (Path(__file__).parent / "gcs.sql").read_text()
+    queryStr = (Path(__file__).parent /  (THIS_FILE.stem + ".sql")).read_text()
     map = {
         "chartevents": dfChartEvents,
     }
@@ -29,6 +31,6 @@ def runSql():
 
     if result is None:
         raise ResultEmptyException()
-    result.to_csv(GCS_OUTPUT_PATH)
+    result.to_csv(OUTPUT_PATH)
 
     return result
