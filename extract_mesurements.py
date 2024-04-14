@@ -30,9 +30,6 @@ def extractWithStayId(
     )
 
     for chunk in source:
-        # remove chunk id
-        chunk = chunk.iloc[:, 1:]
-
         isIdRow = chunk["itemid"].isin(itemId)
         isInTargetPatients = chunk["stay_id"].isin(targetPatients)
 
@@ -51,7 +48,7 @@ def extractWithStayId(
 def extractOutputEvents(
     itemId: int | list[int], outputFile: str | None
 ) -> pd.DataFrame:
-    """Extract chartevent of my target patients, save to outputFile if not None.
+    """Extract output event of my target patients, save to outputFile if not None.
     This will try return content of outputFile beforehand.
 
     Args:
@@ -62,13 +59,47 @@ def extractOutputEvents(
         pd.DataFrame: mesure and its data
     """
 
-    if outputFile is not None:
-        if (TEMP_PATH / outputFile).exists():
-            return pd.read_csv(TEMP_PATH / outputFile)
+    if outputFile is not None and (TEMP_PATH / outputFile).exists():
+            res = pd.read_csv(TEMP_PATH / outputFile)
 
-    source = pd.read_csv(MIMIC_PATH / "icu" / "outputevents.csv", chunksize=10000)
+    else:
+        source = pd.read_csv(MIMIC_PATH / "icu" / "outputevents.csv", chunksize=10000)
 
-    return extractWithStayId(itemId, source, outputFile)
+        res = extractWithStayId(itemId, source, outputFile)
+
+        pass
+
+    res["charttime"] = pd.to_datetime(res["charttime"])
+
+    return res
+
+
+def extractInputEvents(itemId: int | list[int], outputFile: str | None) -> pd.DataFrame:
+    """Extract input event of my target patients, save to outputFile if not None.
+    This will try return content of outputFile beforehand.
+
+    Args:
+        mesureId (int|list[int]): id of the mesure(s) need extracting
+        outputFile (str | None): File name to store after extract
+
+    Returns:
+        pd.DataFrame: mesure and its data
+    """
+
+    if outputFile is not None and (TEMP_PATH / outputFile).exists():
+        res = pd.read_csv(TEMP_PATH / outputFile)
+
+    else:
+        source = pd.read_csv(MIMIC_PATH / "icu" / "inputevents.csv", chunksize=10000)
+
+        res = extractWithStayId(itemId, source, outputFile)
+
+        pass
+
+    res["starttime"] = pd.to_datetime(res["starttime"])
+    res["endtime"] = pd.to_datetime(res["endtime"])
+
+    return res
 
 
 def extractChartEventMesures(
@@ -85,13 +116,19 @@ def extractChartEventMesures(
         pd.DataFrame: mesure and its data
     """
 
-    if outputFile is not None:
-        if (TEMP_PATH / outputFile).exists():
-            return pd.read_csv(TEMP_PATH / outputFile)
+    if outputFile is not None and (TEMP_PATH / outputFile).exists():
+        res = pd.read_csv(TEMP_PATH / outputFile)
 
-    source = pd.read_csv(MIMIC_PATH / "icu" / "chartevents.csv", chunksize=10000)
+    else:
+        source = pd.read_csv(MIMIC_PATH / "icu" / "chartevents.csv", chunksize=10000)
 
-    return extractWithStayId(itemId, source, outputFile)
+        res = extractWithStayId(itemId, source, outputFile)
+
+        pass
+
+    res["charttime"] = pd.to_datetime(res["charttime"])
+
+    return res
 
 
 def extractWithHadmId(
@@ -107,9 +144,6 @@ def extractWithHadmId(
     )
 
     for chunk in source:
-        # remove chunk id
-        chunk = chunk.iloc[:, 1:]
-
         isIdRow = chunk["itemid"].isin(itemId)
         isInTargetPatients = chunk["hadm_id"].isin(targetPatients)
 
@@ -139,13 +173,19 @@ def extractLabEventMesures(
         pd.DataFrame: mesure and its data
     """
 
-    if outputFile is not None:
-        if (TEMP_PATH / outputFile).exists():
-            return pd.read_csv(TEMP_PATH / outputFile)
+    if outputFile is not None and (TEMP_PATH / outputFile).exists():
+            res = pd.read_csv(TEMP_PATH / outputFile)
+            pass
 
-    source = pd.read_csv(MIMIC_PATH / "hosp" / "labevents.csv", chunksize=10000)
+    else:
+        source = pd.read_csv(MIMIC_PATH / "hosp" / "labevents.csv", chunksize=10000)
+        res = extractWithHadmId(mesureId, source, outputFile)
 
-    return extractWithHadmId(mesureId, source, outputFile)
+        pass
+
+    res["charttime"] = pd.to_datetime(res["charttime"])
+    
+    return res
 
 
 if __name__ == "__main__":

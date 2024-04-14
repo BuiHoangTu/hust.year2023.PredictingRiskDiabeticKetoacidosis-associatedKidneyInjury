@@ -1,9 +1,9 @@
 import pandas as pd
 from pandasql import sqldf
 
-from constants import SQL_PATH, TARGET_PATIENT_FILE, TEMP_PATH
-from sql_query.query_exceptions import ResultEmptyException
-from sql_query.stage_per_mesure import extractAkdPerMesure
+from constants import AKD_SQL_PATH, TARGET_PATIENT_FILE, TEMP_PATH
+from query_exceptions import ResultEmptyException
+from akd_stage.stage_per_mesure import extractAkdPerMesure
 
 
 def extractAkdPerPatient():
@@ -20,7 +20,7 @@ def extractAkdPerPatient():
     dfStagePerMesure["creat"] = dfStagePerMesure["value"]
 
     result = pd.DataFrame()
-    with open(SQL_PATH / "stage_per_patient.sql", "r") as queryStr:
+    with open(AKD_SQL_PATH / "kdigo_stages_7day_org.sqlite", "r") as queryStr:
         map = {
             "target_patients": dfTargetPatients,
             "kdigo_stages": dfStagePerMesure,

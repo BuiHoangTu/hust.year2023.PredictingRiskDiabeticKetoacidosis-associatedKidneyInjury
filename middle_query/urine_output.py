@@ -1,9 +1,10 @@
 import pandas as pd
-from pandasql import sqldf
+from constants import queryPostgresDf
 
-from constants import SQL_PATH, TEMP_PATH
+from constants import TEMP_PATH
 from extract_mesurements import extractOutputEvents
-from sql_query.query_exceptions import ResultEmptyException
+from middle_query import SQL_PATH
+from query_exceptions import ResultEmptyException
 
 
 def extractUrineOutput():
@@ -38,7 +39,7 @@ def extractUrineOutput():
             "outputevents": dfOutputeventsUrine,
         }
 
-        result = sqldf(queryStr.read(), map)
+        result = queryPostgresDf(queryStr.read(), map)
         pass
 
     if result is None:

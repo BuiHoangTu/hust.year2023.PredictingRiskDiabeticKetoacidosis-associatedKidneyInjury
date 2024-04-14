@@ -1,12 +1,13 @@
 import pandas as pd
-from pandasql import sqldf
+from constants import queryPostgresDf
 
-from constants import SQL_PATH, TARGET_PATIENT_FILE, TEMP_PATH
+from constants import TARGET_PATIENT_FILE, TEMP_PATH
 from extract_mesurements import extractChartEventMesures
-from sql_query.query_exceptions import ResultEmptyException
+from middle_query import SQL_PATH
+from query_exceptions import ResultEmptyException
 
 
-def extractWeight():
+def extractWeightDuration():
     WEIGHT_DURATIONS_FILE = "weight_durations.csv"
     
     if (TEMP_PATH / WEIGHT_DURATIONS_FILE).exists():
@@ -28,7 +29,7 @@ def extractWeight():
             "icustays": dfTargetPatients,
         }
 
-        result = sqldf(queryStr.read(), map)
+        result = queryPostgresDf(queryStr.read(), map)
         pass
 
     if result is None:

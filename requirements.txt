@@ -1,6 +1,11 @@
+## core packages for jupyter notebook
 jupyter-core
 nbconvert
 nbformat
 ipykernel
+
+## data reading 
 pandas
 pandasql
+# postgresql driver, an installed postgresql is required
+psycopg2
