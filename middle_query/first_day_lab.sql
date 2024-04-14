@@ -88,7 +88,7 @@ coag AS (
     MAX(pt) AS pt_max,
     MIN(ptt) AS ptt_min,
     MAX(ptt) AS ptt_max
-  FROM mimiciv_icu.icustays AS ie
+  FROM icustays AS ie
     LEFT JOIN coagulation AS le ON le.subject_id = ie.subject_id
     AND le.charttime >= ie.intime - INTERVAL '6 HOUR'
     AND le.charttime <= ie.intime + INTERVAL '1 DAY'
