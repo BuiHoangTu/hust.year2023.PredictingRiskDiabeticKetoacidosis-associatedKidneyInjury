@@ -1,7 +1,11 @@
 import shutil
-import subprocess
+# import subprocess
 import sys
 from constants import TEMP_PATH
+import nbformat
+from nbconvert.preprocessors import ExecutePreprocessor, CellExecutionError
+
+
 
 
 def cleanTempPath():
@@ -21,14 +25,32 @@ def cleanTempPath():
 
 
 def run():
-    process = subprocess.Popen(
-        "jupyter nbconvert --execute --inplace main.ipynb",
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        shell=True,
-    )
-    output, error = process.communicate()
-    return output, error
+    # process = subprocess.Popen(
+    #     "jupyter nbconvert --execute --inplace main.ipynb",
+    #     stdout=subprocess.PIPE,
+    #     stderr=subprocess.PIPE,
+    #     shell=True,
+    # )
+    # output, error = process.communicate()
+    # return output, error
+    
+    notebookPath = "./main.ipynb"
+    
+    with open(notebookPath) as f:
+        nb = nbformat.read(f, as_version=4)
+
+    ep = ExecutePreprocessor(timeout=None, kernel_name='python3')  # Set timeout to -1 for no timeout
+    try:
+        out = ep.preprocess(nb, {'metadata': {}})
+    except CellExecutionError:
+        out = None
+        msg = 'Error executing the notebook "%s".\n\n' % notebookPath
+        msg += 'See notebook "%s" for the traceback.' % notebookPath
+        print(msg)
+        raise
+    finally:
+        with open(notebookPath, 'w', encoding='utf-8') as f:
+            nbformat.write(nb, f)
 
 
 if __name__ == "__main__":

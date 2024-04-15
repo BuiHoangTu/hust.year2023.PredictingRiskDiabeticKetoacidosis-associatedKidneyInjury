@@ -1,6 +1,7 @@
 ## core packages for jupyter notebook
 jupyter-core
 nbconvert
+nbformat
 ipykernel
 
 ## data reading 
