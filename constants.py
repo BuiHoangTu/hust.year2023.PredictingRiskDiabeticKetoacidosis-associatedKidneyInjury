@@ -6,10 +6,10 @@ if __name__ == "__main__":
 # mimic PATH (in which there are hosp and icu data)
 from pathlib import Path
 from pandasql import PandaSQL
-from secret import POSTGRESQL_CONNECTION_STRING
+from secret import MIMIC_PATH_STR, POSTGRESQL_CONNECTION_STRING
 
 
-MIMIC_PATH = Path("../mimiciv2.2/")
+MIMIC_PATH = Path(MIMIC_PATH_STR)
 
 # temporary path
 TEMP_PATH = Path("tmp")
