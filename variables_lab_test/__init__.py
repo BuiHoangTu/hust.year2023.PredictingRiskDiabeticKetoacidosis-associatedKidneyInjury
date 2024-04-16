@@ -1,4 +1,15 @@
-from variables_lab_test.first_day_lab_first_mesure import extractFirstDayLab
+from middle_query import first_day_lab_first_mesure
+
+
+def extractFirstDayLab():
+    """Private
+
+    Returns:
+        _type_: _description_
+    """
+    df = first_day_lab_first_mesure.runSql()
+    df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
+    return df.groupby("stay_id").agg(lambda x: x.mean()).reset_index()
 
 
 def getWbc():
