@@ -176,7 +176,7 @@ def get_eGFR():
 
 
 def getHbA1C():
-    return None
+    return getFirstMesureById(50852, "hba1c")
 
 
 def getCrp():
