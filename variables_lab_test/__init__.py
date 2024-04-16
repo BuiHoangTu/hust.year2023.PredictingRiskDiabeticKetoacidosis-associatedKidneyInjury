@@ -1,5 +1,5 @@
 from middle_query import first_day_lab_first_mesure
-from variables_lab_test import phosphate
+from variables_lab_test import phosphate, ph
 
 
 def extractFirstDayLab():
@@ -16,8 +16,9 @@ def extractFirstDayLab():
 def getWbc():
     df = extractFirstDayLab()
     df["wbc"] = df["wbc_first"]
-    
+
     return df[["stay_id", "wbc"]]
+
 
 def getLymphocyte():
     df = extractFirstDayLab()
@@ -25,11 +26,13 @@ def getLymphocyte():
 
     return df[["stay_id", "lymphocyte"]]
 
+
 def getHb():
     df = extractFirstDayLab()
     df["hb"] = df["hemoglobin_first"]
 
     return df[["stay_id", "hb"]]
+
 
 def getPlt():
     df = extractFirstDayLab()
@@ -37,14 +40,18 @@ def getPlt():
 
     return df[["stay_id", "plt"]]
 
+
 def getPO2():
     return None
+
 
 def getPCO2():
     return None
 
+
 def get_pH():
-    return None
+    return ph.get()
+
 
 def getAG():
     """anion gap
@@ -57,11 +64,13 @@ def getAG():
 
     return df[["stay_id", "ag"]]
 
+
 def getBicarbonate():
     df = extractFirstDayLab()
     df["bicarbonate"] = df["bicarbonate_first"]
 
     return df[["stay_id", "bicarbonate"]]
+
 
 def getBun():
     """blood urea nitrogen
@@ -74,11 +83,13 @@ def getBun():
 
     return df[["stay_id", "bun"]]
 
+
 def getCalcium():
     df = extractFirstDayLab()
     df["calcium"] = df["calcium_first"]
 
     return df[["stay_id", "calcium"]]
+
 
 def getScr():
     """serum creatinine
@@ -91,6 +102,7 @@ def getScr():
 
     return df[["stay_id", "scr"]]
 
+
 def getBg():
     """blood glucose
 
@@ -102,8 +114,10 @@ def getBg():
 
     return df[["stay_id", "bg"]]
 
+
 def getPhosphate():
     return phosphate.get()
+
 
 def getAlbumin():
     df = extractFirstDayLab()
@@ -111,14 +125,18 @@ def getAlbumin():
 
     return df[["stay_id", "albumin"]]
 
+
 def get_eGFR():
     return None
+
 
 def getHbA1C():
     return None
 
+
 def getCrp():
     return None
+
 
 def getUrineKetone():
     return None
