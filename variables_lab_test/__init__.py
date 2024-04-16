@@ -81,11 +81,11 @@ def getPlt():
 
 
 def getPO2():
-    return None
+    return getFirstMesureById(50821, "po2")
 
 
 def getPCO2():
-    return None
+    return getFirstMesureById(50818, "pco2")
 
 
 def get_pH():
