@@ -3,7 +3,7 @@ import pandas as pd
 from constants import TARGET_PATIENT_FILE, TEMP_PATH
 
 
-def reduceByCharttime(df: pd.DataFrame, starttimeCol="charttime", endtimeCol="charttime"):
+def reduceByStayId(df: pd.DataFrame, starttimeCol="charttime", endtimeCol="charttime"):
     """Reduce results of df. Get only data from 6h before to 24h after intime
 
     Args:

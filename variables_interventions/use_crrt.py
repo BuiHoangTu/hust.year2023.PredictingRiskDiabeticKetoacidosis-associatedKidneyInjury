@@ -1,5 +1,5 @@
 from middle_query.crrt import extractCrrt
-from reduce_mesurements import reduceByCharttime
+from reduce_mesurements import reduceByStayId
 
 
 def extractUseCrrt():
@@ -7,6 +7,6 @@ def extractUseCrrt():
     dfCrrt = dfCrrt.drop_duplicates("stay_id")
     dfCrrt["use_crrt"] = True
 
-    dfMerged = reduceByCharttime(dfCrrt)
+    dfMerged = reduceByStayId(dfCrrt)
 
     return dfMerged[["stay_id", "use_crrt"]]

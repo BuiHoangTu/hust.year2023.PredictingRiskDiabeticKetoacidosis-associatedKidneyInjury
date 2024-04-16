@@ -1,4 +1,4 @@
-from reduce_mesurements import reduceByCharttime
+from reduce_mesurements import reduceByStayId
 from middle_query.ventilation import (
     extractVentilation,
 )
@@ -12,7 +12,7 @@ def extractMechVent():
             "InvasiveVent",
         ]
     )
-    dfMerged = reduceByCharttime(dfMV, "starttime", "endtime")
+    dfMerged = reduceByStayId(dfMV, "starttime", "endtime")
 
     dfMerged = dfMerged[["stay_id", "mechanical_ventilation"]]
     dfMerged = dfMerged[dfMerged["mechanical_ventilation"]]
