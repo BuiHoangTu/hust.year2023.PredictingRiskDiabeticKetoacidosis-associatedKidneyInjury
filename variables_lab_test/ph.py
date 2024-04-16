@@ -3,7 +3,7 @@ from reduce_mesurements import reduceByHadmId
 
 
 def get():
-    df = extractLabEventMesures(50820, "ph.csv")
+    df = extractLabEventMesures(50820, "labevent-ph.csv")
     dfReduced = reduceByHadmId(df)
 
     dfMaxPerSpeciment = dfReduced
