@@ -1,4 +1,5 @@
 from middle_query import first_day_lab_first_mesure
+from variables_lab_test import phosphate
 
 
 def extractFirstDayLab():
@@ -102,7 +103,7 @@ def getBg():
     return df[["stay_id", "bg"]]
 
 def getPhosphate():
-    return None
+    return phosphate.get()
 
 def getAlbumin():
     df = extractFirstDayLab()
