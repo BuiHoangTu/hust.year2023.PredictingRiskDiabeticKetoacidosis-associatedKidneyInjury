@@ -1,3 +1,5 @@
+from numpy import nan
+from pandas import DataFrame
 from extract_mesurements import extractLabEventMesures
 from middle_query import first_day_lab_first_mesure
 from reduce_mesurements import reduceByHadmId
@@ -26,7 +28,15 @@ def getFirstMesureById(id: int, valueName: str = "valuenum"):
     Returns:
         pd.DataFrame: Dataframe consists of 2 columns: stay_id, mesureName
     """
-    
+
+    def nonNullFirst(group: DataFrame):
+        groupNonNull = group.dropna(subset=["valuenum"])  # non-null
+        groupNonNull = groupNonNull.sort_values("charttime")
+        if (groupNonNull.empty):
+            return nan
+        else:
+            return groupNonNull.iloc[0]["valuenum"] # first row
+
     df = extractLabEventMesures(id, "labevent-" + str(id) + ".csv")
     dfReduced = reduceByHadmId(df)
 
@@ -41,11 +51,7 @@ def getFirstMesureById(id: int, valueName: str = "valuenum"):
     result = (
         dfMaxPerSpeciment
         .groupby("stay_id")
-        .apply(
-            lambda group: group.dropna(subset=["valuenum"]) # non-null
-            .sort_values("charttime")
-            .iloc[0]["valuenum"] # first row by charttime
-        )
+        .apply(nonNullFirst)
         .reset_index(name=valueName)
     )
 
