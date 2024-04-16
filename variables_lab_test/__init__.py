@@ -1,5 +1,6 @@
+from extract_mesurements import extractLabEventMesures
 from middle_query import first_day_lab_first_mesure
-from variables_lab_test import phosphate, ph
+from reduce_mesurements import reduceByHadmId
 
 
 def extractFirstDayLab():
@@ -11,6 +12,44 @@ def extractFirstDayLab():
     df = first_day_lab_first_mesure.runSql()
     df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
     return df.groupby("stay_id").agg(lambda x: x.mean()).reset_index()
+
+
+def getFirstMesureById(id: int, valueName: str = "valuenum"):
+    """Private. Extract a labevent by id. Reduce it by target patients.
+    Match the first value from -6h -> +24h of admittime.
+    Set value column name to mesureName.
+
+    Args:
+        id (int): labevent's item_id
+        mesureName (str): name of returned column
+
+    Returns:
+        pd.DataFrame: Dataframe consists of 2 columns: stay_id, mesureName
+    """
+    
+    df = extractLabEventMesures(id, "labevent-" + str(id) + ".csv")
+    dfReduced = reduceByHadmId(df)
+
+    # mesure may be performed multiple time, so get max of all
+    dfMaxPerSpeciment = dfReduced
+    dfMaxPerSpeciment["valuenum"] = \
+        dfReduced\
+        .groupby("specimen_id")["valuenum"]\
+        .transform("max")
+    dfMaxPerSpeciment.drop_duplicates("specimen_id", inplace=True)
+
+    result = (
+        dfMaxPerSpeciment
+        .groupby("stay_id")
+        .apply(
+            lambda group: group.dropna(subset=["valuenum"]) # non-null
+            .sort_values("charttime")
+            .iloc[0]["valuenum"] # first row by charttime
+        )
+        .reset_index(name=valueName)
+    )
+
+    return result
 
 
 def getWbc():
@@ -50,7 +89,7 @@ def getPCO2():
 
 
 def get_pH():
-    return ph.get()
+    return getFirstMesureById(50820, "ph")
 
 
 def getAG():
@@ -116,7 +155,7 @@ def getBg():
 
 
 def getPhosphate():
-    return phosphate.get()
+    return getFirstMesureById(50970, "phosphate")
 
 
 def getAlbumin():
