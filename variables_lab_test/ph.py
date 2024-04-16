@@ -6,8 +6,12 @@ def get():
     df = extractLabEventMesures(50820, "ph.csv")
     dfReduced = reduceByHadmId(df)
 
+    dfMaxPerSpeciment = dfReduced
+    dfMaxPerSpeciment["valuenum"] = dfReduced.groupby("specimen_id")["valuenum"].transform("max")
+    dfMaxPerSpeciment.drop_duplicates("specimen_id", inplace=True)
+
     result = (
-        dfReduced
+        dfMaxPerSpeciment
         .groupby("stay_id")
         .apply(
             lambda group: group.dropna(subset=["valuenum"])
