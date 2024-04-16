@@ -14,7 +14,6 @@ __pycache__
 tmp/bak/**
 
 ## self 
-note.md
 package_check.py
 paper_based.py
 main.py
