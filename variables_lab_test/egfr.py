@@ -1,7 +1,7 @@
 from pandas import DataFrame
 
 
-def calculate_eGFR(standardized_scr: float, age: int, isMale: bool) -> float:
+def calculate_eGFR(standardized_scr: float, age: int, gender: str) -> float:
     """
     Calculate the estimated Glomerular Filtration Rate (eGFR) using the following formula:
 
@@ -12,15 +12,15 @@ def calculate_eGFR(standardized_scr: float, age: int, isMale: bool) -> float:
     Parameters:
     standardized_scr (float): The standardized serum creatinine level.
     age (int): The age of the patient.
-    gender (str): The gender of the patient ('female' or 'male').
+    gender (str): The gender of the patient ('F' or 'M').
 
     Returns:
     float: The estimated Glomerular Filtration Rate (eGFR).
     """
-    
+
     # Constants for the formula
-    K = 0.9 if isMale else 0.7
-    alpha = -0.411 if isMale else -0.329
+    K = 0.9 if gender == "M" else 0.7
+    alpha = -0.411 if gender == "M" else -0.329
 
     min_value = min(standardized_scr / K, 1)
     max_value = max(standardized_scr / K, 1)
@@ -28,7 +28,7 @@ def calculate_eGFR(standardized_scr: float, age: int, isMale: bool) -> float:
     eGFR = 142 * (min_value**alpha) * (max_value**-1.209) * (0.993**age)
 
     # Adjust for gender
-    if not isMale:
+    if not gender == "M":
         eGFR *= 1.018
 
     return eGFR

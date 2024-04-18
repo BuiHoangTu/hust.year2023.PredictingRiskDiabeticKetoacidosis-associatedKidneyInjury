@@ -3,6 +3,8 @@ from pandas import DataFrame
 from extract_mesurements import extractLabEventMesures
 from middle_query import first_day_lab_first_mesure
 from reduce_mesurements import reduceByHadmId
+from variables_demographics import getAge, getGender
+from variables_lab_test.egfr import calculate_eGFR_df
 
 
 def extractFirstDayLab():
@@ -172,7 +174,15 @@ def getAlbumin():
 
 
 def get_eGFR():
-    return None
+    dfCreat = getScr()
+    dfAge = getAge()
+    dfGender = getGender()
+    
+    dfMerged = dfCreat\
+        .merge(dfAge, "inner", "stay_id")\
+            .merge(dfGender, "inner", "stay_id")
+    
+    return calculate_eGFR_df(dfMerged)
 
 
 def getHbA1C():
