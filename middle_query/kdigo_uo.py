@@ -5,7 +5,7 @@ from constants import TARGET_PATIENT_FILE, TEMP_PATH
 from middle_query import SQL_PATH
 from query_exceptions import ResultEmptyException
 from middle_query.urine_output import extractUrineOutput
-from middle_query.weight_durations import extractWeightDuration
+from middle_query.weight_durations import runSql
 
 
 def extractKdigoUrineOutput():
@@ -21,7 +21,7 @@ def extractKdigoUrineOutput():
 
     dfUO = extractUrineOutput() 
 
-    dfWeightDuration = extractWeightDuration() 
+    dfWeightDuration = runSql() 
 
     result = pd.DataFrame()
     with open(SQL_PATH / "kdigo_uo.sql", "r") as queryStr:

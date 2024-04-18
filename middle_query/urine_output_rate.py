@@ -6,7 +6,7 @@ from extract_mesurements import extractChartEventMesures
 from middle_query import SQL_PATH
 from query_exceptions import ResultEmptyException
 from middle_query.urine_output import extractUrineOutput
-from middle_query.weight_durations import extractWeightDuration
+from middle_query.weight_durations import runSql
 
 
 def extractOURate():
@@ -25,7 +25,7 @@ def extractOURate():
 
     dfUrineOutput = extractUrineOutput()
 
-    dfWeightDuration = extractWeightDuration()
+    dfWeightDuration = runSql()
 
     result = pd.DataFrame()
     with open(SQL_PATH / "urine_output_rate.sql", "r") as queryStr:

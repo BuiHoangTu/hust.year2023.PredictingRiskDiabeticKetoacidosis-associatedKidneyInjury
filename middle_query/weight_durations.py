@@ -7,7 +7,7 @@ from middle_query import SQL_PATH
 from query_exceptions import ResultEmptyException
 
 
-def extractWeightDuration():
+def runSql():
     WEIGHT_DURATIONS_FILE = "weight_durations.csv"
     
     if (TEMP_PATH / WEIGHT_DURATIONS_FILE).exists():
