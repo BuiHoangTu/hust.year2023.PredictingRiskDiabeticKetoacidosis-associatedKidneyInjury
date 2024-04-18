@@ -2,7 +2,7 @@ import pandas as pd
 from constants import queryPostgresDf
 
 from constants import TEMP_PATH
-from extract_target_patients import extractTargetPatients
+from patients import getTargetPatientIcu
 from middle_query import SQL_PATH, vitalsign
 from query_exceptions import ResultEmptyException
 
@@ -20,7 +20,7 @@ def runSql():
         (SQL_PATH / "./first_day_vitalsign.sql").read_text(),
         {
             "vitalsign": dfVitalSign,
-            "icustays": extractTargetPatients(),
+            "icustays": getTargetPatientIcu(),
         },
     )
 

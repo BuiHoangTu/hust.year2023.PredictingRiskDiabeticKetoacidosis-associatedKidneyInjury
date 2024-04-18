@@ -5,7 +5,7 @@ from constants import queryPostgresDf
 from constants import TEMP_PATH
 from middle_query import blood_differential, chemistry, coagulation, complete_blood_count, enzyme
 from query_exceptions import ResultEmptyException
-from extract_target_patients import extractTargetPatients
+from patients import getTargetPatientIcu
 
 
 def runSql():
@@ -16,7 +16,7 @@ def runSql():
     if (OUTPUT_PATH).exists():
         return pd.read_csv(OUTPUT_PATH)
 
-    dfPatients = extractTargetPatients()
+    dfPatients = getTargetPatientIcu()
     
     dfBloodCount = complete_blood_count.runSql()
     dfBloodCount["charttime"] = pd.to_datetime(dfBloodCount["charttime"])

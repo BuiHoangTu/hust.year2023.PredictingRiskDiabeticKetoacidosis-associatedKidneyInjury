@@ -2,7 +2,7 @@ from pathlib import Path
 import pandas as pd
 
 from constants import MIMIC_PATH, TEMP_PATH, queryPostgresDf
-from extract_target_patients import extractTargetPatients
+from patients import getTargetPatientIcu
 from middle_query import age, first_day_gcs, first_day_urine_output, first_day_vitalsign
 from query_exceptions import ResultEmptyException
 from middle_query.ventilation import extractVentilation
@@ -32,11 +32,11 @@ def runSql():
     queryStr = queryStr.replace("%", "%%")
 
     map = {
-        "icustays": extractTargetPatients(),
+        "icustays": getTargetPatientIcu(),
         "services": dfServices,
         "ventilation": dfVent,
         "admissions": dfAdmission,
-        "patients": extractTargetPatients(),
+        "patients": getTargetPatientIcu(),
         "age": age.runSql(),
         "first_day_gcs": first_day_gcs.runSql(),
         "first_day_vitalsign": first_day_vitalsign.runSql(),

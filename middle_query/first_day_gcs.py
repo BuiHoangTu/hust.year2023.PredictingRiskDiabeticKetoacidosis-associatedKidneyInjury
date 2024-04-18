@@ -2,7 +2,7 @@ from pathlib import Path
 import pandas as pd
 
 from constants import TEMP_PATH, queryPostgresDf
-from extract_target_patients import extractTargetPatients
+from patients import getTargetPatientIcu
 from query_exceptions import ResultEmptyException
 import middle_query.gcs as gcs
 
@@ -13,7 +13,7 @@ def runSql():
     if (GCS_OUTPUT_PATH).exists():
         return pd.read_csv(GCS_OUTPUT_PATH)
 
-    dfPatient = extractTargetPatients()
+    dfPatient = getTargetPatientIcu()
 
     queryStr = (Path(__file__).parent / "first_day_gcs.sql").read_text()
     map = {

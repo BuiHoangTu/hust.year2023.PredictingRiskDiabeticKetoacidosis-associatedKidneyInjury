@@ -3,7 +3,7 @@ from constants import queryPostgresDf
 
 from constants import TEMP_PATH
 from extract_mesurements import extractLabEventMesures
-from extract_target_patients import extractTargetPatients
+from patients import getTargetPatientIcu
 from middle_query import SQL_PATH
 from query_exceptions import ResultEmptyException
 
@@ -14,7 +14,7 @@ def extractKdigoCreatinine():
     if (OUTPUT_PATH).exists():
         return pd.read_csv(OUTPUT_PATH)
 
-    dfTargetPatients = extractTargetPatients()
+    dfTargetPatients = getTargetPatientIcu()
 
     LABEVENT_FILE = "labevent_50912.csv"
     dfLabevent = extractLabEventMesures(50912, LABEVENT_FILE)

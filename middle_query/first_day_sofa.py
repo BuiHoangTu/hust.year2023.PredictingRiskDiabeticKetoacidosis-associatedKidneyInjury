@@ -2,7 +2,7 @@ from pathlib import Path
 import pandas as pd
 
 from constants import TEMP_PATH, queryPostgresDf
-from extract_target_patients import extractTargetPatients
+from patients import getTargetPatientIcu
 from middle_query import first_day_gcs, first_day_urine_output, first_day_vitalsign, ventilation
 from query_exceptions import ResultEmptyException
 from middle_query import first_day_lab
@@ -16,7 +16,7 @@ def runSql():
 
     queryStr = (Path(__file__).parent / "./first_day_sofa.sql").read_text()
     map = {
-        "icustays": extractTargetPatients(),
+        "icustays": getTargetPatientIcu(),
         "norepinephrine": None,
         "epinephrine": None,
         "dobutamine": None,

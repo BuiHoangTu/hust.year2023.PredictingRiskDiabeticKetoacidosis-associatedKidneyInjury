@@ -4,7 +4,7 @@ from constants import queryPostgresDf
 
 from constants import TEMP_PATH
 from query_exceptions import ResultEmptyException
-from extract_target_patients import extractTargetPatients
+from patients import getTargetPatientIcu
 
 
 def runSql():
@@ -13,7 +13,7 @@ def runSql():
     if (TEMP_PATH / OUTPUT_FILE).exists():
         return pd.read_csv(TEMP_PATH / OUTPUT_FILE)
 
-    dfPatients = extractTargetPatients()
+    dfPatients = getTargetPatientIcu()
 
     map = {
         "icustays": dfPatients,
