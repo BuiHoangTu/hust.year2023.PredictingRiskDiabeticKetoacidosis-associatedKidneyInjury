@@ -1,5 +1,6 @@
 import pandas as pd
 from constants import MIMIC_PATH
+from extract_mesurements import extractChartEventMesures
 from middle_query import weight_durations
 from patients import getTargetPatientIcu
 
@@ -55,7 +56,26 @@ def getEthnicity():
 
 
 def getHeight():
-    return None
+    df = extractChartEventMesures(
+        [
+            226707,  # inch
+            226730,  # cm
+        ],
+        "chartted-all-height.csv",
+    )
+
+    def convertToCm(row):
+        if row["itemid"] == 226707:  # inch
+            height = row["valuenum"] * 2.54
+        else:
+            height = row["valuenum"]
+
+        return height
+
+    # convert to cm
+    df["height"] = df.apply(convertToCm, axis=1)
+
+    return df[["stay_id", "height"]]
 
 
 def getWeight():
