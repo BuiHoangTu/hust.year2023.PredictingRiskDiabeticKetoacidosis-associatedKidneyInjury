@@ -2,7 +2,7 @@ from extract_mesurements import extractInputEvents
 from reduce_mesurements import reduceByStayId
 
 
-def extractUseOfNaHCO3():
+def get():
     dfNahco3 = extractInputEvents([220995, 221211, 227533], "use_nahco3.csv")
 
     dfReduced = reduceByStayId(dfNahco3, "starttime", "endtime")

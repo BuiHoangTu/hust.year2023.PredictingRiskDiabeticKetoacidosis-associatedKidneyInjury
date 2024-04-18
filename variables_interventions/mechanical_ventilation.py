@@ -4,7 +4,7 @@ from middle_query.ventilation import (
 )
 
 
-def extractMechVent():
+def get():
     dfMV = extractVentilation()
     dfMV["mechanical_ventilation"] = dfMV["ventilation_status"].isin(
         [
