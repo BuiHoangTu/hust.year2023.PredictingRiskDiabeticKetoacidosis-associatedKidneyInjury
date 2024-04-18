@@ -28,4 +28,15 @@ def getTargetPatientIcu() :
     df = pd.read_csv(PATIENT_PATH)
     df["intime"] = pd.to_datetime(df["intime"])
     df["outtime"] = pd.to_datetime(df["outtime"])
-    return df
+    return df[
+        [
+            "subject_id",
+            "hadm_id",
+            "stay_id",
+            "first_careunit",
+            "last_careunit",
+            "intime",
+            "outtime",
+            "los"
+        ]
+    ]
