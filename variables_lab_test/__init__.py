@@ -13,9 +13,7 @@ def extractFirstDayLab():
     Returns:
         _type_: _description_
     """
-    df = first_day_lab_first_mesure.runSql()
-    df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
-    return df.groupby("stay_id").agg(lambda x: x.mean()).reset_index()
+    return first_day_lab_first_mesure.runSql()
 
 
 def getFirstMesureById(id: int, valueName: str = "valuenum"):
