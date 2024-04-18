@@ -1,5 +1,6 @@
 import pandas as pd
 from constants import MIMIC_PATH
+from middle_query import weight_durations
 from patients import getTargetPatientIcu
 
 
@@ -9,15 +10,20 @@ def getAge():
     Returns:
         pd.DataFrame: consists of stay_id, age
     """
-     
+
     # intime - anchor_year + anchor_age
-    dfPatientICU = getTargetPatientIcu() # intime 
+    dfPatientICU = getTargetPatientIcu()  # intime
     dfPatient = pd.read_csv(MIMIC_PATH / "hosp" / "patients.csv")
 
     dfMerged = pd.merge(dfPatientICU, dfPatient, "inner", on="subject_id")
-    dfMerged["age"] = pd.to_datetime(dfMerged["intime"]).dt.year - dfMerged["anchor_year"] + dfMerged["anchor_age"]
+    dfMerged["age"] = (
+        pd.to_datetime(dfMerged["intime"]).dt.year
+        - dfMerged["anchor_year"]
+        + dfMerged["anchor_age"]
+    )
 
     return dfMerged[["stay_id", "age"]]
+
 
 def getGender():
     """Get patients's biological gender
@@ -25,10 +31,37 @@ def getGender():
     Returns:
         pd.DataFrame: consists of stay_id, gender(M,F)
     """
-    
-    dfPatientICU = getTargetPatientIcu() # intime 
+
+    dfPatientICU = getTargetPatientIcu()
     dfPatient = pd.read_csv(MIMIC_PATH / "hosp" / "patients.csv")
 
     dfMerged = pd.merge(dfPatientICU, dfPatient, "inner", on="subject_id")
 
     return dfMerged[["stay_id", "gender"]]
+
+
+def getEthnicity():
+    """_summary_
+
+    Returns:
+        pd.DataFrame: consists of stay_id, race(str-capital)
+    """
+    dfPatientICU = getTargetPatientIcu()
+    dfAdmission = pd.read_csv(MIMIC_PATH / "hosp/admissions.csv")
+
+    dfMerged = pd.merge(dfPatientICU, dfAdmission, "inner", on="hadm_id")
+
+    return dfMerged[["stay_id", "race"]]
+
+
+def getHeight():
+    return None
+
+
+def getWeight():
+    dfWeight = weight_durations.runSql()
+    dfFirstWeight = dfWeight.sort_values(["stay_id", "starttime"]).drop_duplicates(
+        "stay_id", keep="first"
+    )
+
+    return dfFirstWeight[["stay_id", "weight"]]
