@@ -190,8 +190,8 @@ def getHbA1C():
 
 
 def getCrp():
-    return None
+    return getFirstMesureById(50889, "crp")
 
 
 def getUrineKetone():
-    return None
+    return getFirstMesureById(51484, "urine-ketone")
