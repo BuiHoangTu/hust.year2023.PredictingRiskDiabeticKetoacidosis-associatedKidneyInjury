@@ -1,6 +1,6 @@
-/* This query pivots vital signs and aggregates them */ /* for the first 24 hours of a patient's stay. */
-SELECT
-  ie.subject_id,
+/* This query pivots vital signs and aggregates them */
+/* for the first 24 hours of a patient's stay. */
+SELECT ie.subject_id,
   ie.stay_id,
   MIN(heart_rate) AS heart_rate_min,
   MAX(heart_rate) AS heart_rate_max,
@@ -27,10 +27,8 @@ SELECT
   MAX(glucose) AS glucose_max,
   AVG(glucose) AS glucose_mean
 FROM icustays AS ie
-LEFT JOIN vitalsign AS ce
-  ON ie.stay_id = ce.stay_id
+  LEFT JOIN vitalsign AS ce ON ie.stay_id = ce.stay_id
   AND ce.charttime >= ie.intime - INTERVAL '6 HOUR'
   AND ce.charttime <= ie.intime + INTERVAL '1 DAY'
-GROUP BY
-  ie.subject_id,
+GROUP BY ie.subject_id,
   ie.stay_id
