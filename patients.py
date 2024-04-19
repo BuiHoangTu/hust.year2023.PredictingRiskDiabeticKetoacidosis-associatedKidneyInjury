@@ -2,7 +2,7 @@ from time import sleep
 import nbformat
 import pandas as pd
 
-from constants import TARGET_PATIENT_FILE, TEMP_PATH
+from constants import MIMIC_PATH, TARGET_PATIENT_FILE, TEMP_PATH
 from nbconvert.preprocessors import ExecutePreprocessor
 
 
@@ -40,3 +40,17 @@ def getTargetPatientIcu() :
             "los"
         ]
     ]
+
+def getTargetPatientIcd():
+    """Get Icd dianogses of target patients 
+
+    Returns:
+        pd.Dataframe: equals to read_csv then filter patients
+    """
+    
+    dfDiagnosesIcd = pd.read_csv(str(MIMIC_PATH / "hosp" / "diagnoses_icd.csv"))
+    dfDiagnosesIcd["icd_code"] = dfDiagnosesIcd["icd_code"].astype(str)
+    patHadmIds = set(getTargetPatientIcu()["hadm_id"])
+    dfDiagnosesIcd = dfDiagnosesIcd[dfDiagnosesIcd["hadm_id"].isin(patHadmIds)]
+
+    return dfDiagnosesIcd
