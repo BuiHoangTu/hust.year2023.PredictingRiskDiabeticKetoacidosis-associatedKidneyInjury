@@ -27,31 +27,48 @@ PREPROCESSED_MESUREMENTS = ["sugar"]
 IMPORTANT_MESUREMENTS_LABEVENT = {51006: "bun"}
 
 # Define ICD-9/10 codes for DKA
-DKA_CODE_V9 = [
-    "24910",  # Secondary diabetes mellitus with ketoacidosis
-    "24911",
-    "25010",
+DKA_T1_CODE_V9 = [
     "25011",
-    "25012",
     "25013",
 ]
-DKA_CODE_V10 = [
-    "E081",  # Diabetes mellitus due to underlying condition with ketoacidosis
-    "E0810",
-    "E0811",
-    "E091",  # Drug or chemical induced diabetes mellitus with ketoacidosis
-    "E0910",
-    "E0911",
+DKA_T2_CODE_V9 = [
+    "25010",
+    "25012",
+]
+DKA_CODE_V9 = (
+    [
+        "24910",  # Secondary diabetes mellitus with ketoacidosis
+        "24911",  # Secondary diabetes mellitus -> pregnant
+    ]
+    + DKA_T1_CODE_V9
+    + DKA_T2_CODE_V9
+)
+
+DKA_T1_CODE_V10 = [
     "E101",  # Type 1 diabetes mellitus with ketoacidosis
     "E1010",
     "E1011",
+]
+DKA_T2_CODE_V10 = [
     "E111",  # Type 2 diabetes mellitus with ketoacidosis
     "E1110",
     "E1111",
-    "E131",  # Other specified diabetes mellitus with ketoacidosis
-    "E1310",
-    "E1311",
 ]
+DKA_CODE_V10 = (
+    [
+        "E081",  # Diabetes mellitus due to underlying condition with ketoacidosis
+        "E0810",
+        "E0811",
+        "E091",  # Drug or chemical induced diabetes mellitus with ketoacidosis
+        "E0910",
+        "E0911",
+        "E131",  # Other specified diabetes mellitus with ketoacidosis
+        "E1310",
+        "E1311",
+    ]
+    + DKA_T1_CODE_V10
+    + DKA_T2_CODE_V10
+)
 
 # Define CKD stage 5 codes
 CKD5_CODE_V9 = [
