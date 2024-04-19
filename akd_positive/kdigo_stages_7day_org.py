@@ -3,7 +3,7 @@ from pandasql import sqldf
 
 from constants import AKD_SQL_PATH, TARGET_PATIENT_FILE, TEMP_PATH
 from query_exceptions import ResultEmptyException
-from akd_stage.stage_per_mesure import extractAkdPerMesure
+from akd_positive.stage_per_mesure import extractAkdPerMesure
 
 
 def extractAkdPerPatient():
