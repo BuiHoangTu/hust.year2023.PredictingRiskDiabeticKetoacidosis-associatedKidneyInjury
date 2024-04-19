@@ -30,8 +30,10 @@ def runSql():
 
     if result is None:
         raise ResultEmptyException()
-    result.to_csv(OUTPUT_PATH)
 
     df = result
     df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
-    return df.groupby("stay_id").agg(lambda x: x.mean()).reset_index()
+    df = df.groupby("stay_id").agg(lambda x: x.mean()).reset_index()
+    
+    df.to_csv(OUTPUT_PATH)
+    return df
