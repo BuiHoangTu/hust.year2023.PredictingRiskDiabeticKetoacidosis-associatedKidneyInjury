@@ -13,7 +13,7 @@ def extractKdigoStages():
     OUTPUT_FILE = "kdigo_stages.csv"
 
     if (TEMP_PATH / OUTPUT_FILE).exists():
-        return pd.read_csv(TEMP_PATH / OUTPUT_FILE)
+        return pd.read_csv(TEMP_PATH / OUTPUT_FILE, parse_dates=["charttime"])
 
     dfKdigoCreat = extractKdigoCreatinine()
 

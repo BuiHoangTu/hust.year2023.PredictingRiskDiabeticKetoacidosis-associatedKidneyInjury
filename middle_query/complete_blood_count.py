@@ -12,7 +12,7 @@ def runSql():
     OUTPUT_PATH = TEMP_PATH / (THIS_FILE.name + ".csv")
 
     if (OUTPUT_PATH).exists():
-        return pd.read_csv(OUTPUT_PATH)
+        return pd.read_csv(OUTPUT_PATH, parse_dates=["charttime"])
 
     CHART_EVENT_IDs = [
         51221,

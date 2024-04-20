@@ -11,7 +11,7 @@ def runSql():
     OUTPUT_PATH = TEMP_PATH / "./vitalsign.csv"
 
     if (OUTPUT_PATH).exists():
-        return pd.read_csv(OUTPUT_PATH)
+        return pd.read_csv(OUTPUT_PATH, parse_dates=["charttime"])
 
     CHARTED_IDs = [
         220045,

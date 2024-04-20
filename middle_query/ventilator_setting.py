@@ -11,7 +11,7 @@ def extractVentilatorSetting():
     OUTPUT_FILE = "ventilator_setting.csv"
 
     if (TEMP_PATH / OUTPUT_FILE).exists():
-        return pd.read_csv(TEMP_PATH / OUTPUT_FILE)
+        return pd.read_csv(TEMP_PATH / OUTPUT_FILE, parse_dates=["charttime"])
 
     CHARTEVENT_IDs = [
         224688,

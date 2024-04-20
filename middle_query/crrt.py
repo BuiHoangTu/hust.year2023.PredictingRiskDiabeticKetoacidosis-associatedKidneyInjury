@@ -11,7 +11,7 @@ def extractCrrt():
     CRRT_OUTPUT_PATH = TEMP_PATH / "crrt.csv"
 
     if (CRRT_OUTPUT_PATH).exists():
-        return pd.read_csv(CRRT_OUTPUT_PATH)
+        return pd.read_csv(CRRT_OUTPUT_PATH, parse_dates=["charttime"])
 
     CHART_EVENT_IDs = [
         227290,

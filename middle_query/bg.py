@@ -8,11 +8,11 @@ from query_exceptions import ResultEmptyException
 
 def runSql():
     THIS_FILE = Path(__file__)
-    
+
     OUTPUT_PATH = TEMP_PATH / (THIS_FILE.name + ".csv")
 
     if (OUTPUT_PATH).exists():
-        return pd.read_csv(OUTPUT_PATH) 
+        return pd.read_csv(OUTPUT_PATH, parse_dates=["charttime"])
 
     CHART_EVENT_IDs = [
         52033,50801,50802,50803,50804,50805,50806,50808,50809,50810,50811,50813,50814,50815,
@@ -22,7 +22,6 @@ def runSql():
 
     dfLabEvent = extractLabEventMesures(CHART_EVENT_IDs,  "charted_" + THIS_FILE.name + ".csv")
     dfChartEvent = extractChartEventMesures(CHART_EVENT_IDs,  "charted_" + THIS_FILE.name + ".csv")
-
 
     result = pd.DataFrame()
     queryStr = (Path(__file__).parent /  (THIS_FILE.stem + ".sql")).read_text()

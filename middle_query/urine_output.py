@@ -9,9 +9,9 @@ from query_exceptions import ResultEmptyException
 
 def extractUrineOutput():
     URINE_OUTPUT_FILE = "urine_output.csv"
-    
+
     if (TEMP_PATH / URINE_OUTPUT_FILE).exists():
-        return pd.read_csv(TEMP_PATH / URINE_OUTPUT_FILE)
+        return pd.read_csv(TEMP_PATH / URINE_OUTPUT_FILE, parse_dates=["charttime"])
 
     OUTPUT_EVENT_URINE_IDs = [
         226559,
