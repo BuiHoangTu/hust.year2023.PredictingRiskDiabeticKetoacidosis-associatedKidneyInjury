@@ -13,7 +13,7 @@ def extractOURate():
     UO_RATE_FILE = "urine_output_rate.csv"
 
     if (TEMP_PATH / UO_RATE_FILE).exists():
-        return pd.read_csv(TEMP_PATH / UO_RATE_FILE)
+        return pd.read_csv(TEMP_PATH / UO_RATE_FILE, parse_dates=["charttime"])
 
     # bpm - heart rate 
     dfChartevents220045 = extractChartEventMesures(220045, "chartevents_220045.csv")
