@@ -10,7 +10,7 @@ def runSql():
     OUTPUT_PATH = TEMP_PATH / "age.csv"
 
     if (OUTPUT_PATH).exists():
-        return pd.read_csv(OUTPUT_PATH)
+        return pd.read_csv(OUTPUT_PATH, parse_dates=["admittime"])
 
     queryStr = (SQL_PATH / "./age.sql").read_text()
 

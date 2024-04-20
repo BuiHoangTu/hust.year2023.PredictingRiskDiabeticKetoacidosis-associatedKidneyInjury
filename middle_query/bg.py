@@ -3,8 +3,8 @@ import pandas as pd
 
 from constants import TEMP_PATH, queryPostgresDf
 from extract_mesurements import extractLabEventMesures
+from extract_mesurements import extractChartEventMesures
 from query_exceptions import ResultEmptyException
-
 
 def runSql():
     THIS_FILE = Path(__file__)
@@ -15,30 +15,21 @@ def runSql():
         return pd.read_csv(OUTPUT_PATH, parse_dates=["charttime"])
 
     CHART_EVENT_IDs = [
-        50862,
-        50930,
-        50976,
-        50868,
-        50882,
-        51006,
-        50893,
-        50902,
-        50912,
-        50931,
-        50983,
-        50971,
+        52033,50801,50802,50803,50804,50805,50806,50808,50809,50810,50811,50813,50814,50815,
+        50816,50817,50818,50819,50820,50821,50822,50823,50824,50825,50807,220277,223835
     ]
+    CHARTED_EVENT_FILE = "charted_crrt.csv"
 
-    dfChartEvent = extractLabEventMesures(
-        CHART_EVENT_IDs, "charted_" + THIS_FILE.name + ".csv"
-    )
+    dfLabEvent = extractLabEventMesures(CHART_EVENT_IDs,  "charted_" + THIS_FILE.name + ".csv")
+    dfChartEvent = extractChartEventMesures(CHART_EVENT_IDs,  "charted_" + THIS_FILE.name + ".csv")
 
     result = pd.DataFrame()
-    queryStr = (Path(__file__).parent / (THIS_FILE.stem + ".sql")).read_text()
+    queryStr = (Path(__file__).parent /  (THIS_FILE.stem + ".sql")).read_text()
 
     queryStr = queryStr.replace("%", "%%")
     map = {
-        "labevents": dfChartEvent,  # copy ten bang vao day
+            "labevents": dfLabEvent,#copy ten bang vao day
+            "chartevents": dfChartEvent,
     }
     result = queryPostgresDf(queryStr, map)
     pass

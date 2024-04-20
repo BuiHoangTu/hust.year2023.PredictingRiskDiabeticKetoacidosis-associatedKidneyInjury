@@ -11,7 +11,7 @@ def runSql():
     OUTPUT_PATH = TEMP_PATH / (THIS_FILE.name + ".csv")
 
     if (OUTPUT_PATH).exists():
-        return pd.read_csv(OUTPUT_PATH)# neu file ton tai thi ko chay doan duoi nx
+        return pd.read_csv(OUTPUT_PATH, parse_dates=["charttime"])
 
     CHART_EVENT_IDs = [# copy tu ben sql
         50861 ,

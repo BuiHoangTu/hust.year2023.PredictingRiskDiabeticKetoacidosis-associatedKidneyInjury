@@ -12,7 +12,7 @@ def extractKdigoCreatinine():
     OUTPUT_PATH = TEMP_PATH / "kdigo_creatinine.csv"
 
     if (OUTPUT_PATH).exists():
-        return pd.read_csv(OUTPUT_PATH)
+        return pd.read_csv(OUTPUT_PATH, parse_dates=["charttime"])
 
     dfTargetPatients = getTargetPatientIcu()
 

@@ -12,7 +12,7 @@ def extractVentilation():
     OUTPUT_FILE = "ventilation.csv"
 
     if (TEMP_PATH / OUTPUT_FILE).exists():
-        return pd.read_csv(TEMP_PATH / OUTPUT_FILE)
+        return pd.read_csv(TEMP_PATH / OUTPUT_FILE, parse_dates=["starttime", "endtime"])
 
     dfVentSetting = extractVentilatorSetting()
     dfVentSetting["charttime"] = pd.to_datetime(dfVentSetting["charttime"], format="ISO8601")

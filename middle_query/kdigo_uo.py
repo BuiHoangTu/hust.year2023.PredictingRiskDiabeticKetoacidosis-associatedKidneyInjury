@@ -12,8 +12,7 @@ def extractKdigoUrineOutput():
     OUTPUT_FILE = "kdigo_uo.csv"
 
     if (TEMP_PATH / OUTPUT_FILE).exists():
-        return pd.read_csv(TEMP_PATH / OUTPUT_FILE)
-
+        return pd.read_csv(TEMP_PATH / OUTPUT_FILE, parse_dates=["charttime"])
 
     dfTargetPatients = pd.read_csv(TEMP_PATH / TARGET_PATIENT_FILE)
     dfTargetPatients["intime"] = pd.to_datetime(dfTargetPatients["intime"])

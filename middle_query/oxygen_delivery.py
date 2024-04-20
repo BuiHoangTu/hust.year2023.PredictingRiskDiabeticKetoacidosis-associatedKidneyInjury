@@ -11,7 +11,7 @@ def extractOxygenDelivery():
     OUTPUT_FILE = "oxygen_delivery.csv"
 
     if (TEMP_PATH / OUTPUT_FILE).exists():
-        return pd.read_csv(TEMP_PATH / OUTPUT_FILE)
+        return pd.read_csv(TEMP_PATH / OUTPUT_FILE, parse_dates=["charttime"])
 
     CHARTED_IDs = [223834, 227582, 227287, 226732]
     CHARTED_FILE = "chartevent_oxygen_delivery.csv"

@@ -3,7 +3,7 @@ import pandas as pd
 
 from constants import TEMP_PATH, queryPostgresDf
 from patients import getTargetPatientIcu
-from middle_query import first_day_gcs, first_day_urine_output, first_day_vitalsign, ventilation
+from middle_query import bg, dobutamine, epinephrine, first_day_gcs, first_day_urine_output, first_day_vitalsign, norepinephrine, ventilation
 from query_exceptions import ResultEmptyException
 from middle_query import first_day_lab
 
@@ -17,11 +17,11 @@ def runSql():
     queryStr = (Path(__file__).parent / "./first_day_sofa.sql").read_text()
     map = {
         "icustays": getTargetPatientIcu(),
-        "norepinephrine": None,
-        "epinephrine": None,
-        "dobutamine": None,
-        "dopamine": None,
-        "bg": None,
+        "norepinephrine": norepinephrine.runSql(),
+        "epinephrine": epinephrine.runSql(),
+        "dobutamine": dobutamine.runSql(),
+        "dopamine": dobutamine.runSql(),
+        "bg": bg.runSql(),
         "ventilation": ventilation.extractVentilation(),
         "first_day_vitalsign": first_day_vitalsign.runSql(),
         "first_day_lab": first_day_lab.runSql(),

@@ -9,10 +9,12 @@ from query_exceptions import ResultEmptyException
 
 def runSql():
     WEIGHT_DURATIONS_FILE = "weight_durations.csv"
-    
+
     if (TEMP_PATH / WEIGHT_DURATIONS_FILE).exists():
-        return pd.read_csv(TEMP_PATH / WEIGHT_DURATIONS_FILE)
-    
+        return pd.read_csv(
+            TEMP_PATH / WEIGHT_DURATIONS_FILE, parse_dates=["starttime", "endtime"]
+        )
+
     dfCharteventsWeight = extractChartEventMesures([226512, 224639], "chartevents_weight.csv")
 
     dfCharteventsWeight["charttime"] = pd.to_datetime(dfCharteventsWeight["charttime"])
