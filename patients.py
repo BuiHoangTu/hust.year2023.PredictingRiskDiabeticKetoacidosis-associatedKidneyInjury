@@ -6,7 +6,7 @@ from constants import MIMIC_PATH, TARGET_PATIENT_FILE, TEMP_PATH
 from nbconvert.preprocessors import ExecutePreprocessor
 
 
-def getTargetPatientIcu() :
+def getNotebookOutput():
     PATIENT_PATH = TEMP_PATH / TARGET_PATIENT_FILE
 
     if not PATIENT_PATH.exists():
@@ -28,6 +28,12 @@ def getTargetPatientIcu() :
     df = pd.read_csv(PATIENT_PATH)
     df["intime"] = pd.to_datetime(df["intime"])
     df["outtime"] = pd.to_datetime(df["outtime"])
+    return df
+
+
+def getTargetPatientIcu():
+    df = getNotebookOutput()
+
     return df[
         [
             "subject_id",
@@ -37,17 +43,18 @@ def getTargetPatientIcu() :
             "last_careunit",
             "intime",
             "outtime",
-            "los"
+            "los",
         ]
     ]
 
+
 def getTargetPatientIcd():
-    """Get Icd dianogses of target patients 
+    """Get Icd dianogses of target patients
 
     Returns:
         pd.Dataframe: equals to read_csv then filter patients
     """
-    
+
     dfDiagnosesIcd = pd.read_csv(str(MIMIC_PATH / "hosp" / "diagnoses_icd.csv"))
     dfDiagnosesIcd["icd_code"] = dfDiagnosesIcd["icd_code"].astype(str)
     patHadmIds = set(getTargetPatientIcu()["hadm_id"])
