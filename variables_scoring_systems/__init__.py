@@ -1,4 +1,4 @@
-from middle_query import first_day_gcs, oasis
+from middle_query import first_day_gcs, first_day_sofa, oasis
 
 
 def getGcs():
@@ -28,3 +28,14 @@ def getOasis():
     df = df.groupby("stay_id").agg(lambda x: x.mean()).reset_index()
 
     return df[["stay_id", "oasis"]]
+
+
+def getSofa():
+    """Sequential Organ Failure Assessment.
+
+    The score is calculated on the first day of each ICU patients' stay.
+
+    Returns:
+        pandas.DataFrame: ["stay_id", "sofa"]
+    """
+    return first_day_sofa.runSql()[["stay_id", "sofa"]]
