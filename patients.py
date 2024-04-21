@@ -48,9 +48,17 @@ def getTargetPatientIcd():
         pd.Dataframe: equals to read_csv then filter patients
     """
     
-    dfDiagnosesIcd = pd.read_csv(str(MIMIC_PATH / "hosp" / "diagnoses_icd.csv"))
+    dfDiagnosesIcd = pd.read_csv(MIMIC_PATH / "hosp" / "diagnoses_icd.csv")
     dfDiagnosesIcd["icd_code"] = dfDiagnosesIcd["icd_code"].astype(str)
     patHadmIds = set(getTargetPatientIcu()["hadm_id"])
     dfDiagnosesIcd = dfDiagnosesIcd[dfDiagnosesIcd["hadm_id"].isin(patHadmIds)]
 
     return dfDiagnosesIcd
+
+
+def getTargetPatientAdmission():
+    dfAdmission = pd.read_csv(MIMIC_PATH / "hosp/admissions.csv")
+    patHadmIds = set(getTargetPatientIcu()["hadm_id"])
+    dfAdmission = dfAdmission[dfAdmission["hadm_id"].isin(patHadmIds)]
+    
+    return dfAdmission
