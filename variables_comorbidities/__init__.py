@@ -25,7 +25,7 @@ def getHistoryAMI():
 
 
 def getCHF():
-    """history of Congestive heart failure
+    """Congestive heart failure
 
     Returns:
         pandas.DataFrame: ["hadm_id", "history_ami"]
@@ -38,7 +38,7 @@ def getCHF():
 
 
 def getLiverDisease():
-    """history of Liver disease. SEVERE - MILD - NONE
+    """Liver disease. SEVERE - MILD - NONE
 
     Returns:
         pandas.DataFrame: ["hadm_id", "liver_disease"]
