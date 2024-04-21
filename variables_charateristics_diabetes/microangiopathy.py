@@ -27,6 +27,7 @@ def getDiabeticNephropathy():
     
     dfRes = dfPatIcd[dfPatIcd["icd_code"].isin(codes)]
     
+    dfRes = dfRes.copy()
     dfRes["dn"] = True
 
     return dfRes[["hadm_id", "dn"]]
@@ -380,6 +381,7 @@ def getDiabeticRetinopathy():
 
     dfRes = dfPatIcd[dfPatIcd["icd_code"].isin(codes)]
 
+    dfRes = dfRes.copy()
     dfRes["dr"] = True
 
     return dfRes[["hadm_id", "dr"]]
@@ -397,6 +399,7 @@ def getDiabeticPeripheralNeuropathy():
 
     dfRes = dfPatIcd[dfPatIcd["icd_code"].isin(codes)]
 
+    dfRes = dfRes.copy()
     dfRes["dpn"] = True
 
     return dfRes[["hadm_id", "dpn"]]

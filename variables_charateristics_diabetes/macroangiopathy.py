@@ -29,6 +29,7 @@ def getCoronaryHeartDisease():
         dfDiagnosesIcd["icd_code"].str.startswith(tuple(codePrefixes))
     ]
     
+    dfCoronary = dfCoronary.copy()
     dfCoronary["coronary"] = True
 
     return dfCoronary[["hadm_id", "coronary"]]
@@ -37,6 +38,7 @@ def getCerebralAtherosclerosis():
     dfDiagnosesIcd = getTargetPatientIcd()
     dfCA = dfDiagnosesIcd[dfDiagnosesIcd["icd_code"].isin(["I672", "4370"])]
 
+    dfCA = dfCA.copy()
     dfCA["ca"] = True
 
 
@@ -68,6 +70,7 @@ def getPeripheralAtherosclerosis():
 
     dfCA = dfDiagnosesIcd[code9Filter | code10Filter]
 
+    dfCA = dfCA.copy()
     dfCA["pa"] = True
 
     return dfCA[["hadm_id", "pa"]]
