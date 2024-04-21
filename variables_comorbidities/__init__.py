@@ -1,5 +1,6 @@
 import numpy as np
 from middle_query import charlson
+from patients import getTargetPatientIcd
 from variables_comorbidities import history_of_ACI, history_of_AMI
 
 
@@ -56,5 +57,34 @@ def getLiverDisease():
 
     return df[["hadm_id", "liver_disease"]]
 
-# def getPreExistingCKD():
+
+def getPreExistingCKD():
+    """ Get worst CKD stage of patients.
     
+    0: Unspecified; 1 -> 4: CKD Stage
+
+    Returns:
+        pandas.DataFrame: ["hadm_id", "ckd_stage"]
+    """
+
+    # icd code to ckd stage
+    MAP_ICD_CKD_STAGE = {
+        "5851": 1,
+        "5852": 2,
+        "5853": 3,
+        "5854": 4,
+        "5859": 0,  # Unspecified
+        "N181": 1,
+        "N182": 2,
+        "N183": 3,
+        "N184": 4,
+        "N189": 0,  # Unspecified
+    }
+
+    df = getTargetPatientIcd()
+
+    df["ckd_stage"] = df["icd_code"].map(MAP_ICD_CKD_STAGE)
+    df.dropna(subset=["ckd_stage"], inplace=True)
+    df["ckd_stage"] = df["ckd_stage"].astype(int)
+
+    return df[["hadm_id", "ckd_stage"]].groupby("hadm_id").agg("max").reset_index()
