@@ -31,3 +31,5 @@ IMPORTANT_MESUREMENTS_LABEVENT = {51006: "bun"}
 TARGET_PATIENT_FILE = "target_patients.csv"
 
 queryPostgresDf = PandaSQL(POSTGRESQL_CONNECTION_STRING)
+
+LEARNING_DATA_FILE = TEMP_PATH / "learning_data.csv"
