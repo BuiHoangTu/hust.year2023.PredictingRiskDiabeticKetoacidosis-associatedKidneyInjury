@@ -94,7 +94,12 @@ def getMalignantCancer():
     df = charlson.runSql()
     df["malignant_cancer"] = df["malignant_cancer"].astype(bool)
 
-    return df[["hadm_id", "malignant_cancer"]]
+    return (
+        df[["hadm_id", "malignant_cancer"]]
+        .groupby("hadm_id")["malignant_cancer"]
+        .any()
+        .reset_index()
+    )
 
 
 def getHypertension():
@@ -243,7 +248,12 @@ def getHypertension():
     df = df.copy()
     df["hypertension"] = True
 
-    return df[["hadm_id", "hypertension"]]
+    return (
+        df[["hadm_id", "hypertension"]]
+        .groupby("hadm_id")["hypertension"]
+        .any()
+        .reset_index()
+    )
 
 
 def getUTI():
@@ -276,7 +286,7 @@ def getUTI():
     df = df.copy()
     df["uti"] = True
 
-    return df[["hadm_id", "uti"]]
+    return df[["hadm_id", "uti"]].groupby("hadm_id")["uti"].any().reset_index()
 
 
 def getChronicPulmonaryDisease():
@@ -289,4 +299,9 @@ def getChronicPulmonaryDisease():
     df = charlson.runSql()
     df["chronic_pulmonary_disease"] = df["chronic_pulmonary_disease"].astype(bool)
 
-    return df[["hadm_id", "chronic_pulmonary_disease"]]
+    return (
+        df[["hadm_id", "chronic_pulmonary_disease"]]
+        .groupby("hadm_id")["chronic_pulmonary_disease"]
+        .any()
+        .reset_index()
+    )

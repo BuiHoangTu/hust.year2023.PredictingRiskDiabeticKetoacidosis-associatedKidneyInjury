@@ -10,7 +10,12 @@ def get():
 
     dfRes["microangiopathy"] = dfRes[["dn", "dr", "dpn"]].any(axis=1)
 
-    return dfRes[["hadm_id", "microangiopathy"]]
+    return (
+        dfRes[["hadm_id", "microangiopathy"]]
+        .groupby("hadm_id")["microangiopathy"]
+        .any()
+        .reset_index()
+    )
 
 
 def getDiabeticNephropathy():
