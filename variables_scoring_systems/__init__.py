@@ -1,4 +1,4 @@
-from middle_query import first_day_gcs, first_day_sofa, oasis
+from middle_query import first_day_gcs, first_day_sofa, oasis, sapsii
 
 
 def getGcs():
@@ -7,7 +7,7 @@ def getGcs():
     Returns:
         pandas.DataFrame: ["stay_id", "gcs"]
     """
-    
+
     df = first_day_gcs.runSql()
 
     df["gcs"] = df["gcs_min"]
@@ -17,7 +17,7 @@ def getGcs():
 
 def getOasis():
     """Oxford acute severity of illness score
-    
+
     Returns:
         pandas.DataFrame: ["stay_id", "gcs"]
     """
@@ -39,3 +39,18 @@ def getSofa():
         pandas.DataFrame: ["stay_id", "sofa"]
     """
     return first_day_sofa.runSql()[["stay_id", "sofa"]]
+
+
+def getSaps2():
+    """simplified acute physiology score II.
+
+    The score is calculated on the first day of each ICU patients' stay.
+
+    Returns:
+        pandas.DataFrame: ["stay_id", "saps2"]
+    """
+
+    df = sapsii.runSql()
+    df["saps2"] = df["sapsii"]
+
+    return df[["stay_id", "sapsii"]]
