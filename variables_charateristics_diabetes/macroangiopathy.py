@@ -10,7 +10,12 @@ def get():
 
     dfRes["macroangiopathy"] = dfRes[["coronary", "ca", "pa"]].any(axis=1)
 
-    return dfRes[["hadm_id", "macroangiopathy"]]
+    return (
+        dfRes[["hadm_id", "macroangiopathy"]]
+        .groupby("hadm_id")["macroangiopathy"]
+        .any()
+        .reset_index()
+    )
 
 def getCoronaryHeartDisease():
     """Coronary heart disease corresponds to codes 
