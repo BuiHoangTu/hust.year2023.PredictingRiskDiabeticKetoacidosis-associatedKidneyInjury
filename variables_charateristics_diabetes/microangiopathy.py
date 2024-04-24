@@ -19,8 +19,13 @@ def get():
 
 
 def getDiabeticNephropathy():
-    # There is no icd9 code for this specific item
+    # synonym: diabetic kidney disease
     codes = [
+        "E0822",  # Diabetes mellitus due to underlying condition with diabetic chronic kidney disease
+        "E0922",  # Drug or chemical induced diabetes mellitus with diabetic chronic kidney disease
+        "E1022",  # Type 1 diabetes mellitus with diabetic chronic kidney disease
+        "E1122",  # Type 2 diabetes mellitus with diabetic chronic kidney disease
+        "E1322",  # Other specified diabetes mellitus with diabetic chronic kidney disease
         "E0821",  # Diabetes mellitus due to underlying condition with diabetic nephropathy
         "E0921",  # Drug or chemical induced diabetes mellitus with diabetic nephropathy
         "E1021",  # Type 1 diabetes mellitus with diabetic nephropathy
