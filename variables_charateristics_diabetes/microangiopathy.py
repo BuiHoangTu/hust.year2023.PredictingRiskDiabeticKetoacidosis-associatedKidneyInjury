@@ -394,12 +394,20 @@ def getDiabeticRetinopathy():
 
 
 def getDiabeticPeripheralNeuropathy():
+    # https://www.mmplusinc.com/kb-articles/coding-type-2-diabetes-mellitus-with-peripheral-neuropathy
+
     codes = [
-        "E0840",
-        "E0940",
-        "E1040",
-        "E1140",
-        "E1340",
+        "3572",  # Polyneuropathy in diabetes
+        "E0842",  # Diabetes mellitus due to underlying condition with diabetic polyneuropathy
+        "E0942",  # Drug or chemical induced diabetes mellitus with neurological complications with diabetic polyneuropathy
+        "E1042",  # Type 1 diabetes mellitus with diabetic polyneuropathy
+        "E1142",  # Type 2 diabetes mellitus with diabetic polyneuropathy
+        "E1342",  # Other specified diabetes mellitus with diabetic polyneuropathy
+        "E0840",  # "Diabetes mellitus due to underlying condition with diabetic neuropathy, unspecified"
+        "E0940",  # "Drug or chemical induced diabetes mellitus with neurological complications with diabetic neuropathy, unspecified"
+        "E1040",  # "Type 1 diabetes mellitus with diabetic neuropathy, unspecified"
+        "E1140",  # "Type 2 diabetes mellitus with diabetic neuropathy, unspecified"
+        "E1340",  # "Other specified diabetes mellitus with diabetic neuropathy, unspecified"
     ]
 
     dfPatIcd = getTargetPatientIcd()
