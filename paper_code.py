@@ -49,7 +49,7 @@ def ML_Classfication(
 
         Input:
             df: DataFrame Input data to be processed
-            group_name:str Group name
+            group_name:str Group name (label)
             validation_ratio:float Test set proportion
             scoring:str Target evaluation index
             method:str Machine learning classification methods used/Model
@@ -88,10 +88,6 @@ def ML_Classfication(
         'DecisionTreeClassifier': 'DecisionTree',
         'BaggingClassifier': 'Bagging',
     }
-    colors = x5.CB91_Grad_BP
-    str_time = str(datetime.datetime.now().hour) + str(datetime.datetime.now().minute) + str(datetime.datetime.now().second)
-    random_number = random.randint(1, 100)
-    str_time = str_time + str(random_number)
 
     list_name = [group]
 
@@ -112,7 +108,7 @@ def ML_Classfication(
     u = np.sort(np.unique(np.array(df[group])))
     if len(u) == 2 and set(u) != set([0, 1]):
         y_result = label_binarize(df[group], classes=[ii for ii in u])  # Binarize labels
-        y_result_pd = pd.DataFrame(y_result, columns=[group]) # type: ignore
+        y_result_pd = pd.DataFrame(y_result, columns=[group]) 
         df = pd.concat([df.drop(group, axis=1), y_result_pd], axis=1)
     elif len(u) > 2:
         if len(u) > 10:
