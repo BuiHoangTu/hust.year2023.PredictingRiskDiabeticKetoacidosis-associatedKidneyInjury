@@ -1,3 +1,4 @@
+# ruff: noqa
 import datetime
 from functools import reduce
 import math
