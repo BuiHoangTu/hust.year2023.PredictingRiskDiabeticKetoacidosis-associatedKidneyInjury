@@ -7,7 +7,7 @@ from nbconvert.preprocessors import ExecutePreprocessor
 
 def getNotebookOutput():
     if not LEARNING_DATA_FILE.exists():
-        nb = nbformat.read("./patients.ipynb", as_version=4)
+        nb = nbformat.read("./data_selection.ipynb", as_version=4)
         ep = ExecutePreprocessor(timeout=None, kernel_name="python3")
 
         resultNb, _ = ep.preprocess(nb)
