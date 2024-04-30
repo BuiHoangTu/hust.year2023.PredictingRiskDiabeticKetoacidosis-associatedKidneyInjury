@@ -14,3 +14,6 @@ numpy
 # ML
 scikit-learn
 scikit-optimize
+
+# data structure packages
+sortedcontainers
