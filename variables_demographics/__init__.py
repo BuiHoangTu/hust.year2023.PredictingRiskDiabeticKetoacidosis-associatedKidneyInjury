@@ -80,8 +80,6 @@ def getHeight():
 
 def getWeight():
     dfWeight = weight_durations.runSql()
-    dfFirstWeight = dfWeight.sort_values(["stay_id", "starttime"]).drop_duplicates(
-        "stay_id", keep="first"
-    )
+    dfFirstWeight = dfWeight.sort_values(["stay_id", "starttime"])
 
     return dfFirstWeight[["stay_id", "weight"]]
