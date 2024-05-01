@@ -1,4 +1,4 @@
-from middle_query import first_day_vitalsign_first_mesure
+from middle_query import vitalsign
 
 
 def getHeartRate():
@@ -8,7 +8,7 @@ def getHeartRate():
         DataFrame: ["stay_id", "hr"]
     """
 
-    df = first_day_vitalsign_first_mesure.runSql()
+    df = vitalsign.runSql()
     df["hr"] = df["heart_rate_first"]
     return df[["stay_id", "hr"]]
 
@@ -20,7 +20,7 @@ def getRespiratoryRate():
         DataFrame: ["stay_id", "rr"]
     """
 
-    df = first_day_vitalsign_first_mesure.runSql()
+    df = vitalsign.runSql()
     df["rr"] = df["resp_rate_first"]
     return df[["stay_id", "rr"]]
 
@@ -31,7 +31,7 @@ def getSystolicBloodPressure():
         DataFrame: ["stay_id", "sbp"]
     """
     
-    df = first_day_vitalsign_first_mesure.runSql()
+    df = vitalsign.runSql()
     df["sbp"] = df["sbp_first"]
     return df[["stay_id", "sbp"]]
 
@@ -42,6 +42,6 @@ def getDiastolicBloodPressure():
         DataFrame: ["stay_id", "dbp"]
     """
     
-    df = first_day_vitalsign_first_mesure.runSql()
+    df = vitalsign.runSql()
     df["dbp"] = df["dbp_first"]
     return df[["stay_id", "dbp"]]
