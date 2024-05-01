@@ -1,7 +1,10 @@
-from numpy import nan
-from pandas import DataFrame
 from extract_mesurements import extractLabEventMesures
-from middle_query import first_day_lab_first_mesure
+from middle_query import (
+    blood_differential,
+    chemistry,
+    complete_blood_count,
+    first_day_lab_first_mesure,
+)
 from reduce_mesurements import reduceByHadmId
 from variables_demographics import getAge, getGender
 from variables_lab_test.egfr import calculate_eGFR_df
@@ -16,86 +19,94 @@ def extractFirstDayLab():
     return first_day_lab_first_mesure.runSql()
 
 
-def getFirstMesureById(id: int, valueName: str = "valuenum"):
-    """Private. Extract a labevent by id. Reduce it by target patients.
-    Match the first value from -6h -> +24h of admittime.
-    Set value column name to mesureName.
+def extractSingularVariable(df, variableInDf, variableName):
+    df = df[["stay_id", "charttime", variableInDf]]
+    df = df.dropna(subset=[variableInDf])
 
-    Args:
-        id (int): labevent's item_id
-        mesureName (str): name of returned column
+    df = df.rename(columns={"charttime": "time", variableInDf: variableName})
 
-    Returns:
-        pd.DataFrame: Dataframe consists of 2 columns: stay_id, mesureName
-    """
+    return df.sort_values(["stay_id", "time"])
 
-    def nonNullFirst(group: DataFrame):
-        groupNonNull = group.dropna(subset=["valuenum"])  # non-null
-        groupNonNull = groupNonNull.sort_values("charttime")
-        if (groupNonNull.empty):
-            return nan
-        else:
-            return groupNonNull.iloc[0]["valuenum"] # first row
 
-    df = extractLabEventMesures(id, "labevent-" + str(id) + ".csv")
-    dfReduced = reduceByHadmId(df)
+# def getFirstMesureById(id: int, valueName: str = "valuenum"):
+#     """Private. Extract a labevent by id. Reduce it by target patients.
+#     Match the first value from -6h -> +24h of admittime.
+#     Set value column name to mesureName.
 
-    # mesure may be performed multiple time, so get max of all
-    dfMaxPerSpeciment = dfReduced
-    dfMaxPerSpeciment["valuenum"] = \
-        dfReduced\
-        .groupby("specimen_id")["valuenum"]\
-        .transform("max")
-    dfMaxPerSpeciment.drop_duplicates("specimen_id", inplace=True)
+#     Args:
+#         id (int): labevent's item_id
+#         mesureName (str): name of returned column
 
-    result = (
-        dfMaxPerSpeciment
-        .groupby("stay_id")
-        .apply(nonNullFirst)
-        .reset_index(name=valueName)
-    )
+#     Returns:
+#         pd.DataFrame: Dataframe consists of 2 columns: stay_id, mesureName
+#     """
 
-    return result
+#     # def nonNullFirst(group: DataFrame):
+#     #     groupNonNull = group.dropna(subset=["valuenum"])  # non-null
+#     #     groupNonNull = groupNonNull.sort_values("charttime")
+#     #     if groupNonNull.empty:
+#     #         return nan
+#     #     else:
+#     #         return groupNonNull.iloc[0]["valuenum"]  # first row
+
+#     df = extractLabEventMesures(id, "labevent-" + str(id) + ".csv")
+#     dfReduced = reduceByHadmId(df)
+
+#     # mesure may be performed multiple time, so get max of all
+#     dfMaxPerSpeciment = dfReduced
+#     dfMaxPerSpeciment["valuenum"] = \
+#         dfReduced\
+#         .groupby("specimen_id")["valuenum"]\
+#         .transform("max")
+#     dfMaxPerSpeciment.drop_duplicates("specimen_id", inplace=True)
+
+#     result = (
+#         dfMaxPerSpeciment
+#         .groupby("stay_id")
+#         .apply(nonNullFirst)
+#         .reset_index(name=valueName)
+#     )
+
+#     return result
 
 
 def getWbc():
-    df = extractFirstDayLab()
-    df["wbc"] = df["wbc_first"]
+    dfCBCReduced = reduceByHadmId(complete_blood_count.runSql())
 
-    return df[["stay_id", "wbc"]]
+    return extractSingularVariable(dfCBCReduced, "wbc", "wbc")
 
 
 def getLymphocyte():
-    df = extractFirstDayLab()
-    df["lymphocyte"] = df["abs_lymphocytes_first"]
+    dfBDReduced = reduceByHadmId(blood_differential.runSql())
 
-    return df[["stay_id", "lymphocyte"]]
+    return extractSingularVariable(dfBDReduced, "lymphocytes_abs", "lymphocyte")
 
 
 def getHb():
-    df = extractFirstDayLab()
-    df["hb"] = df["hemoglobin_first"]
+    dfCBCReduced = reduceByHadmId(complete_blood_count.runSql())
 
-    return df[["stay_id", "hb"]]
+    return extractSingularVariable(dfCBCReduced, "hemoglobin", "hb")
 
 
 def getPlt():
-    df = extractFirstDayLab()
-    df["plt"] = df["platelets_first"]
+    dfCBCReduced = reduceByHadmId(complete_blood_count.runSql())
 
-    return df[["stay_id", "plt"]]
+    return extractSingularVariable(dfCBCReduced, "platelet", "plt")
 
 
 def getPO2():
-    return getFirstMesureById(50821, "po2")
+    df = extractLabEventMesures(50821, "labevent-po2.csv")
+    return reduceByHadmId(df)
 
 
 def getPCO2():
-    return getFirstMesureById(50818, "pco2")
+    df = extractLabEventMesures(50818, "labevent-pco2.csv")
+    return reduceByHadmId(df)
 
 
 def get_pH():
-    return getFirstMesureById(50820, "ph")
+    df = extractLabEventMesures(50820, "labevent-ph.csv")
+    return reduceByHadmId(df)
 
 
 def getAG():
@@ -104,17 +115,15 @@ def getAG():
     Returns: "ag"
     """
 
-    df = extractFirstDayLab()
-    df["ag"] = df["aniongap_first"]
+    df = reduceByHadmId(chemistry.runSql())
 
-    return df[["stay_id", "ag"]]
+    return extractSingularVariable(df, "aniongap", "ag")
 
 
 def getBicarbonate():
-    df = extractFirstDayLab()
-    df["bicarbonate"] = df["bicarbonate_first"]
+    df = reduceByHadmId(chemistry.runSql())
 
-    return df[["stay_id", "bicarbonate"]]
+    return extractSingularVariable(df, "bicarbonate", "bicarbonate")
 
 
 def getBun():
@@ -123,17 +132,15 @@ def getBun():
     Returns: "bun"
     """
 
-    df = extractFirstDayLab()
-    df["bun"] = df["bun_first"]
+    df = reduceByHadmId(chemistry.runSql())
 
-    return df[["stay_id", "bun"]]
+    return extractSingularVariable(df, "bun", "bun")
 
 
 def getCalcium():
-    df = extractFirstDayLab()
-    df["calcium"] = df["calcium_first"]
+    df = reduceByHadmId(chemistry.runSql())
 
-    return df[["stay_id", "calcium"]]
+    return extractSingularVariable(df, "calcium", "calcium")
 
 
 def getScr():
@@ -142,10 +149,9 @@ def getScr():
     Returns: "scr"
     """
 
-    df = extractFirstDayLab()
-    df["scr"] = df["creatinine_first"]
+    df = reduceByHadmId(chemistry.runSql())
 
-    return df[["stay_id", "scr"]]
+    return extractSingularVariable(df, "creatinine", "scr")
 
 
 def getBg():
@@ -153,43 +159,47 @@ def getBg():
 
     Returns: "bg"
     """
+    df = reduceByHadmId(chemistry.runSql())
 
-    df = extractFirstDayLab()
-    df["bg"] = df["glucose_first"]
-
-    return df[["stay_id", "bg"]]
+    return extractSingularVariable(df, "glucose", "bg")
 
 
 def getPhosphate():
-    return getFirstMesureById(50970, "phosphate")
+    df = extractLabEventMesures(50970, "labevent-phosphate.csv")
+    return reduceByHadmId(df)
 
 
 def getAlbumin():
-    df = extractFirstDayLab()
-    df["albumin"] = df["albumin_first"]
+    df = reduceByHadmId(chemistry.runSql())
 
-    return df[["stay_id", "albumin"]]
+    return extractSingularVariable(df, "albumin", "albumin")
 
 
 def get_eGFR():
     dfCreat = getScr()
     dfAge = getAge()
     dfGender = getGender()
-    
-    dfMerged = dfCreat\
-        .merge(dfAge, "inner", "stay_id")\
-            .merge(dfGender, "inner", "stay_id")
-    
+
+    dfMerged = dfCreat.merge(dfAge, "inner", "stay_id").merge(
+        dfGender, "inner", "stay_id"
+    )
+
     return calculate_eGFR_df(dfMerged)
 
 
 def getHbA1C():
-    return getFirstMesureById(50852, "hba1c")
+    df = extractLabEventMesures(50852, "labevent-hba1c.csv")
+    return reduceByHadmId(df)
 
 
 def getCrp():
-    return getFirstMesureById(50889, "crp")
+    df = extractLabEventMesures(50889, "labevent-crp.csv")
+    return reduceByHadmId(df)
 
 
 def getUrineKetone():
-    return getFirstMesureById(51484, "urine-ketone")
+    df = extractLabEventMesures(51484, "labevent-urine-ketone.csv")
+    return reduceByHadmId(df)
+
+
+############ Other measures found not in original paper ############
