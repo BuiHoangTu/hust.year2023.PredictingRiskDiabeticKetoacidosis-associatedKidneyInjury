@@ -1,9 +1,11 @@
-/* begin query that extracts the data */
+/* begin query that extracts the data 
+ Same speciment -> same ids, ... Using Max just to follow sql groupby standard*/
 SELECT MAX(subject_id) AS subject_id,
   MAX(hadm_id) AS hadm_id,
   MAX(charttime) AS charttime,
   le.specimen_id,
-  /* convert from itemid into a meaningful column */
+  /* convert from itemid into a meaningful column 
+   as many test can be performed on the same speciment */
   MAX(
     CASE
       WHEN itemid = 51221 THEN valuenum
