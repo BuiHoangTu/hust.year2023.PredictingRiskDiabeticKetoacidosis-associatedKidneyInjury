@@ -1,7 +1,7 @@
 from datetime import datetime
 import json
 from pathlib import Path
-from typing import Collection, Dict
+from typing import Callable, Collection, Dict, List, Tuple
 from numpy import datetime64
 from pandas import DataFrame, Timestamp, to_datetime
 from sortedcontainers import SortedDict
@@ -36,26 +36,58 @@ class Patient:
         self,
         fromTime: str | datetime | datetime64 | Timestamp,
         toTime: str | datetime | datetime64 | Timestamp,
+        how: str | Callable[[DataFrame], float] = "avg",
     ):
+        """Get patient's status during specified period.
+
+        Args:
+            fromTime (str | datetime | datetime64 | Timestamp): start time
+            toTime (str | datetime | datetime64 | Timestamp): end time
+            how : {'first', 'last', 'avg', 'max', 'min', 'std'} | Callable[[DataFrame], float], default 'avg'
+                Which value to choose if multiple exist:
+
+                    - first: Use first recored value.
+                    - last: Use last recored value.
+                    - avg: Use average of values.
+                    - max: Use max value.
+                    - min: Use min value.
+                    - std: Use standard deviation of values
+                    - custom function that take dataframe(time, value) and return value
+
+        Returns:
+            DataFrame: one row with full status of patient
+        """
+
+        # unify input
         fromTime = to_datetime(fromTime)
         toTime = to_datetime(toTime)
+        howMapping: Dict[str, Callable[[DataFrame], float]] = {
+            "first": lambda df: df.loc[df["time"].idxmin(), "value"],  # type: ignore
+            "last": lambda df: df.loc[df["time"].idxmax(), "value"],
+            "avg": lambda df: df["value"].mean(),
+            "max": lambda df: df["value"].max(),
+            "min": lambda df: df["value"].min(),
+            "std": lambda df: df["value"].std(),
+        }
+        if how in howMapping:
+            how = howMapping[how]
+            
+        if not isinstance(how, Callable): 
+            raise Exception("Unk how: ", how)
 
         df = DataFrame(
-            columns=[
-                "subject_id",
-                "hadm_id",
-                "stay_id",
-                "measure_name",
-                "measure_time",
-                "measure_value",
-            ]
+            {
+                "subject_id": self.subjectId,
+                "hadm_id": self.hadmId,
+                "stay_id": self.stayId,
+            }
         )
 
-        for measureName, measure in self.measures.items():
+        for measureName, measureTimeValue in self.measures.items():
 
-            measureTimes = list(measure.keys())
+            measureTimes = list(measureTimeValue.keys())
             left = 0
-            right = len(measure) - 1
+            right = len(measureTimeValue) - 1
 
             while left <= right:
                 mid = left + (right - left) // 2
@@ -69,19 +101,19 @@ class Patient:
                     pass
                 pass
 
+            measureInRange: List[Tuple[Timestamp, float]] = []
             for i in range(startId, len(measureTimes)):
                 if measureTimes[i] > toTime:
                     break
 
-                df.loc[len(df)] = [
-                    self.subjectId,
-                    self.hadmId,
-                    self.stayId,
-                    measureName,
-                    measureTimes[i],
-                    measure[measureTimes[i]],
-                ]
+                measureInRange.append((measureTimes[i], measureTimeValue[measureTimes[i]]))
                 pass
+
+            dfMeasures = DataFrame(measureInRange, columns=["time", "value"])
+            measureValue = how(dfMeasures)
+            
+            
+            df[measureName] = measureValue
             pass
 
         return df
@@ -108,7 +140,7 @@ def toJsonFile(patients: Collection[Patient], file: str | Path):
     Path(file).write_text(json.dumps(jsonData, indent=4))
 
 
-def readJsonFile(file: str | Path):
+def fromJsonFile(file: str | Path):
     file = Path(file)
 
     jsonData = json.loads(file.read_text())
