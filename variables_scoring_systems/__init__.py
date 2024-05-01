@@ -1,4 +1,4 @@
-from middle_query import first_day_gcs, first_day_sofa, oasis, sapsii
+from middle_query import gcs, sofa, oasis, sapsii
 
 
 def getGcs():
@@ -8,7 +8,7 @@ def getGcs():
         pandas.DataFrame: ["stay_id", "gcs"]
     """
 
-    df = first_day_gcs.runSql()
+    df = gcs.runSql()
 
     df["gcs"] = df["gcs_min"]
 
@@ -33,12 +33,10 @@ def getOasis():
 def getSofa():
     """Sequential Organ Failure Assessment.
 
-    The score is calculated on the first day of each ICU patients' stay.
-
     Returns:
         pandas.DataFrame: ["stay_id", "sofa"]
     """
-    return first_day_sofa.runSql()[["stay_id", "sofa"]]
+    return sofa.runSql()[["stay_id", "sofa"]]
 
 
 def getSaps2():
