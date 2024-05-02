@@ -1,22 +1,27 @@
-from middle_query import gcs, sofa, oasis, sapsii
+from middle_query import first_day_sofa, gcs, oasis, sapsii
+from reduce_mesurements import reduceByStayId
 
 
 def getGcs():
     """Glasgow coma scale
 
     Returns:
-        pandas.DataFrame: ["stay_id", "gcs"]
+        pandas.DataFrame: ["stay_id", "gcs", "time"]
     """
 
     df = gcs.runSql()
+    
+    df = reduceByStayId(df)
 
-    df["gcs"] = df["gcs_min"]
+    df = df.rename({"charttime": "time"})
 
-    return df[["stay_id", "gcs"]]
+    return df[["stay_id", "gcs", "time"]]
 
 
 def getOasis():
     """Oxford acute severity of illness score
+
+    The score is calculated on the first day of each ICU patients' stay.
 
     Returns:
         pandas.DataFrame: ["stay_id", "gcs"]
@@ -33,10 +38,12 @@ def getOasis():
 def getSofa():
     """Sequential Organ Failure Assessment.
 
+    The score is calculated with 24h windows so one result only.
+
     Returns:
         pandas.DataFrame: ["stay_id", "sofa"]
     """
-    return sofa.runSql()[["stay_id", "sofa"]]
+    return first_day_sofa.runSql()[["stay_id", "sofa"]]
 
 
 def getSaps2():
