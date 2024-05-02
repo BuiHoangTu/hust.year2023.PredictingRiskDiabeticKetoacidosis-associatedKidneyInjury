@@ -7,6 +7,15 @@ from nbconvert.preprocessors import ExecutePreprocessor
 
 
 def getNotebookOutput():
+    """Private, get all output of the associated nb
+
+    Raises:
+        IOError: If IOError happend during nb running or nb took too much time saving it output to file
+
+    Returns:
+        Dataframe: data
+    """
+    
     PATIENT_PATH = TEMP_PATH / TARGET_PATIENT_FILE
 
     if not PATIENT_PATH.exists():
