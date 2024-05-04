@@ -7,9 +7,10 @@ ipykernel
 ## data reading 
 pandas
 pandasql
+numpy
+matplotlib
 # postgresql driver, an installed postgresql is required
 psycopg2
-numpy
 
 # ML
 scikit-learn
