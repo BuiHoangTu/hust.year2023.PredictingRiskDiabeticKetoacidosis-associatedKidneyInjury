@@ -6,8 +6,8 @@ from middle_query import (
     first_day_lab_first_mesure,
 )
 from reduce_mesurements import reduceByHadmId
-from variables.variables_demographics import getAge, getGender
-from variables.variables_lab_test.egfr import calculate_eGFR_df
+from variables.demographics import getAge, getGender
+from variables.lab_test.egfr import calculate_eGFR_df
 
 
 def extractFirstDayLab():

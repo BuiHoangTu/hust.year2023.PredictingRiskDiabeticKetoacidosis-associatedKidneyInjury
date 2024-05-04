@@ -1,6 +1,6 @@
 import patients
-from variables.variables_charateristics_diabetes import macroangiopathy
-from variables.variables_charateristics_diabetes import microangiopathy
+from variables.charateristics_diabetes import macroangiopathy
+from variables.charateristics_diabetes import microangiopathy
 
 def getDiabeteType():
     """Get patient diabete type: 1, 2, 0 - Others

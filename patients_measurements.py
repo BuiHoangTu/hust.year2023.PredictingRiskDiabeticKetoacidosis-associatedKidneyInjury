@@ -3,22 +3,22 @@ from class_patient import Patient, toJsonFile
 from constants import TEMP_PATH
 from patients import getTargetPatientIcu
 import akd_positive
-from variables.variables_charateristics_diabetes import (
+from variables.charateristics_diabetes import (
     getDiabeteType,
     getMacroangiopathy,
     getMicroangiopathy,
 )
-from variables.variables_demographics import getAge, getEthnicity, getGender, getHeight, getWeight
-import variables.variables_lab_test as variables_lab_test
-from variables.variables_scoring_systems import getGcs, getOasis, getSofa, getSaps2
-from variables.variables_vital_signs import (
+from variables.demographics import getAge, getEthnicity, getGender, getHeight, getWeight
+import variables.lab_test as lab_test
+from variables.scoring_systems import getGcs, getOasis, getSofa, getSaps2
+from variables.vital_signs import (
     getHeartRate,
     getRespiratoryRate,
     getSystolicBloodPressure,
     getDiastolicBloodPressure,
 )
-from variables.variables_prognosis import getPreIcuLos
-from variables.variables_comorbidities import (
+from variables.prognosis import getPreIcuLos
+from variables.comorbidities import (
     getHistoryACI,
     getHistoryAMI,
     getCHF,
@@ -110,79 +110,79 @@ df = getWeight()
 putDataForPatients(patientList, df)
 
 
-df = variables_lab_test.getWbc().dropna()
+df = lab_test.getWbc().dropna()
 putDataForPatients(patientList, df)
 
 
-df = variables_lab_test.getLymphocyte().dropna()
+df = lab_test.getLymphocyte().dropna()
 putDataForPatients(patientList, df)
 
 
-df = variables_lab_test.getHb().dropna()
+df = lab_test.getHb().dropna()
 putDataForPatients(patientList, df)
 
 
-df = variables_lab_test.getPlt().dropna()
+df = lab_test.getPlt().dropna()
 putDataForPatients(patientList, df)
 
 
-df = variables_lab_test.getPO2().dropna()
+df = lab_test.getPO2().dropna()
 putDataForPatients(patientList, df)
 
 
-df = variables_lab_test.getPCO2().dropna()
+df = lab_test.getPCO2().dropna()
 putDataForPatients(patientList, df)
 
 
-df = variables_lab_test.get_pH().dropna()
+df = lab_test.get_pH().dropna()
 putDataForPatients(patientList, df)
 
 
-df = variables_lab_test.getAG().dropna()
+df = lab_test.getAG().dropna()
 putDataForPatients(patientList, df)
 
 
-df = variables_lab_test.getBicarbonate().dropna()
+df = lab_test.getBicarbonate().dropna()
 putDataForPatients(patientList, df)
 
 
-df = variables_lab_test.getBun().dropna()
+df = lab_test.getBun().dropna()
 putDataForPatients(patientList, df)
 
 
-df = variables_lab_test.getCalcium().dropna()
+df = lab_test.getCalcium().dropna()
 putDataForPatients(patientList, df)
 
 
-df = variables_lab_test.getScr().dropna()
+df = lab_test.getScr().dropna()
 putDataForPatients(patientList, df)
 
 
-df = variables_lab_test.getBg().dropna()
+df = lab_test.getBg().dropna()
 putDataForPatients(patientList, df)
 
 
-df = variables_lab_test.getPhosphate().dropna()
+df = lab_test.getPhosphate().dropna()
 putDataForPatients(patientList, df)
 
 
-df = variables_lab_test.getAlbumin().dropna()
+df = lab_test.getAlbumin().dropna()
 putDataForPatients(patientList, df)
 
 
-df = variables_lab_test.get_eGFR().dropna()
+df = lab_test.get_eGFR().dropna()
 putDataForPatients(patientList, df)
 
 
-df = variables_lab_test.getHbA1C().dropna()
+df = lab_test.getHbA1C().dropna()
 putDataForPatients(patientList, df)
 
 
-df = variables_lab_test.getCrp().dropna()
+df = lab_test.getCrp().dropna()
 putDataForPatients(patientList, df)
 
 
-df = variables_lab_test.getUrineKetone().dropna()
+df = lab_test.getUrineKetone().dropna()
 putDataForPatients(patientList, df)
 
 

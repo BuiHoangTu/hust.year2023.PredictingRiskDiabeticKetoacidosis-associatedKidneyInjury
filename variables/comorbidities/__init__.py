@@ -1,8 +1,8 @@
 import numpy as np
 from middle_query import charlson
 from patients import getTargetPatientIcd
-from variables.variables_comorbidities import history_of_ACI
-from variables.variables_comorbidities import history_of_AMI
+from variables.comorbidities import history_of_ACI
+from variables.comorbidities import history_of_AMI
 
 
 def getHistoryACI():
