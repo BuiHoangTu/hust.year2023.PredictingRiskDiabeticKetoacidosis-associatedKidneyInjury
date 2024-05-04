@@ -10,12 +10,12 @@ def getGcs():
     """
 
     df = gcs.runSql()
-    
+
     df = reduceByStayId(df)
 
-    df = df.rename({"charttime": "time"})
+    df = df.rename(columns={"charttime": "time"})
 
-    return df[["stay_id", "gcs", "time"]]
+    return df[["stay_id", "gcs", "gcs_unable", "time"]]
 
 
 def getOasis():

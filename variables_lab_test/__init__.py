@@ -96,17 +96,23 @@ def getPlt():
 
 def getPO2():
     df = extractLabEventMesures(50821, "labevent-po2.csv")
-    return reduceByHadmId(df)
+    return reduceByHadmId(df)[["stay_id", "valuenum", "charttime"]].rename(
+        columns={"valuenum": "po2", "charttime": "time"}
+    )
 
 
 def getPCO2():
     df = extractLabEventMesures(50818, "labevent-pco2.csv")
-    return reduceByHadmId(df)
+    return reduceByHadmId(df)[["stay_id", "valuenum", "charttime"]].rename(
+        columns={"valuenum": "pco2", "charttime": "time"}
+    )
 
 
 def get_pH():
     df = extractLabEventMesures(50820, "labevent-ph.csv")
-    return reduceByHadmId(df)
+    return reduceByHadmId(df)[["stay_id", "valuenum", "charttime"]].rename(
+        columns={"valuenum": "ph", "charttime": "time"}
+    )
 
 
 def getAG():
@@ -166,7 +172,9 @@ def getBg():
 
 def getPhosphate():
     df = extractLabEventMesures(50970, "labevent-phosphate.csv")
-    return reduceByHadmId(df)
+    return reduceByHadmId(df)[["stay_id", "valuenum", "charttime"]].rename(
+        columns={"valuenum": "phosphate", "charttime": "time"}
+    )
 
 
 def getAlbumin():
@@ -189,17 +197,23 @@ def get_eGFR():
 
 def getHbA1C():
     df = extractLabEventMesures(50852, "labevent-hba1c.csv")
-    return reduceByHadmId(df)
+    return reduceByHadmId(df)[["stay_id", "valuenum", "charttime"]].rename(
+        columns={"valuenum": "hba1c", "charttime": "time"}
+    )
 
 
 def getCrp():
     df = extractLabEventMesures(50889, "labevent-crp.csv")
-    return reduceByHadmId(df)
+    return reduceByHadmId(df)[["stay_id", "valuenum", "charttime"]].rename(
+        columns={"valuenum": "crp", "charttime": "time"}
+    )
 
 
 def getUrineKetone():
     df = extractLabEventMesures(51484, "labevent-urine-ketone.csv")
-    return reduceByHadmId(df)
+    return reduceByHadmId(df)[["stay_id", "valuenum", "charttime"]].rename(
+        columns={"valuenum": "urine-ketone", "charttime": "time"}
+    )
 
 
 ############ Other measures found not in original paper ############

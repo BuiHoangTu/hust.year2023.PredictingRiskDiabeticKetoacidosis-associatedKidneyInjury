@@ -1,7 +1,6 @@
 from extract_mesurements import extractInputEvents
 from middle_query import crrt, ventilation
 from reduce_mesurements import reduceByStayId
-from variables_interventions import use_nahco3 as use_nahco3
 
 
 def getMV():
@@ -23,7 +22,7 @@ def getMV():
     dfMerged = dfMerged[["stay_id", "mechanical_ventilation", "starttime"]]
     dfMerged = dfMerged[dfMerged["mechanical_ventilation"]]
 
-    return dfMerged.rename({"starttime": "time"})
+    return dfMerged.rename(columns={"starttime": "time"})
 
 
 def getCrrt():
@@ -53,4 +52,4 @@ def getNaHCO3():
 
     dfReduced["use_NaHCO3"] = True
 
-    return dfReduced[["stay_id", "use_NaHCO3", "starttime"]].rename({"starttime": "time"})
+    return dfReduced[["stay_id", "use_NaHCO3", "starttime"]].rename(columns={"starttime": "time"})

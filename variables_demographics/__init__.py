@@ -83,7 +83,7 @@ def getWeight():
 
     dfWeight.dropna(subset="weight")
 
-    dfWeight.rename(columns={"starttime": "time"})
+    dfWeight.rename(columns={"starttime": "time"}, inplace=True)
 
-    dfWeight = dfWeight.sort_values(["stay_id", "starttime"])
+    dfWeight = dfWeight.sort_values(["stay_id", "time"])
     return dfWeight[["stay_id", "weight", "time"]]
