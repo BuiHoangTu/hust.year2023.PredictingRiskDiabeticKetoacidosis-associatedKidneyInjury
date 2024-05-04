@@ -3,22 +3,22 @@ from class_patient import Patient, toJsonFile
 from constants import TEMP_PATH
 from patients import getTargetPatientIcu
 import akd_positive
-from variables_charateristics_diabetes import (
+from variables.variables_charateristics_diabetes import (
     getDiabeteType,
     getMacroangiopathy,
     getMicroangiopathy,
 )
-from variables_demographics import getAge, getEthnicity, getGender, getHeight, getWeight
-import variables_lab_test
-from variables_scoring_systems import getGcs, getOasis, getSofa, getSaps2
-from variables_vital_signs import (
+from variables.variables_demographics import getAge, getEthnicity, getGender, getHeight, getWeight
+import variables.variables_lab_test as variables_lab_test
+from variables.variables_scoring_systems import getGcs, getOasis, getSofa, getSaps2
+from variables.variables_vital_signs import (
     getHeartRate,
     getRespiratoryRate,
     getSystolicBloodPressure,
     getDiastolicBloodPressure,
 )
-from variables_prognosis import getPreIcuLos
-from variables_comorbidities import (
+from variables.variables_prognosis import getPreIcuLos
+from variables.variables_comorbidities import (
     getHistoryACI,
     getHistoryAMI,
     getCHF,
