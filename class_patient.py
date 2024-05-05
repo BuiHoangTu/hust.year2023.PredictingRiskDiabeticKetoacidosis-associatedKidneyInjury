@@ -230,185 +230,189 @@ class Patients:
         if storagePath.exists():
             self.patientList = Patients.fromJsonFile(storagePath)
         else:
-            patientList: List[Patient] = []
-            self.patientList = patientList
+            self.refreshData()
+        pass
 
-            dfPatient = getTargetPatientIcu()
-            dfPatient = dfPatient[["subject_id", "hadm_id", "stay_id"]]
+    def refreshData(self):
+        patientList: List[Patient] = []
+        self.patientList = patientList
 
-            dfAkd = akd_positive.extractKdigoStages7day()
-            dfAkd["akd"] = dfAkd["aki_7day"]
-            dfAkd = dfAkd[["stay_id", "akd"]]
+        dfPatient = getTargetPatientIcu()
+        dfPatient = dfPatient[["subject_id", "hadm_id", "stay_id", "intime"]]
 
-            dfData1 = dfPatient.merge(dfAkd, "left", "stay_id")
-            dfData1["akd"] = dfData1["akd"].astype(bool)
+        dfAkd = akd_positive.extractKdigoStages7day()
+        dfAkd["akd"] = dfAkd["aki_7day"]
+        dfAkd = dfAkd[["stay_id", "akd"]]
 
-            for _, row in dfData1.iterrows():
-                patient = Patient(
-                    row["subject_id"], 
-                    row["hadm_id"], 
-                    row["stay_id"], 
-                    row["intime"],
-                    row["akd"],
-                    )
-                patientList.append(patient)
-                pass
+        dfData1 = dfPatient.merge(dfAkd, "left", "stay_id")
+        dfData1["akd"] = dfData1["akd"].astype(bool)
 
-            dfData1["akd"].value_counts()
+        for _, row in dfData1.iterrows():
+            patient = Patient(
+                row["subject_id"],
+                row["hadm_id"],
+                row["stay_id"],
+                row["intime"],
+                row["akd"],
+            )
+            patientList.append(patient)
+            pass
 
-            ########### Characteristics of diabetes ###########
-            df = getDiabeteType()
-            df["dka_type"] = df["dka_type"].astype(int)
-            self._putDataForPatients(df)
+        dfData1["akd"].value_counts()
 
-            df = getMacroangiopathy()
-            self._putDataForPatients(df)
+        ########### Characteristics of diabetes ###########
+        df = getDiabeteType()
+        df["dka_type"] = df["dka_type"].astype(int)
+        self._putDataForPatients(df)
 
-            df = getMicroangiopathy()
-            self._putDataForPatients(df)
+        df = getMacroangiopathy()
+        self._putDataForPatients(df)
 
-            ########### Demographics ###########
-            df = getAge()
-            self._putDataForPatients(df)
+        df = getMicroangiopathy()
+        self._putDataForPatients(df)
 
-            df = getGender()
-            self._putDataForPatients(df)
+        ########### Demographics ###########
+        df = getAge()
+        self._putDataForPatients(df)
 
-            df = getEthnicity()
-            self._putDataForPatients(df)
+        df = getGender()
+        self._putDataForPatients(df)
 
-            df = getHeight()
-            self._putDataForPatients(df)
+        df = getEthnicity()
+        self._putDataForPatients(df)
 
-            df = getWeight()
-            self._putDataForPatients(df)
+        df = getHeight()
+        self._putDataForPatients(df)
 
-            ########### Laboratory test ###########
-            df = lab_test.getWbc().dropna()
-            self._putDataForPatients(df)
+        df = getWeight()
+        self._putDataForPatients(df)
 
-            df = lab_test.getLymphocyte().dropna()
-            self._putDataForPatients(df)
+        ########### Laboratory test ###########
+        df = lab_test.getWbc().dropna()
+        self._putDataForPatients(df)
 
-            df = lab_test.getHb().dropna()
-            self._putDataForPatients(df)
+        df = lab_test.getLymphocyte().dropna()
+        self._putDataForPatients(df)
 
-            df = lab_test.getPlt().dropna()
-            self._putDataForPatients(df)
+        df = lab_test.getHb().dropna()
+        self._putDataForPatients(df)
 
-            df = lab_test.getPO2().dropna()
-            self._putDataForPatients(df)
+        df = lab_test.getPlt().dropna()
+        self._putDataForPatients(df)
 
-            df = lab_test.getPCO2().dropna()
-            self._putDataForPatients(df)
+        df = lab_test.getPO2().dropna()
+        self._putDataForPatients(df)
 
-            df = lab_test.get_pH().dropna()
-            self._putDataForPatients(df)
+        df = lab_test.getPCO2().dropna()
+        self._putDataForPatients(df)
 
-            df = lab_test.getAG().dropna()
-            self._putDataForPatients(df)
+        df = lab_test.get_pH().dropna()
+        self._putDataForPatients(df)
 
-            df = lab_test.getBicarbonate().dropna()
-            self._putDataForPatients(df)
+        df = lab_test.getAG().dropna()
+        self._putDataForPatients(df)
 
-            df = lab_test.getBun().dropna()
-            self._putDataForPatients(df)
+        df = lab_test.getBicarbonate().dropna()
+        self._putDataForPatients(df)
 
-            df = lab_test.getCalcium().dropna()
-            self._putDataForPatients(df)
+        df = lab_test.getBun().dropna()
+        self._putDataForPatients(df)
 
-            df = lab_test.getScr().dropna()
-            self._putDataForPatients(df)
+        df = lab_test.getCalcium().dropna()
+        self._putDataForPatients(df)
 
-            df = lab_test.getBg().dropna()
-            self._putDataForPatients(df)
+        df = lab_test.getScr().dropna()
+        self._putDataForPatients(df)
 
-            df = lab_test.getPhosphate().dropna()
-            self._putDataForPatients(df)
+        df = lab_test.getBg().dropna()
+        self._putDataForPatients(df)
 
-            df = lab_test.getAlbumin().dropna()
-            self._putDataForPatients(df)
+        df = lab_test.getPhosphate().dropna()
+        self._putDataForPatients(df)
 
-            df = lab_test.get_eGFR().dropna()
-            self._putDataForPatients(df)
+        df = lab_test.getAlbumin().dropna()
+        self._putDataForPatients(df)
 
-            df = lab_test.getHbA1C().dropna()
-            self._putDataForPatients(df)
+        df = lab_test.get_eGFR().dropna()
+        self._putDataForPatients(df)
 
-            df = lab_test.getCrp().dropna()
-            self._putDataForPatients(df)
+        df = lab_test.getHbA1C().dropna()
+        self._putDataForPatients(df)
 
-            df = lab_test.getUrineKetone().dropna()
-            self._putDataForPatients(df)
+        df = lab_test.getCrp().dropna()
+        self._putDataForPatients(df)
 
-            ########### Scoring systems ###########
-            df = getGcs().dropna()
-            self._putDataForPatients(df)
+        df = lab_test.getUrineKetone().dropna()
+        self._putDataForPatients(df)
 
-            df = getOasis().dropna()
-            self._putDataForPatients(df)
+        ########### Scoring systems ###########
+        df = getGcs().dropna()
+        self._putDataForPatients(df)
 
-            df = getSofa()
-            self._putDataForPatients(df)
+        df = getOasis().dropna()
+        self._putDataForPatients(df)
 
-            df = getSaps2()
-            self._putDataForPatients(df)
+        df = getSofa()
+        self._putDataForPatients(df)
 
-            ########### Vital signs ###########
-            df = getHeartRate().dropna()
-            self._putDataForPatients(df)
+        df = getSaps2()
+        self._putDataForPatients(df)
 
-            df = getRespiratoryRate().dropna()
-            self._putDataForPatients(df)
+        ########### Vital signs ###########
+        df = getHeartRate().dropna()
+        self._putDataForPatients(df)
 
-            df = getSystolicBloodPressure().dropna()
-            self._putDataForPatients(df)
+        df = getRespiratoryRate().dropna()
+        self._putDataForPatients(df)
 
-            df = getDiastolicBloodPressure().dropna()
-            self._putDataForPatients(df)
+        df = getSystolicBloodPressure().dropna()
+        self._putDataForPatients(df)
 
-            ########### Prognosis ###########
-            df = getPreIcuLos().dropna()
-            self._putDataForPatients(df)
+        df = getDiastolicBloodPressure().dropna()
+        self._putDataForPatients(df)
 
-            df = getHistoryACI()
-            self._putDataForPatients(df)
+        ########### Prognosis ###########
+        df = getPreIcuLos().dropna()
+        self._putDataForPatients(df)
 
-            ########### Comorbidities ###########
-            df = getHistoryAMI()
-            self._putDataForPatients(df)
+        df = getHistoryACI()
+        self._putDataForPatients(df)
 
-            df = getCHF()
-            self._putDataForPatients(df)
+        ########### Comorbidities ###########
+        df = getHistoryAMI()
+        self._putDataForPatients(df)
 
-            df = getLiverDisease()
-            self._putDataForPatients(df)
+        df = getCHF()
+        self._putDataForPatients(df)
 
-            df = getPreExistingCKD()
-            self._putDataForPatients(df)
+        df = getLiverDisease()
+        self._putDataForPatients(df)
 
-            df = getMalignantCancer()
-            self._putDataForPatients(df)
+        df = getPreExistingCKD()
+        self._putDataForPatients(df)
 
-            df = getHypertension()
-            self._putDataForPatients(df)
+        df = getMalignantCancer()
+        self._putDataForPatients(df)
 
-            df = getUTI()
-            self._putDataForPatients(df)
+        df = getHypertension()
+        self._putDataForPatients(df)
 
-            df = getChronicPulmonaryDisease()
-            self._putDataForPatients(df)
+        df = getUTI()
+        self._putDataForPatients(df)
 
-            ########### Interventions ###########
-            df = getMV()
-            self._putDataForPatients(df)
+        df = getChronicPulmonaryDisease()
+        self._putDataForPatients(df)
 
-            df = getNaHCO3()
-            self._putDataForPatients(df)
+        ########### Interventions ###########
+        df = getMV()
+        self._putDataForPatients(df)
 
-            ########### Save file ###########
-            Patients.toJsonFile(patientList, self.storagePath)
+        df = getNaHCO3()
+        self._putDataForPatients(df)
 
+        ########### Save file ###########
+        Patients.toJsonFile(patientList, self.storagePath)
+        
         pass
 
     def _putDataForPatients(self, df):
@@ -468,7 +472,7 @@ class Patients:
 
         xLs = [x.getMeasuresBetween(fromTime, toTime, how) for x in self.patientList]
 
-        pd.concat(xLs)
+        return pd.concat(xLs)
 
     @staticmethod
     def toJsonFile(patients: Collection[Patient], file: str | Path):
