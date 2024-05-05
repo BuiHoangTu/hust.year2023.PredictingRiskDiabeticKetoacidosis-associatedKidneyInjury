@@ -252,198 +252,198 @@ class Patients:
             ########### Characteristics of diabetes ###########
             df = getDiabeteType()
             df["dka_type"] = df["dka_type"].astype(int)
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = getMacroangiopathy()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = getMicroangiopathy()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             ########### Demographics ###########
             df = getAge()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = getGender()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = getEthnicity()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = getHeight()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = getWeight()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             ########### Laboratory test ###########
             df = lab_test.getWbc().dropna()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = lab_test.getLymphocyte().dropna()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = lab_test.getHb().dropna()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = lab_test.getPlt().dropna()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = lab_test.getPO2().dropna()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = lab_test.getPCO2().dropna()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = lab_test.get_pH().dropna()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = lab_test.getAG().dropna()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = lab_test.getBicarbonate().dropna()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = lab_test.getBun().dropna()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = lab_test.getCalcium().dropna()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = lab_test.getScr().dropna()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = lab_test.getBg().dropna()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = lab_test.getPhosphate().dropna()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = lab_test.getAlbumin().dropna()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = lab_test.get_eGFR().dropna()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = lab_test.getHbA1C().dropna()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = lab_test.getCrp().dropna()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = lab_test.getUrineKetone().dropna()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             ########### Scoring systems ###########
             df = getGcs().dropna()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = getOasis().dropna()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = getSofa()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = getSaps2()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             ########### Vital signs ###########
             df = getHeartRate().dropna()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = getRespiratoryRate().dropna()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = getSystolicBloodPressure().dropna()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = getDiastolicBloodPressure().dropna()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             ########### Prognosis ###########
             df = getPreIcuLos().dropna()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = getHistoryACI()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             ########### Comorbidities ###########
             df = getHistoryAMI()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = getCHF()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = getLiverDisease()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = getPreExistingCKD()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = getMalignantCancer()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = getHypertension()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = getUTI()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = getChronicPulmonaryDisease()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             ########### Interventions ###########
             df = getMV()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             df = getNaHCO3()
-            self.putDataForPatients(df)
+            self._putDataForPatients(df)
 
 
             ########### Save file ###########
@@ -452,7 +452,7 @@ class Patients:
 
         pass
     
-    def putDataForPatients(self, df):
+    def _putDataForPatients(self, df):
         for patient in self.patientList:
             if "stay_id" in df.columns:
                 dfIndividualMeasures = df[df["stay_id"] == patient.stayId]
