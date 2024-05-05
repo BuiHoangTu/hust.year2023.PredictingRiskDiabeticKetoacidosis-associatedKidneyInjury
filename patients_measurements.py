@@ -77,6 +77,7 @@ for _, row in dfData1.iterrows():
 dfData1["akd"].value_counts()
 
 
+########### Characteristics of diabetes ###########
 df = getDiabeteType()
 df["dka_type"] = df["dka_type"].astype(int)
 putDataForPatients(patientList, df)
@@ -90,6 +91,7 @@ df = getMicroangiopathy()
 putDataForPatients(patientList, df)
 
 
+########### Demographics ###########
 df = getAge()
 putDataForPatients(patientList, df)
 
@@ -110,6 +112,7 @@ df = getWeight()
 putDataForPatients(patientList, df)
 
 
+########### Laboratory test ###########
 df = lab_test.getWbc().dropna()
 putDataForPatients(patientList, df)
 
@@ -186,6 +189,7 @@ df = lab_test.getUrineKetone().dropna()
 putDataForPatients(patientList, df)
 
 
+########### Scoring systems ###########
 df = getGcs().dropna()
 putDataForPatients(patientList, df)
 
@@ -202,6 +206,7 @@ df = getSaps2()
 putDataForPatients(patientList, df)
 
 
+########### Vital signs ###########
 df = getHeartRate().dropna()
 putDataForPatients(patientList, df)
 
@@ -218,6 +223,7 @@ df = getDiastolicBloodPressure().dropna()
 putDataForPatients(patientList, df)
 
 
+########### Prognosis ###########
 df = getPreIcuLos().dropna()
 putDataForPatients(patientList, df)
 
@@ -226,6 +232,7 @@ df = getHistoryACI()
 putDataForPatients(patientList, df)
 
 
+########### Comorbidities ###########
 df = getHistoryAMI()
 putDataForPatients(patientList, df)
 
@@ -258,4 +265,5 @@ df = getChronicPulmonaryDisease()
 putDataForPatients(patientList, df)
 
 
+########### Save file ###########
 toJsonFile(patientList, TEMP_PATH / "learning_data.json")
