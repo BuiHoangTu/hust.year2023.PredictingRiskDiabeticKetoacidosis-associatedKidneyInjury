@@ -154,9 +154,9 @@ class Patient:
 
         df = DataFrame(
             {
-                "subject_id": self.subject_id,
-                "hadm_id": self.hadm_id,
-                "stay_id": self.stay_id,
+                "subject_id": [self.subject_id],
+                "hadm_id": [self.hadm_id],
+                "stay_id": [self.stay_id],
             }
         )
 
@@ -233,6 +233,9 @@ class Patients:
         else:
             self.refreshData()
         pass
+
+    def __getitem__(self, id) -> Patient:
+        return self.patientList[id]
 
     def refreshData(self):
         patientList: List[Patient] = []
@@ -441,7 +444,7 @@ class Patients:
                     patient.putMeasure(dataColumn, row.get("time"), row[dataColumn])
 
     def savePatients(self, patients: Collection[Patient]):
-        self.patientList = patients
+        self.patientList = list(patients)
 
         Patients.toJsonFile(patients, self.storagePath)
 
