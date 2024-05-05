@@ -8,7 +8,7 @@ from pandas import DataFrame, Timestamp, to_datetime
 from sortedcontainers import SortedDict
 
 
-class NpEncoder(json.JSONEncoder):
+class PatientJsonEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.integer):
             return int(obj)
@@ -16,7 +16,7 @@ class NpEncoder(json.JSONEncoder):
             return float(obj)
         if isinstance(obj, np.ndarray):
             return obj.tolist()
-        return super(NpEncoder, self).default(obj)
+        return super(PatientJsonEncoder, self).default(obj)
 
 
 class Patient:
@@ -145,13 +145,10 @@ class Patient:
         return df
 
     def toJson(self):
-        jsonData = {
-            "subjectId": self.subjectId,
-            "hadmId": self.hadmId,
-            "stayId": self.stayId,
-            "akdPositive": self.akdPositive,
-            "measures": {},
-        }
+        jsonData = self.__dict__.copy()
+        
+        jsonData["measures"] = {}
+        
         for measureName, measureData in self.measures.items():
             if isinstance(measureData, dict):
                 jsonData["measures"][measureName] = {}
@@ -169,7 +166,7 @@ def toJsonFile(patients: Collection[Patient], file: str | Path):
     for obj in patients:
         jsonData.append(obj.toJson())
 
-    Path(file).write_text(json.dumps(jsonData, indent=4, cls=NpEncoder))
+    Path(file).write_text(json.dumps(jsonData, indent=4, cls=PatientJsonEncoder))
 
 
 def fromJsonFile(file: str | Path):
