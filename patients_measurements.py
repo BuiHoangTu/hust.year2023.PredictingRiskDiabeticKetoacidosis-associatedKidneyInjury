@@ -9,6 +9,7 @@ from variables.charateristics_diabetes import (
     getMicroangiopathy,
 )
 from variables.demographics import getAge, getEthnicity, getGender, getHeight, getWeight
+from variables.interventions import getMV, getNaHCO3
 import variables.lab_test as lab_test
 from variables.scoring_systems import getGcs, getOasis, getSofa, getSaps2
 from variables.vital_signs import (
@@ -262,6 +263,15 @@ putDataForPatients(patientList, df)
 
 
 df = getChronicPulmonaryDisease()
+putDataForPatients(patientList, df)
+
+
+########### Interventions ###########
+df = getMV()
+putDataForPatients(patientList, df)
+
+
+df = getNaHCO3()
 putDataForPatients(patientList, df)
 
 
