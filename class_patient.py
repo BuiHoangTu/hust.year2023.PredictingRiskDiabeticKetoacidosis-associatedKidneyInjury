@@ -59,16 +59,16 @@ class Patient:
 
     def __init__(
         self,
-        subjectId: int,
-        hadmId: int,
-        stayId: int,
+        subject_id: int,
+        hadm_id: int,
+        stay_id: int,
         intime: str | datetime | datetime64 | Timestamp,
         akdPositive: bool,
         measures: Dict[str, Dict[Timestamp, float] | float] | None = None,
     ) -> None:
-        self.subject_id = subjectId
-        self.hadm_id = hadmId
-        self.stay_id = stayId
+        self.subject_id = subject_id
+        self.hadm_id = hadm_id
+        self.stay_id = stay_id
         self.intime = to_datetime(intime)
         self.akdPositive = akdPositive
         self.measures: Dict[str, Dict[Timestamp, float] | float] = SortedDict()
