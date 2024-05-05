@@ -74,7 +74,7 @@ class Patient:
         self.measures: Dict[str, Dict[Timestamp, float] | float] = SortedDict()
 
         if measures is None:
-            return 
+            return
         # parse measures
         for key, value in measures.items():
             if isinstance(value, Dict):
@@ -95,7 +95,7 @@ class Patient:
 
         if measureTime is None:
             self.measures[measureName] = measureValue
-            return 
+            return
 
         measureTime = to_datetime(measureTime)
 
@@ -103,7 +103,7 @@ class Patient:
 
         if isinstance(measure, float) or isinstance(measure, int):
             self.measures[measureName] = measureValue
-            return 
+            return
 
         if measure is None:
             measure = self.measures[measureName] = SortedDict()
@@ -149,7 +149,7 @@ class Patient:
         if how in howMapping:
             how = howMapping[how]
 
-        if not isinstance(how, Callable): 
+        if not isinstance(how, Callable):
             raise Exception("Unk how: ", how)
 
         df = DataFrame(
@@ -184,7 +184,9 @@ class Patient:
                     if measureTimes[i] > self.intime + toTime:
                         break
 
-                    measureInRange.append((measureTimes[i], measureTimeValue[measureTimes[i]]))
+                    measureInRange.append(
+                        (measureTimes[i], measureTimeValue[measureTimes[i]])
+                    )
                     pass
 
                 dfMeasures = DataFrame(measureInRange, columns=["time", "value"])
@@ -212,13 +214,12 @@ class Patient:
                     pass
                 pass
             else:
-                jsonData["measures"][measureName] = measureData         
+                jsonData["measures"][measureName] = measureData
         return jsonData
 
 
 class Patients:
-    """Create a list of patients. Read from cache file if avaiable
-    """
+    """Create a list of patients. Read from cache file if avaiable"""
 
     def __init__(self, storagePath: Path | str | None = None) -> None:
         if storagePath is None:
@@ -412,7 +413,7 @@ class Patients:
 
         ########### Save file ###########
         Patients.toJsonFile(patientList, self.storagePath)
-        
+
         pass
 
     def _putDataForPatients(self, df):
@@ -486,5 +487,5 @@ class Patients:
     def fromJsonFile(file: str | Path):
         file = Path(file)
 
-        jsonData: List[Dict] = json.loads(file.read_text())        
+        jsonData: List[Dict] = json.loads(file.read_text())
         return [Patient(**d) for d in jsonData]
