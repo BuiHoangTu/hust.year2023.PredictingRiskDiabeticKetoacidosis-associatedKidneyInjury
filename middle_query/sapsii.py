@@ -17,17 +17,14 @@ from middle_query import enzyme
 from middle_query import age
 
 
-
-
 def runSql():
     THIS_FILE = Path(__file__)
-    
+
     OUTPUT_PATH = TEMP_PATH / (THIS_FILE.name + ".csv")
 
     if (OUTPUT_PATH).exists():
-        return pd.read_csv(OUTPUT_PATH, parse_dates=["charttime"])
+        return pd.read_csv(OUTPUT_PATH, parse_dates=["starttime", "endtime"])
 
-    
     CHART_EVENT_IDs = [
         226732
     ]
@@ -35,7 +32,7 @@ def runSql():
     dfPatients = getTargetPatientIcu()
     dfAdmission= getTargetPatientAdmission()
     dfChartevent=extractChartEventMesures(CHART_EVENT_IDs,  "charted_" + THIS_FILE.name + ".csv")
-    
+
     dfServices = pd.read_csv(MIMIC_PATH / "hosp" / "services.csv")
     dfDiagnosesIcd = getTargetPatientIcd()
     result = pd.DataFrame()
@@ -59,7 +56,6 @@ def runSql():
     }
     result = queryPostgresDf(queryStr, map)
     pass
-    
 
     if result is None:
         raise ResultEmptyException()

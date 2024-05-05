@@ -53,4 +53,4 @@ def getSaps2():
     df = sapsii.runSql()
     df["saps2"] = df["sapsii"]
 
-    return df[["stay_id", "sapsii"]]
+    return df[["stay_id", "saps2"]]
