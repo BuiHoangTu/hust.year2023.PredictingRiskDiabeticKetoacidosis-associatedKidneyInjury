@@ -1,4 +1,4 @@
-from patients import getTargetPatientIcd
+from target_patients import getTargetPatientIcd
 
 
 def get():

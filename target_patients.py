@@ -19,7 +19,7 @@ def getNotebookOutput():
     PATIENT_PATH = TEMP_PATH / TARGET_PATIENT_FILE
 
     if not PATIENT_PATH.exists():
-        nb = nbformat.read("./patients.ipynb", as_version=4)
+        nb = nbformat.read("./target_patients.ipynb", as_version=4)
         ep = ExecutePreprocessor(timeout=None, kernel_name="python3")
 
         resultNb, _ = ep.preprocess(nb)

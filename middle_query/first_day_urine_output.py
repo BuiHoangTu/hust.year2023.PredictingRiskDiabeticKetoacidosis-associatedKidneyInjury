@@ -2,7 +2,7 @@ import pandas as pd
 from constants import queryPostgresDf
 
 from constants import TEMP_PATH
-from patients import getTargetPatientIcu
+from target_patients import getTargetPatientIcu
 from middle_query import SQL_PATH
 from middle_query.urine_output import extractUrineOutput
 from query_exceptions import ResultEmptyException

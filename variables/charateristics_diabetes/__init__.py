@@ -1,4 +1,4 @@
-import patients
+import target_patients
 from variables.charateristics_diabetes import macroangiopathy
 from variables.charateristics_diabetes import microangiopathy
 
@@ -8,7 +8,7 @@ def getDiabeteType():
     Returns:
         pandas.DataFrame: ["stay_id", "dka_type"]
     """
-    df = patients.getNotebookOutput()
+    df = target_patients.getNotebookOutput()
     return df[["stay_id", "dka_type"]]
 
 def getMacroangiopathy():

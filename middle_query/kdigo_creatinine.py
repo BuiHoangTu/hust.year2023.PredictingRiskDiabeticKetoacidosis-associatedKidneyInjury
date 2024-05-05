@@ -3,7 +3,7 @@ from constants import queryPostgresDf
 
 from constants import TEMP_PATH
 from extract_mesurements import extractLabEventMesures
-from patients import getTargetPatientIcu
+from target_patients import getTargetPatientIcu
 from middle_query import SQL_PATH
 from query_exceptions import ResultEmptyException
 

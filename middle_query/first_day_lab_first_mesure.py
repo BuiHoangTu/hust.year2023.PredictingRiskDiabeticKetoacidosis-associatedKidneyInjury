@@ -5,7 +5,7 @@ from constants import queryPostgresDf
 from constants import TEMP_PATH
 from middle_query import blood_differential, chemistry, coagulation, complete_blood_count, enzyme
 from query_exceptions import ResultEmptyException
-from patients import getTargetPatientIcu
+from target_patients import getTargetPatientIcu
 
 
 def runSql():

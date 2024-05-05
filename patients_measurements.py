@@ -1,7 +1,7 @@
 from typing import Collection, List
 from class_patient import Patient, toJsonFile
 from constants import TEMP_PATH
-from patients import getTargetPatientIcu
+from target_patients import getTargetPatientIcu
 import akd_positive
 from variables.charateristics_diabetes import (
     getDiabeteType,
