@@ -1,7 +1,7 @@
 import pandas as pd
 
 from constants import MIMIC_PATH
-from patients import getTargetPatientIcu
+from target_patients import getTargetPatientIcu
 
 
 def get():

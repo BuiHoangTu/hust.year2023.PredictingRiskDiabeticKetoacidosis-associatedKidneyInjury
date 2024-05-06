@@ -2,7 +2,7 @@ import pandas as pd
 from constants import MIMIC_PATH
 from extract_mesurements import extractChartEventMesures
 from middle_query import weight_durations
-from patients import getTargetPatientIcu
+from target_patients import getTargetPatientIcu
 
 
 def getAge():
@@ -80,8 +80,10 @@ def getHeight():
 
 def getWeight():
     dfWeight = weight_durations.runSql()
-    dfFirstWeight = dfWeight.sort_values(["stay_id", "starttime"]).drop_duplicates(
-        "stay_id", keep="first"
-    )
 
-    return dfFirstWeight[["stay_id", "weight"]]
+    dfWeight.dropna(subset="weight")
+
+    dfWeight.rename(columns={"starttime": "time"}, inplace=True)
+
+    dfWeight = dfWeight.sort_values(["stay_id", "time"])
+    return dfWeight[["stay_id", "weight", "time"]]

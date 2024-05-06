@@ -7,7 +7,7 @@ from middle_query import SQL_PATH
 from query_exceptions import ResultEmptyException
 
 
-def extractCrrt():
+def runSql():
     CRRT_OUTPUT_PATH = TEMP_PATH / "crrt.csv"
 
     if (CRRT_OUTPUT_PATH).exists():
