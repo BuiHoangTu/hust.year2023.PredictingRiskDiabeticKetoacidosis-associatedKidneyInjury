@@ -157,6 +157,7 @@ class Patient:
                 "subject_id": [self.subject_id],
                 "hadm_id": [self.hadm_id],
                 "stay_id": [self.stay_id],
+                "akd": [self.akdPositive],
             }
         )
 
