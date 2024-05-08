@@ -1,9 +1,24 @@
 from pathlib import Path
+from typing import Any, Callable
 import pandas as pd
 from pandasql import PandaSQL
 
+from query_exceptions import ResultEmptyException
+
 
 SQL_PATH = Path(__file__).parent
+
+
+class SqlModifier:
+    """Modify SQL text before running it. Default is to escape % character."""
+
+    def __call__(self, sqlText: str) -> Any:
+        return self.modify(sqlText)
+
+    def modify(self, sqlText: str) -> str:
+        return sqlText.replace("%", "%%")
+
+    pass
 
 
 class SqlRunner:
@@ -14,20 +29,22 @@ class SqlRunner:
         sqlText: str | None = None,
         sqlPath: str | Path | None = None,
         sqlFileName: str | None = None,
-        cacheFile: str | Path | None = None,
+        sqlModifier: Callable[[str], str] = SqlModifier(),
+        **kwargs,
     ) -> None:
         """_summary_
 
         Args:
             pandasqlEngine (PandaSQL): _description_
-            sqlText (str | None, optional): _description_. Defaults to None.
-            sqlPath (str | Path | None, optional): _description_. Defaults to None.
-            sqlFileName (str | None, optional): _description_. Defaults to None.
-            cacheFile (str | Path | None, optional): _description_. Defaults to None.
+            sqlText (str | None, optional): Raw SQL query. If provided, ignore sqlPath, sqlFileName. Defaults to None.
+            sqlPath (str | Path | None, optional): Path to sql file; or the folder that contains sql file, in this case sqlFileName must be provided. Defaults to None.
+            sqlFileName (str | None, optional): name of sql file. If provided, search for this file in sqlPath, sqlPath must be a folder in this case. Defaults to None.
+            kwargs: mapping of sql tables to pandas dataframes
 
         Raises:
-            ValueError: _description_
+            ValueError: if both sqlText and sqlPath are None
         """
+
         self.engine = pandasqlEngine
 
         if sqlText is not None:
@@ -41,26 +58,22 @@ class SqlRunner:
                         break
                     pass
                 pass
-            else:
-                self.sqlText = sqlPath.read_text()
+            self.sqlText = sqlPath.read_text()
         else:
             raise ValueError("sqlText or sqlFile must not be null")
 
-        self.cacheFile = cacheFile
+        self.sqlText = sqlModifier(self.sqlText)
+
+        self.tableMapping = kwargs
+
         pass
 
-    def runSQL(self):
-        if self.cacheFile is not None and Path(self.cacheFile).exists():
+    def __setitem__(self, key: str, value: pd.DataFrame) -> None:
+        self.tableMapping[key] = value
+        pass
 
-            def parseDateColumn(column):
-                try:
-                    return pd.to_datetime(column, errors="raise")
-                except Exception:
-                    return column
-
-            res = pd.read_csv(self.cacheFile)
-            for col in res.columns:
-                res[col] = parseDateColumn(res[col])
-
-        res = self.engine
-        return
+    def runSQL(self, ignoreEmptyResult: bool = False) -> pd.DataFrame:
+        result = self.engine(self.sqlText, self.tableMapping)
+        if not ignoreEmptyResult and result is None:
+            raise ResultEmptyException()
+        return result # type: ignore
