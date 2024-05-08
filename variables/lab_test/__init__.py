@@ -1,11 +1,11 @@
-from extract_mesurements import extractLabEventMesures
+from utils.extract_mesurements import extractLabEventMesures
 from middle_query import (
     blood_differential,
     chemistry,
     complete_blood_count,
     first_day_lab_first_mesure,
 )
-from reduce_mesurements import reduceByHadmId
+from utils.reduce_mesurements import reduceByHadmId
 from variables.demographics import getAge, getGender
 from variables.lab_test.egfr import calculate_eGFR_df
 

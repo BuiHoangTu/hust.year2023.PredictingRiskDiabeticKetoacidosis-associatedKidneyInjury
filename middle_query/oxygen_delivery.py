@@ -4,7 +4,7 @@ from constants import queryPostgresDf
 
 from constants import TEMP_PATH
 from query_exceptions import ResultEmptyException
-from extract_mesurements import extractChartEventMesures
+from utils.extract_mesurements import extractChartEventMesures
 
 
 def extractOxygenDelivery():

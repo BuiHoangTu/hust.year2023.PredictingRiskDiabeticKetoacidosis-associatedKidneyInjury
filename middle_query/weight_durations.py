@@ -2,7 +2,7 @@ import pandas as pd
 from constants import queryPostgresDf
 
 from constants import TARGET_PATIENT_FILE, TEMP_PATH
-from extract_mesurements import extractChartEventMesures
+from utils.extract_mesurements import extractChartEventMesures
 from middle_query import SQL_PATH
 from query_exceptions import ResultEmptyException
 

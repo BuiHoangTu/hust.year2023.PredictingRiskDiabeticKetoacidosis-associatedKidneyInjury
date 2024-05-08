@@ -5,7 +5,7 @@ from constants import queryPostgresDf
 from constants import TEMP_PATH,MIMIC_PATH
 from query_exceptions import ResultEmptyException
 from target_patients import getTargetPatientIcu,getTargetPatientAdmission,getTargetPatientIcd
-from extract_mesurements import extractChartEventMesures
+from utils.extract_mesurements import extractChartEventMesures
 from middle_query import bg
 from middle_query import ventilation
 from middle_query import gcs

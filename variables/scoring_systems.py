@@ -1,5 +1,5 @@
 from middle_query import first_day_sofa, gcs, oasis, sapsii
-from reduce_mesurements import reduceByStayId
+from utils.reduce_mesurements import reduceByStayId
 
 
 def getGcs():

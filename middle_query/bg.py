@@ -2,8 +2,8 @@ from pathlib import Path
 import pandas as pd
 
 from constants import TEMP_PATH, queryPostgresDf
-from extract_mesurements import extractLabEventMesures
-from extract_mesurements import extractChartEventMesures
+from utils.extract_mesurements import extractLabEventMesures
+from utils.extract_mesurements import extractChartEventMesures
 from query_exceptions import ResultEmptyException
 
 def runSql():
