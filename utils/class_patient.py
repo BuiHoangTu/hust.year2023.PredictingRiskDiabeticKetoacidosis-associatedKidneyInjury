@@ -479,6 +479,22 @@ class Patients:
 
         return pd.concat(xLs)
 
+    def split(self, n, random_state=None):
+        cachedSplitFile = TEMP_PATH / "split" / (str(n) + "-" + str(random_state) + ".json")
+        if cachedSplitFile.exists():
+            splitIndexes = json.loads(cachedSplitFile.read_text())
+        else:
+            indexes = [i for i in range(len(self.patientList))]
+            if random_state is not None:
+                np.random.seed(random_state)
+                np.random.shuffle(indexes)
+                
+            splitIndexes = np.array_split(indexes, n)
+            json.dump(splitIndexes, cachedSplitFile.open("w+"))
+        
+        for splitIndex in splitIndexes:
+            yield [self.patientList[i] for i in splitIndex]
+
     @staticmethod
     def toJsonFile(patients: Collection[Patient], file: str | Path):
         jsonData = []
