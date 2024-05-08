@@ -1,9 +1,3 @@
-if __name__ == "__main__":
-    print("This file is used for data storing purpose only.")
-    exit(0)
-
-
-# mimic PATH (in which there are hosp and icu data)
 from pathlib import Path
 from pandasql import PandaSQL
 from secret import MIMIC_PATH_STR, POSTGRESQL_CONNECTION_STRING
