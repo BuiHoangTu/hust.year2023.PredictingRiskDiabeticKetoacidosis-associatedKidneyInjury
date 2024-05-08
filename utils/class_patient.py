@@ -492,6 +492,8 @@ class Patients:
                 np.random.shuffle(indexes)
 
             splitIndexes = np.array_split(indexes, n)
+            
+            cachedSplitFile.parent.mkdir(parents=True, exist_ok=True)
             json.dump(splitIndexes, cachedSplitFile.open("w+"))
 
         res = []
