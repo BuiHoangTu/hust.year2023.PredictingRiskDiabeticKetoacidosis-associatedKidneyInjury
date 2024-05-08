@@ -2,7 +2,7 @@ import pandas as pd
 from constants import queryPostgresDf
 
 from constants import TARGET_PATIENT_FILE, TEMP_PATH
-from middle_query import SQL_PATH
+from middle_query import SQL_FOLDER
 from middle_query import crrt
 from middle_query.kdigo_creatinine import extractKdigoCreatinine
 from middle_query.kdigo_uo import extractKdigoUrineOutput
@@ -26,7 +26,7 @@ def extractKdigoStages():
     dfCrrt = crrt.runSql()
 
     result = pd.DataFrame()
-    with open(SQL_PATH / "kdigo_stages.sql", "r") as queryStr:
+    with open(SQL_FOLDER / "kdigo_stages.sql", "r") as queryStr:
         map = {
             "kdigo_creatinine": dfKdigoCreat,
             "kdigo_uo": dfKdigoUO,

@@ -3,7 +3,7 @@ from constants import queryPostgresDf
 
 from constants import TEMP_PATH
 from utils.extract_mesurements import extractChartEventMesures
-from middle_query import SQL_PATH
+from middle_query import SQL_FOLDER
 from query_exceptions import ResultEmptyException
 
 
@@ -37,7 +37,7 @@ def runSql():
 
     dfChartEventCrrt = extractChartEventMesures(CHART_EVENT_IDs, "charted_crrt.csv")
 
-    queryStr = (SQL_PATH / "crrt.sql").read_text()
+    queryStr = (SQL_FOLDER / "crrt.sql").read_text()
     map = {
         "chartevents": dfChartEventCrrt,
     }

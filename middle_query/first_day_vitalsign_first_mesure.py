@@ -11,7 +11,7 @@ from query_exceptions import ResultEmptyException
 def runSql():
     THIS_FILE = Path(__file__)
 
-    OUTPUT_PATH = TEMP_PATH / (THIS_FILE.name + ".csv")
+    OUTPUT_PATH = TEMP_PATH / (THIS_FILE.stem + ".csv")
 
     if (OUTPUT_PATH).exists():
         return pd.read_csv(OUTPUT_PATH)
