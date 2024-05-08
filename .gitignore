@@ -2,19 +2,19 @@
 __pycache__
 
 ## virtual environment
-.venv/**
+.venv
 
 ## Jetbrains
-.idea/**
+.idea
 
 ## VSCode 
-.vscode/**
+.vscode
 
 ## Jypyter notebook
-.ipynb_checkpoints/**
+.ipynb_checkpoints
 
 ## temporary path 
-tmp/bak/**
+tmp/bak
 
 ## self 
 package_check.py
