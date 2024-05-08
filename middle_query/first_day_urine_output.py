@@ -3,7 +3,7 @@ from constants import queryPostgresDf
 
 from constants import TEMP_PATH
 from notebook_wrapper.target_patients_wrapper import getTargetPatientIcu
-from middle_query import SQL_PATH
+from middle_query import SQL_FOLDER
 from middle_query.urine_output import extractUrineOutput
 from query_exceptions import ResultEmptyException
 
@@ -17,7 +17,7 @@ def runSql():
     dfUO = extractUrineOutput()
     dfUO["charttime"] = pd.to_datetime(dfUO["charttime"])
 
-    queryStr = (SQL_PATH / "./first_day_urine_output.sql").read_text()
+    queryStr = (SQL_FOLDER / "./first_day_urine_output.sql").read_text()
     result = queryPostgresDf(
         queryStr,
         {

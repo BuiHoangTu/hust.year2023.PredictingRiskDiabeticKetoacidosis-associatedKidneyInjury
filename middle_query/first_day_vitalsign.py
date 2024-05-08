@@ -3,7 +3,7 @@ from constants import queryPostgresDf
 
 from constants import TEMP_PATH
 from notebook_wrapper.target_patients_wrapper import getTargetPatientIcu
-from middle_query import SQL_PATH, vitalsign
+from middle_query import SQL_FOLDER, vitalsign
 from query_exceptions import ResultEmptyException
 
 
@@ -17,7 +17,7 @@ def runSql():
     dfVitalSign["charttime"] = pd.to_datetime(dfVitalSign["charttime"])
 
     result = queryPostgresDf(
-        (SQL_PATH / "./first_day_vitalsign.sql").read_text(),
+        (SQL_FOLDER / "./first_day_vitalsign.sql").read_text(),
         {
             "vitalsign": dfVitalSign,
             "icustays": getTargetPatientIcu(),

@@ -6,7 +6,7 @@ from pandasql import PandaSQL
 from query_exceptions import ResultEmptyException
 
 
-SQL_PATH = Path(__file__).parent
+SQL_FOLDER = Path(__file__).parent
 
 
 class SqlModifier:
@@ -21,7 +21,7 @@ class SqlModifier:
     pass
 
 
-class SqlRunner:
+class SqlWrapper:
 
     def __init__(
         self,

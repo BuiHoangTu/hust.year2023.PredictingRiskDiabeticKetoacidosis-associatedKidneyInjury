@@ -3,7 +3,7 @@ from constants import queryPostgresDf
 
 from constants import TARGET_PATIENT_FILE, TEMP_PATH
 from utils.extract_mesurements import extractChartEventMesures
-from middle_query import SQL_PATH
+from middle_query import SQL_FOLDER
 from query_exceptions import ResultEmptyException
 from middle_query import urine_output
 from middle_query import weight_durations
@@ -28,7 +28,7 @@ def runSql():
     dfWeightDuration = weight_durations.runSql()
 
     result = pd.DataFrame()
-    with open(SQL_PATH / "urine_output_rate.sql", "r") as queryStr:
+    with open(SQL_FOLDER / "urine_output_rate.sql", "r") as queryStr:
         map = {
             "target_patients": dfTargetPatients,
             "chartevents": dfChartevents220045,

@@ -4,7 +4,7 @@ from constants import queryPostgresDf
 from constants import TEMP_PATH
 from utils.extract_mesurements import extractLabEventMesures
 from notebook_wrapper.target_patients_wrapper import getTargetPatientIcu
-from middle_query import SQL_PATH
+from middle_query import SQL_FOLDER
 from query_exceptions import ResultEmptyException
 
 
@@ -21,7 +21,7 @@ def extractKdigoCreatinine():
     dfLabevent["charttime"] = pd.to_datetime(dfLabevent["charttime"], format="ISO8601")
 
     result = pd.DataFrame()
-    with open(SQL_PATH / "kdigo_creatinine.sql", "r") as queryStr:
+    with open(SQL_FOLDER / "kdigo_creatinine.sql", "r") as queryStr:
         map = {
             "icustays": dfTargetPatients,
             "labevents": dfLabevent,
