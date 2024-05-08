@@ -8,7 +8,7 @@ import pandas as pd
 from pandas import DataFrame, Timestamp, to_datetime
 from sortedcontainers import SortedDict
 from constants import TEMP_PATH
-from target_patients import getTargetPatientIcu
+from notebook_wrapper.target_patients_wrapper import getTargetPatientIcu
 import akd_positive
 from variables.charateristics_diabetes import (
     getDiabeteType,

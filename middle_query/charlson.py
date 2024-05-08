@@ -1,9 +1,9 @@
 from pathlib import Path
 import pandas as pd
 
-from constants import MIMIC_PATH, TEMP_PATH, queryPostgresDf
+from constants import TEMP_PATH, queryPostgresDf
 from middle_query import age
-from target_patients import getTargetPatientAdmission, getTargetPatientIcd
+from notebook_wrapper.target_patients_wrapper import getTargetPatientAdmission, getTargetPatientIcd
 from query_exceptions import ResultEmptyException
 
 

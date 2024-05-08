@@ -2,7 +2,7 @@ from pathlib import Path
 import pandas as pd
 
 from constants import TEMP_PATH, queryPostgresDf
-from target_patients import getTargetPatientIcu
+from notebook_wrapper.target_patients_wrapper import getTargetPatientIcu
 from middle_query import (
     bg,
     chemistry,

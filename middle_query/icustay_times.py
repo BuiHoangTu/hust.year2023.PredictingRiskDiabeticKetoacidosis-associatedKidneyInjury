@@ -3,7 +3,7 @@ import pandas as pd
 
 from constants import TEMP_PATH, queryPostgresDf
 from utils.extract_mesurements import extractChartEventMesures
-from target_patients import getTargetPatientIcu
+from notebook_wrapper.target_patients_wrapper import getTargetPatientIcu
 from query_exceptions import ResultEmptyException
 
 

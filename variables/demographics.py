@@ -2,7 +2,7 @@ import pandas as pd
 from constants import MIMIC_PATH
 from utils.extract_mesurements import extractChartEventMesures
 from middle_query import weight_durations
-from target_patients import getTargetPatientIcu
+from notebook_wrapper.target_patients_wrapper import getTargetPatientIcu
 
 
 def getAge():

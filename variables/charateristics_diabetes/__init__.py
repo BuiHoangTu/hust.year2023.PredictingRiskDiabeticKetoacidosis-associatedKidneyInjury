@@ -1,4 +1,4 @@
-import target_patients
+from notebook_wrapper import target_patients_wrapper
 from variables.charateristics_diabetes import macroangiopathy
 from variables.charateristics_diabetes import microangiopathy
 

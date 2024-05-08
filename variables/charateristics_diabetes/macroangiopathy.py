@@ -1,4 +1,4 @@
-from target_patients import getTargetPatientIcd
+from notebook_wrapper.target_patients_wrapper import getTargetPatientIcd
 
 
 def get():

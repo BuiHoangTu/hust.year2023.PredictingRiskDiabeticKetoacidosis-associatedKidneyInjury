@@ -2,7 +2,7 @@ from pathlib import Path
 import pandas as pd
 
 from constants import TEMP_PATH, queryPostgresDf
-from target_patients import getTargetPatientIcu
+from notebook_wrapper.target_patients_wrapper import getTargetPatientIcu
 from middle_query import bg, dobutamine, epinephrine, first_day_gcs, first_day_urine_output, first_day_vitalsign, norepinephrine, ventilation
 from query_exceptions import ResultEmptyException
 from middle_query import first_day_lab
