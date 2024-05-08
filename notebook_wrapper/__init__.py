@@ -3,7 +3,7 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 from time import sleep
-from typing import List
+from typing import Any, List
 
 import nbformat
 from nbconvert.preprocessors import ExecutePreprocessor
@@ -15,7 +15,7 @@ class NotebookWrapper:
         self.notebook = Path(notebookFile)
         self.outputVariable = outputVariable
 
-    def run(self) -> None:
+    def run(self) -> Any | List[Any]:
         nb = nbformat.read(self.notebook, as_version=nbformat.NO_CONVERT)
 
         # add saving path
