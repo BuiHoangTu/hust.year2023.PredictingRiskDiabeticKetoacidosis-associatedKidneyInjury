@@ -222,14 +222,20 @@ class Patient:
 class Patients:
     """Create a list of patients. Read from cache file if avaiable"""
 
-    def __init__(self, storagePath: Path | str | None = None) -> None:
+    def __init__(
+        self,
+        storagePath: Path | str | None = None,
+        patients: List[Patient] | None = None,
+    ) -> None:
         if storagePath is None:
             storagePath = DEFAULT_PATIENTS_FILE
         storagePath = Path(storagePath)
 
         self.storagePath = storagePath
 
-        if storagePath.exists():
+        if patients is not None:
+            self.patientList = patients
+        elif storagePath.exists():
             self.patientList = Patients.fromJsonFile(storagePath)
         else:
             self.refreshData()
@@ -487,19 +493,21 @@ class Patients:
             splitIndexes = json.loads(cachedSplitFile.read_text())
         else:
             indexes = [i for i in range(len(self.patientList))]
-            if random_state is not None:
-                np.random.seed(random_state)
-                np.random.shuffle(indexes)
+            akdLabel = [i.akdPositive for i in self.patientList]
 
-            splitIndexes = np.array_split(indexes, n)
-            
+            skf = StratifiedKFold(n_splits=n, shuffle=True, random_state=random_state)
+
+            splitIndexes = []
+            for _, splitIndex in skf.split(indexes, akdLabel):  # type: ignore
+                splitIndexes.append(splitIndex)
+
             cachedSplitFile.parent.mkdir(parents=True, exist_ok=True)
-            json.dump(splitIndexes, cachedSplitFile.open("w+"))
+            json.dump(splitIndexes, cachedSplitFile.open("w+"), cls=PatientJsonEncoder)
 
-        res = []
+        res: List[List[Patient]] = []
         for splitIndex in splitIndexes:
             res.append([self.patientList[i] for i in splitIndex])
-        return res
+        return [Patients(patients=pList) for pList in res]
 
     @staticmethod
     def toJsonFile(patients: Collection[Patient], file: str | Path):
