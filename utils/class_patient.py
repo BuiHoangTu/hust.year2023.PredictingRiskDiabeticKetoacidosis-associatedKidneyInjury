@@ -1,11 +1,12 @@
 from datetime import datetime
 import json
 from pathlib import Path
-from typing import Callable, Collection, Dict, List, Tuple
+from typing import Callable, Collection, Dict, Iterable, List, Tuple
 import numpy as np
 from numpy import datetime64
 import pandas as pd
 from pandas import DataFrame, Timestamp, to_datetime
+from sklearn.model_selection import StratifiedKFold
 from sortedcontainers import SortedDict
 from constants import TEMP_PATH
 from notebook_wrapper.target_patients_wrapper import getTargetPatientIcu
@@ -181,13 +182,17 @@ class Patient:
                     pass
 
                 measureInRange: List[Tuple[Timestamp, float]] = []
-                for i in range(startId, len(measureTimes)):
-                    if measureTimes[i] > self.intime + toTime:
-                        break
 
-                    measureInRange.append(
-                        (measureTimes[i], measureTimeValue[measureTimes[i]])
-                    )
+                try:
+                    for i in range(startId, len(measureTimes)):
+                        if measureTimes[i] > self.intime + toTime:
+                            break
+
+                        measureInRange.append(
+                            (measureTimes[i], measureTimeValue[measureTimes[i]])
+                        )
+                        pass
+                except UnboundLocalError:
                     pass
 
                 dfMeasures = DataFrame(measureInRange, columns=["time", "value"])
