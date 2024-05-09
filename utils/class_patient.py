@@ -244,6 +244,29 @@ class Patients:
     def __getitem__(self, id) -> Patient:
         return self.patientList[id]
 
+    def __add__(self, other):
+        if isinstance(other, Patient):
+            new = Patients(patients=self.patientList)
+            new.patientList.append(other)
+            return new
+        elif isinstance(other, Iterable) and all(
+            isinstance(item, Patient) for item in other
+        ):
+            new = Patients(patients=self.patientList)
+            new.patientList.extend(other)
+            return new
+        elif isinstance(other, Patients):
+            return Patients(patients=self.patientList + other.patientList)
+        else:
+            raise TypeError(
+                "Unsupported operand type(s) for +: '{}' and '{}'".format(
+                    type(self), type(other)
+                )
+            )
+
+    def __len__(self):
+        return len(self.patientList)
+
     def refreshData(self):
         patientList: List[Patient] = []
         self.patientList = patientList
