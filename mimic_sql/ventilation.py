@@ -3,7 +3,7 @@ import pandas as pd
 from constants import queryPostgresDf
 
 from constants import TARGET_PATIENT_FILE, TEMP_PATH
-from query_exceptions import ResultEmptyException
+from utils.query_exceptions import ResultEmptyException
 from mimic_sql.oxygen_delivery import extractOxygenDelivery
 from mimic_sql.ventilator_setting import extractVentilatorSetting
 

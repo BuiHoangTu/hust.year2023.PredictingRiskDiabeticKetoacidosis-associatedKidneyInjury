@@ -3,7 +3,7 @@ import pandas as pd
 from constants import queryPostgresDf
 
 from constants import TEMP_PATH
-from query_exceptions import ResultEmptyException
+from utils.query_exceptions import ResultEmptyException
 from utils.extract_mesurements import extractChartEventMesures
 
 

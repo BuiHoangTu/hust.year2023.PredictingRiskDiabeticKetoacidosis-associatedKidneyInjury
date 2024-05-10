@@ -3,7 +3,7 @@ import pandas as pd
 from constants import queryPostgresDf
 
 from constants import TEMP_PATH,MIMIC_PATH
-from query_exceptions import ResultEmptyException
+from utils.query_exceptions import ResultEmptyException
 from notebook_wrapper.target_patients_wrapper import getTargetPatientIcu,getTargetPatientAdmission,getTargetPatientIcd
 from utils.extract_mesurements import extractChartEventMesures
 from mimic_sql import bg

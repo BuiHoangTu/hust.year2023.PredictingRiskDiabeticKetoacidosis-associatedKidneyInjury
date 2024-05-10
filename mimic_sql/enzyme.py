@@ -3,7 +3,7 @@ import pandas as pd
 
 from constants import TEMP_PATH, queryPostgresDf
 from utils.extract_mesurements import extractLabEventMesures
-from query_exceptions import ResultEmptyException
+from utils.query_exceptions import ResultEmptyException
 
 def runSql():
     THIS_FILE = Path(__file__)

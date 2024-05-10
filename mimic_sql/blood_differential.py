@@ -4,7 +4,6 @@ import pandas as pd
 from constants import TEMP_PATH, queryPostgresDf
 from mimic_sql import SQL_FOLDER, SqlWrapper
 from utils.extract_mesurements import extractLabEventMesures
-from query_exceptions import ResultEmptyException
 
 
 def runSql():

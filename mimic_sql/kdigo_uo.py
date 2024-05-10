@@ -3,7 +3,7 @@ from constants import queryPostgresDf
 
 from constants import TARGET_PATIENT_FILE, TEMP_PATH
 from mimic_sql import SQL_FOLDER
-from query_exceptions import ResultEmptyException
+from utils.query_exceptions import ResultEmptyException
 from mimic_sql.urine_output import extractUrineOutput
 from mimic_sql.weight_durations import runSql
 

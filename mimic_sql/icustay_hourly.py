@@ -3,7 +3,7 @@ import pandas as pd
 
 from constants import TEMP_PATH, queryPostgresDf
 from mimic_sql import icustay_times
-from query_exceptions import ResultEmptyException
+from utils.query_exceptions import ResultEmptyException
 
 
 def runSql():

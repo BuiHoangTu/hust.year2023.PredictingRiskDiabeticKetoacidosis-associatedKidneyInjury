@@ -3,7 +3,7 @@ from typing import Any, Callable
 import pandas as pd
 from pandasql import PandaSQL
 
-from query_exceptions import ResultEmptyException
+from utils.query_exceptions import ResultEmptyException
 
 
 SQL_FOLDER = Path(__file__).parent

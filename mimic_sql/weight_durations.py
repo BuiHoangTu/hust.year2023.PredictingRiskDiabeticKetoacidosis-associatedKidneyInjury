@@ -4,7 +4,7 @@ from constants import queryPostgresDf
 from constants import TARGET_PATIENT_FILE, TEMP_PATH
 from utils.extract_mesurements import extractChartEventMesures
 from mimic_sql import SQL_FOLDER
-from query_exceptions import ResultEmptyException
+from utils.query_exceptions import ResultEmptyException
 
 
 def runSql():

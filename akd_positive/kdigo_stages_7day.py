@@ -4,7 +4,7 @@ from pandasql import sqldf
 
 from constants import TARGET_PATIENT_FILE, TEMP_PATH
 from mimic_sql.kdigo_stages import extractKdigoStages
-from query_exceptions import ResultEmptyException
+from utils.query_exceptions import ResultEmptyException
 
 
 def extractKdigoStages7day():
