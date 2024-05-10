@@ -10,6 +10,6 @@ def getNotebookOutput():
     if LEARNING_DATA_FILE.exists():
         return pd.read_csv(LEARNING_DATA_FILE)
     else:
-        dfData: pd.DataFrame = NotebookWrapper("data_selection.ipynb", "dfData").run()  # type: ignore
+        dfData: pd.DataFrame = NotebookWrapper("ml_data_selection.ipynb", "dfData").run()  # type: ignore
         dfData.to_csv(LEARNING_DATA_FILE)
         return dfData
