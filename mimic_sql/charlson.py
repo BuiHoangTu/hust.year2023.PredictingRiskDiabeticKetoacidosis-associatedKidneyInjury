@@ -2,7 +2,7 @@ from pathlib import Path
 import pandas as pd
 
 from constants import TEMP_PATH, queryPostgresDf
-from middle_query import age
+from mimic_sql import age
 from notebook_wrapper.target_patients_wrapper import getTargetPatientAdmission, getTargetPatientIcd
 from query_exceptions import ResultEmptyException
 

@@ -3,9 +3,9 @@ import pandas as pd
 
 from constants import MIMIC_PATH, TEMP_PATH, queryPostgresDf
 from notebook_wrapper.target_patients_wrapper import getTargetPatientIcu
-from middle_query import age, first_day_gcs, first_day_urine_output, first_day_vitalsign
+from mimic_sql import age, first_day_gcs, first_day_urine_output, first_day_vitalsign
 from query_exceptions import ResultEmptyException
-from middle_query.ventilation import extractVentilation
+from mimic_sql.ventilation import extractVentilation
 
 
 def runSql():

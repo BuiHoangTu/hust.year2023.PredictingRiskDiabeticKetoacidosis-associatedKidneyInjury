@@ -2,36 +2,32 @@ import pandas as pd
 from constants import queryPostgresDf
 
 from constants import TARGET_PATIENT_FILE, TEMP_PATH
-from middle_query import SQL_FOLDER
-from middle_query import crrt
-from middle_query.kdigo_creatinine import extractKdigoCreatinine
-from middle_query.kdigo_uo import extractKdigoUrineOutput
+from mimic_sql import SQL_FOLDER
 from query_exceptions import ResultEmptyException
+from mimic_sql.urine_output import extractUrineOutput
+from mimic_sql.weight_durations import runSql
 
 
-def extractKdigoStages():
-    OUTPUT_FILE = "kdigo_stages.csv"
+def extractKdigoUrineOutput():
+    OUTPUT_FILE = "kdigo_uo.csv"
 
     if (TEMP_PATH / OUTPUT_FILE).exists():
         return pd.read_csv(TEMP_PATH / OUTPUT_FILE, parse_dates=["charttime"])
-
-    dfKdigoCreat = extractKdigoCreatinine()
-
-    dfKdigoUO = extractKdigoUrineOutput()
 
     dfTargetPatients = pd.read_csv(TEMP_PATH / TARGET_PATIENT_FILE)
     dfTargetPatients["intime"] = pd.to_datetime(dfTargetPatients["intime"])
     dfTargetPatients["outtime"] = pd.to_datetime(dfTargetPatients["outtime"])
 
-    dfCrrt = crrt.runSql()
+    dfUO = extractUrineOutput() 
+
+    dfWeightDuration = runSql() 
 
     result = pd.DataFrame()
-    with open(SQL_FOLDER / "kdigo_stages.sql", "r") as queryStr:
+    with open(SQL_FOLDER / "kdigo_uo.sql", "r") as queryStr:
         map = {
-            "kdigo_creatinine": dfKdigoCreat,
-            "kdigo_uo": dfKdigoUO,
             "icustays": dfTargetPatients,
-            "crrt": dfCrrt,
+            "urine_output": dfUO,
+            "weight_durations": dfWeightDuration,
         }
 
         result = queryPostgresDf(queryStr.read(), map)

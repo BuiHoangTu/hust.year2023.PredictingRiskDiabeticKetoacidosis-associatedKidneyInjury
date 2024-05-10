@@ -4,8 +4,8 @@ from constants import queryPostgresDf
 
 from constants import TARGET_PATIENT_FILE, TEMP_PATH
 from query_exceptions import ResultEmptyException
-from middle_query.oxygen_delivery import extractOxygenDelivery
-from middle_query.ventilator_setting import extractVentilatorSetting
+from mimic_sql.oxygen_delivery import extractOxygenDelivery
+from mimic_sql.ventilator_setting import extractVentilatorSetting
 
 
 def extractVentilation():

@@ -1,17 +1,14 @@
-from pathlib import Path
 import pandas as pd
 from constants import queryPostgresDf
 
 from constants import TEMP_PATH
 from notebook_wrapper.target_patients_wrapper import getTargetPatientIcu
-from middle_query import vitalsign
+from mimic_sql import SQL_FOLDER, vitalsign
 from query_exceptions import ResultEmptyException
 
 
 def runSql():
-    THIS_FILE = Path(__file__)
-
-    OUTPUT_PATH = TEMP_PATH / (THIS_FILE.stem + ".csv")
+    OUTPUT_PATH = TEMP_PATH / "first_day_vitalsign.csv"
 
     if (OUTPUT_PATH).exists():
         return pd.read_csv(OUTPUT_PATH)
@@ -19,9 +16,8 @@ def runSql():
     dfVitalSign = vitalsign.runSql()
     dfVitalSign["charttime"] = pd.to_datetime(dfVitalSign["charttime"])
 
-    queryStr = (Path(__file__).parent / (THIS_FILE.stem + ".sql")).read_text()
     result = queryPostgresDf(
-        queryStr,
+        (SQL_FOLDER / "./first_day_vitalsign.sql").read_text(),
         {
             "vitalsign": dfVitalSign,
             "icustays": getTargetPatientIcu(),
@@ -30,10 +26,6 @@ def runSql():
 
     if result is None:
         raise ResultEmptyException()
+    result.to_csv(OUTPUT_PATH)
 
-    df = result
-    df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
-    df = df.groupby("stay_id").agg(lambda x: x.mean()).reset_index()
-    
-    df.to_csv(OUTPUT_PATH)
-    return df
+    return result

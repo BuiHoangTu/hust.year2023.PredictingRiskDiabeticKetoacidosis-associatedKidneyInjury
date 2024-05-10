@@ -3,23 +3,25 @@ from constants import queryPostgresDf
 
 from constants import TEMP_PATH
 from notebook_wrapper.target_patients_wrapper import getTargetPatientIcu
-from middle_query import SQL_FOLDER, vitalsign
+from mimic_sql import SQL_FOLDER
+from mimic_sql.urine_output import extractUrineOutput
 from query_exceptions import ResultEmptyException
 
 
 def runSql():
-    OUTPUT_PATH = TEMP_PATH / "first_day_vitalsign.csv"
+    OUTPUT_PATH = TEMP_PATH / "./first_day_urine_output.csv"
 
     if (OUTPUT_PATH).exists():
         return pd.read_csv(OUTPUT_PATH)
 
-    dfVitalSign = vitalsign.runSql()
-    dfVitalSign["charttime"] = pd.to_datetime(dfVitalSign["charttime"])
+    dfUO = extractUrineOutput()
+    dfUO["charttime"] = pd.to_datetime(dfUO["charttime"])
 
+    queryStr = (SQL_FOLDER / "./first_day_urine_output.sql").read_text()
     result = queryPostgresDf(
-        (SQL_FOLDER / "./first_day_vitalsign.sql").read_text(),
+        queryStr,
         {
-            "vitalsign": dfVitalSign,
+            "urine_output": dfUO,
             "icustays": getTargetPatientIcu(),
         },
     )

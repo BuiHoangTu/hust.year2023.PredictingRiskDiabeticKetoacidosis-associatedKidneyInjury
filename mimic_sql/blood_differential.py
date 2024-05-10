@@ -2,7 +2,7 @@ from pathlib import Path
 import pandas as pd
 
 from constants import TEMP_PATH, queryPostgresDf
-from middle_query import SQL_FOLDER, SqlWrapper
+from mimic_sql import SQL_FOLDER, SqlWrapper
 from utils.extract_mesurements import extractLabEventMesures
 from query_exceptions import ResultEmptyException
 

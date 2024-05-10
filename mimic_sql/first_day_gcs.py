@@ -4,7 +4,7 @@ import pandas as pd
 from constants import TEMP_PATH, queryPostgresDf
 from notebook_wrapper.target_patients_wrapper import getTargetPatientIcu
 from query_exceptions import ResultEmptyException
-import middle_query.gcs as gcs
+import mimic_sql.gcs as gcs
 
 
 def runSql():

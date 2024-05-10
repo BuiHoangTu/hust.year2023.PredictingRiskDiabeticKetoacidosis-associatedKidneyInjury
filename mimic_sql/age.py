@@ -3,7 +3,7 @@ import pandas as pd
 from constants import MIMIC_PATH, queryPostgresDf
 
 from constants import TEMP_PATH
-from middle_query import SQL_FOLDER, SqlWrapper
+from mimic_sql import SQL_FOLDER, SqlWrapper
 
 
 def runSql():

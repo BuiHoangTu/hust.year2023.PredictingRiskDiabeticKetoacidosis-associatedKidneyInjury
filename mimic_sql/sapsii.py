@@ -6,15 +6,15 @@ from constants import TEMP_PATH,MIMIC_PATH
 from query_exceptions import ResultEmptyException
 from notebook_wrapper.target_patients_wrapper import getTargetPatientIcu,getTargetPatientAdmission,getTargetPatientIcd
 from utils.extract_mesurements import extractChartEventMesures
-from middle_query import bg
-from middle_query import ventilation
-from middle_query import gcs
-from middle_query import vitalsign
-from middle_query import urine_output
-from middle_query import chemistry
-from middle_query import complete_blood_count
-from middle_query import enzyme
-from middle_query import age
+from mimic_sql import bg
+from mimic_sql import ventilation
+from mimic_sql import gcs
+from mimic_sql import vitalsign
+from mimic_sql import urine_output
+from mimic_sql import chemistry
+from mimic_sql import complete_blood_count
+from mimic_sql import enzyme
+from mimic_sql import age
 
 
 def runSql():

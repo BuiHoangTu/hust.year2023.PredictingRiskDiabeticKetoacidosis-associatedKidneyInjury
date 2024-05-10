@@ -3,7 +3,7 @@ import pandas as pd
 from pandasql import sqldf
 
 from constants import TARGET_PATIENT_FILE, TEMP_PATH
-from middle_query.kdigo_stages import extractKdigoStages
+from mimic_sql.kdigo_stages import extractKdigoStages
 from query_exceptions import ResultEmptyException
 
 

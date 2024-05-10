@@ -1,5 +1,5 @@
 import numpy as np
-from middle_query import charlson
+from mimic_sql import charlson
 from notebook_wrapper.target_patients_wrapper import getTargetPatientIcd
 from variables.comorbidities import history_of_ACI
 from variables.comorbidities import history_of_AMI

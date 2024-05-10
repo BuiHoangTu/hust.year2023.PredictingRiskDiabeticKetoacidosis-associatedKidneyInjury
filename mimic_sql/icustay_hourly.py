@@ -2,7 +2,7 @@ from pathlib import Path
 import pandas as pd
 
 from constants import TEMP_PATH, queryPostgresDf
-from middle_query import icustay_times
+from mimic_sql import icustay_times
 from query_exceptions import ResultEmptyException
 
 

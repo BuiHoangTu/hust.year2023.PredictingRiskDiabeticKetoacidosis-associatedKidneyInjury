@@ -3,7 +3,7 @@ import pandas as pd
 from constants import queryPostgresDf
 
 from constants import TEMP_PATH
-from middle_query import blood_differential, chemistry, coagulation, complete_blood_count, enzyme
+from mimic_sql import blood_differential, chemistry, coagulation, complete_blood_count, enzyme
 from query_exceptions import ResultEmptyException
 from notebook_wrapper.target_patients_wrapper import getTargetPatientIcu
 
@@ -17,19 +17,19 @@ def runSql():
         return pd.read_csv(OUTPUT_PATH)
 
     dfPatients = getTargetPatientIcu()
-
+    
     dfBloodCount = complete_blood_count.runSql()
     dfBloodCount["charttime"] = pd.to_datetime(dfBloodCount["charttime"])
-
+    
     dfChem = chemistry.runSql()
     dfChem["charttime"] = pd.to_datetime(dfChem["charttime"])
-
+    
     dfBloodDiff = blood_differential.runSql()
     dfBloodDiff["charttime"] = pd.to_datetime(dfBloodDiff["charttime"])
-
+    
     dfCoa = coagulation.runSql()
     dfCoa["charttime"] = pd.to_datetime(dfCoa["charttime"])
-
+    
     dfEnzyme = enzyme.runSql()
     dfEnzyme["charttime"] = pd.to_datetime(dfEnzyme["charttime"])   
 
@@ -47,10 +47,6 @@ def runSql():
 
     if result is None:
         raise ResultEmptyException()
+    result.to_csv(OUTPUT_PATH)
 
-    df = result
-    df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
-    df = df.groupby("stay_id").agg(lambda x: x.mean()).reset_index()
-
-    df.to_csv(OUTPUT_PATH)
-    return df
+    return result

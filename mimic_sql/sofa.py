@@ -3,7 +3,7 @@ import pandas as pd
 
 from constants import TEMP_PATH, queryPostgresDf
 from notebook_wrapper.target_patients_wrapper import getTargetPatientIcu
-from middle_query import (
+from mimic_sql import (
     bg,
     chemistry,
     complete_blood_count,

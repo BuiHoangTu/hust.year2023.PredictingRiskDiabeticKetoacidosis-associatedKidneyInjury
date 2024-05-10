@@ -3,7 +3,7 @@ from constants import queryPostgresDf
 
 from constants import TEMP_PATH
 from utils.extract_mesurements import extractChartEventMesures
-from middle_query import SQL_FOLDER
+from mimic_sql import SQL_FOLDER
 from query_exceptions import ResultEmptyException
 
 
