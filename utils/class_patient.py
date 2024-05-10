@@ -1,7 +1,8 @@
+from collections import Counter
 from datetime import datetime
 import json
 from pathlib import Path
-from typing import Callable, Collection, Dict, Iterable, List, Tuple
+from typing import Callable, Collection, Dict, Iterable, List, Set, Tuple
 import numpy as np
 from numpy import datetime64
 import pandas as pd
@@ -111,6 +112,12 @@ class Patient:
             pass
 
         measure[measureTime] = measureValue
+
+    def removeMeasures(self, measureNames: Collection[str]):
+        for measureName in measureNames:
+            if measureName in self.measures:
+                self.measures.pop(measureName, None)
+        pass
 
     def getMeasuresBetween(
         self,
@@ -271,6 +278,34 @@ class Patients:
 
     def __len__(self):
         return len(self.patientList)
+
+    def getMeasures(self):
+        featureSet: Counter[str] = Counter()
+        for p in self.patientList:
+            featureSet.update(p.measures.keys())
+        return featureSet
+    
+    def removeMeasures(self, measureNames: Collection[str]):
+        for p in self.patientList:
+            p.removeMeasures(measureNames)
+        pass
+        
+
+    def fillMissingMeasureValue(self, measureName: str, measureValue: float):
+        for p in self.patientList:
+            if measureName not in p.measures:
+                p.putMeasure(measureName, None, measureValue)
+
+        pass
+
+    def removePatientByMissingFeatures(self, minimumFeatureCount: int | float = 0.8):
+        if isinstance(minimumFeatureCount, float):
+            minimumFeatureCount = minimumFeatureCount * len(self.getMeasures())
+
+        for p in self.patientList:
+            if len(p.measures) < minimumFeatureCount:
+                self.patientList.remove(p)
+        pass
 
     def refreshData(self):
         patientList: List[Patient] = []
