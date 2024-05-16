@@ -9,17 +9,32 @@ MIMIC_PATH = Path(MIMIC_PATH_STR)
 TEMP_PATH = Path("tmp")
 TEMP_PATH.mkdir(parents=True, exist_ok=True)
 
-IMPORTANT_MESUREMENTS_ICU = {
-    227519: "urine_output",
-    224639: "weight",
-    227457: "plt",
-    220615: "creatinine",
-}
+# measures whose null represent false value
+NULLABLE_MEASURES = [
+    "dka_type",
+    "macroangiopathy",
+    "microangiopathy",
+    "mechanical_ventilation",
+    "use_NaHCO3",
+    "history_aci",
+    "history_ami",
+    "congestive_heart_failure",
+    "liver_disease",
+    "ckd_stage",
+    "malignant_cancer",
+    "hypertension",
+    "uti",
+    "chronic_pulmonary_disease",
+]
 
-PREPROCESSED_MESUREMENTS = ["sugar"]
-
-IMPORTANT_MESUREMENTS_LABEVENT = {51006: "bun"}
-
+# categorical values
+CATEGORICAL_MEASURES = [
+    "dka_type",
+    "gender",
+    "race",
+    "liver_disease",
+    "ckd_stage",
+]
 
 
 TARGET_PATIENT_FILE = "target_patients.csv"
