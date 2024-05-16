@@ -6,7 +6,7 @@ ipykernel
 
 ## data reading 
 pandas
-pandasql
+pandasql-lts
 numpy
 matplotlib
 # postgresql driver, an installed postgresql is required
