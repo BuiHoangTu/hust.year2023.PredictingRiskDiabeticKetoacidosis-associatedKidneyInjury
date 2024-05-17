@@ -2,7 +2,7 @@ from pathlib import Path
 import pandas as pd
 
 from constants import MIMIC_PATH, TEMP_PATH, queryPostgresDf
-from notebook_wrapper.target_patients_wrapper import getTargetPatientIcu
+from notebook_wrappers.target_patients_wrapper import getTargetPatientIcu
 from mimic_sql import age, first_day_gcs, first_day_urine_output, first_day_vitalsign
 from utils.query_exceptions import ResultEmptyException
 from mimic_sql.ventilation import extractVentilation

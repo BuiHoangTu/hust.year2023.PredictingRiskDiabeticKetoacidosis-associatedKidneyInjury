@@ -2,7 +2,7 @@ from pathlib import Path
 import pandas as pd
 
 from constants import TEMP_PATH, queryPostgresDf
-from notebook_wrapper.target_patients_wrapper import getTargetPatientIcu
+from notebook_wrappers.target_patients_wrapper import getTargetPatientIcu
 from utils.query_exceptions import ResultEmptyException
 import mimic_sql.gcs as gcs
 

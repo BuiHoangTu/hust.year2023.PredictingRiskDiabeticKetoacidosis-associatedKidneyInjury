@@ -19,5 +19,5 @@ scikit-optimize
 # data structure packages
 sortedcontainers
 
-# DL
-pytorch_tabular
+# notebook as function 
+functionize-notebook

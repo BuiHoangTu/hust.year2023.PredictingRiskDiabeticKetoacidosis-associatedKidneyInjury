@@ -20,7 +20,7 @@ def getNotebookOutput():
     if PATIENT_PATH.exists():
         return pd.read_csv(PATIENT_PATH, parse_dates=["intime", "outtime"])
     else:
-        dfTargetPatients: pd.DataFrame = NotebookWrapper("target_patients.ipynb", "dfTargetPatients").run()  # type: ignore
+        dfTargetPatients: pd.DataFrame = NotebookWrapper("target_patients.ipynb", None, "dfTargetPatients").run()  # type: ignore
         dfTargetPatients.to_csv(PATIENT_PATH)
         return dfTargetPatients
 

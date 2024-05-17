@@ -3,7 +3,7 @@ import pandas as pd
 
 from constants import TEMP_PATH, queryPostgresDf
 from mimic_sql import age
-from notebook_wrapper.target_patients_wrapper import getTargetPatientAdmission, getTargetPatientIcd
+from notebook_wrappers.target_patients_wrapper import getTargetPatientAdmission, getTargetPatientIcd
 from utils.query_exceptions import ResultEmptyException
 
 

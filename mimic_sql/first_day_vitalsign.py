@@ -2,7 +2,7 @@ import pandas as pd
 from constants import queryPostgresDf
 
 from constants import TEMP_PATH
-from notebook_wrapper.target_patients_wrapper import getTargetPatientIcu
+from notebook_wrappers.target_patients_wrapper import getTargetPatientIcu
 from mimic_sql import SQL_FOLDER, vitalsign
 from utils.query_exceptions import ResultEmptyException
 

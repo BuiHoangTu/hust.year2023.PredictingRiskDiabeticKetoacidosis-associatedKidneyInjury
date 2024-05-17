@@ -46,19 +46,19 @@ def patientsToNumpy(
     for measureName in NULLABLE_MEASURES:
         patients.fillMissingMeasureValue(measureName, 0)
 
-    # remove measures with less than 80% of data
-    measures = patients.getMeasures()
+    # # remove measures with less than 80% of data
+    # measures = patients.getMeasures()
 
-    for measure, count in measures.items():
-        if count < len(patients) * 80 / 100:
-            patients.removeMeasures([measure])
-            if __name__ == "__main__":
-                print("removed", measure, count)
+    # for measure, count in measures.items():
+    #     if count < len(patients) * 80 / 100:
+    #         patients.removeMeasures([measure])
+    #         if __name__ == "__main__":
+    #             print("removed", measure, count)
 
-    # remove patients with less than 80% of data
-    patients.removePatientByMissingFeatures()
-    if __name__ == "__main__":
-        print("removed patients and features", len(patients))
+    # # remove patients with less than 80% of data
+    # patients.removePatientByMissingFeatures()
+    # if __name__ == "__main__":
+    #     print("removed patients and features", len(patients))
 
     dfPatientList = []
     for start, stop in timeWindowGenerate():
@@ -66,9 +66,9 @@ def patientsToNumpy(
             columns=["subject_id", "hadm_id", "stay_id", "akd"]
         )
 
-        if not (
-            hasattr(oneHotEncoder, "categories_")
-            and oneHotEncoder.categories_ is not None
+        if (
+            not hasattr(oneHotEncoder, "categories_")
+            or oneHotEncoder.categories_ is None
         ):
             oneHotEncoder.fit(dfPatient[categoricalColumns])
 
