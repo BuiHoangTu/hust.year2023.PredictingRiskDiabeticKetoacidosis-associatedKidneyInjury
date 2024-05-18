@@ -4,6 +4,7 @@ from pandas import DataFrame, Timedelta
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from constants import NULLABLE_MEASURES
 from utils.class_patient import Patients
+import pandas as pd
 
 
 def patientsToNumpy(
@@ -13,6 +14,20 @@ def patientsToNumpy(
     categoricalColumns: List[str],
     numericEncoder: None | StandardScaler,
 ):
+    """Convert patients to 3d numpy array
+
+    Args:
+        patients (Patients): patients
+        hoursPerWindows (int): _description_
+        oneHotEncoder (None | OneHotEncoder): how to encode categorical columns, if it is not fitted yet, it will be fitted.
+        categoricalColumns (List[str]): categorical columns
+        numericEncoder (None | StandardScaler): how to encode numeric columns, if it is not fitted yet, it will be fitted.
+    
+    Returns:
+        np.array: 3d numpy array
+        oneHotEncoder: oneHotEncoder(fitted) to encode the test part
+        numericEncoder: numericEncoder(fitted) to encode the test part
+    """
 
     def timeWindowGenerate(stop=24):
         start = 0
@@ -46,42 +61,12 @@ def patientsToNumpy(
     for measureName in NULLABLE_MEASURES:
         patients.fillMissingMeasureValue(measureName, 0)
 
-    # # remove measures with less than 80% of data
-    # measures = patients.getMeasures()
-
-    # for measure, count in measures.items():
-    #     if count < len(patients) * 80 / 100:
-    #         patients.removeMeasures([measure])
-    #         if __name__ == "__main__":
-    #             print("removed", measure, count)
-
-    # # remove patients with less than 80% of data
-    # patients.removePatientByMissingFeatures()
-    # if __name__ == "__main__":
-    #     print("removed patients and features", len(patients))
-
-    dfPatientList = []
+    dfPatientList: List[DataFrame] = []
     for start, stop in timeWindowGenerate():
         dfPatient = patients.getMeasuresBetween(start, stop).drop(
             columns=["subject_id", "hadm_id", "stay_id", "akd"]
         )
-
-        if (
-            not hasattr(oneHotEncoder, "categories_")
-            or oneHotEncoder.categories_ is None
-        ):
-            oneHotEncoder.fit(dfPatient[categoricalColumns])
-
-        encoded = oneHotEncoder.transform(dfPatient[categoricalColumns])
-        dfEncoded = DataFrame(
-            encoded,  # type: ignore
-            columns=oneHotEncoder.get_feature_names_out(categoricalColumns),
-        )
-
-        dfPatient = dfPatient.drop(columns=categoricalColumns)
-        dfPatient = dfPatient.join(dfEncoded)
         dfPatientList.append(dfPatient)
-
         pass
 
     # fill values
@@ -89,19 +74,45 @@ def patientsToNumpy(
         dfPatientList[i].fillna(dfPatientList[i - 1], inplace=True)
         pass
 
+    # encode categorical columns
+    if not hasattr(oneHotEncoder, "categories_") or oneHotEncoder.categories_ is None:
+        oneHotEncoder.fit(pd.concat(dfPatientList, axis=0)[categoricalColumns])
+
+    for i, df in enumerate(dfPatientList):
+        encoded = oneHotEncoder.transform(df[categoricalColumns])
+        dfEncoded = DataFrame(
+            encoded,  # type: ignore
+            columns=oneHotEncoder.get_feature_names_out(categoricalColumns),
+        )
+
+        # replace original columns with encoded columns
+        dfMerged = df.drop(columns=categoricalColumns)
+        dfMerged = dfMerged.join(dfEncoded)
+        dfPatientList[i] = dfMerged
+        pass
+
+    # encode numeric values
+    if (not hasattr(numericEncoder, "mean_") or numericEncoder.mean_ is None) and (
+        not hasattr(numericEncoder, "scale_") or numericEncoder.scale_ is None
+    ):
+        numericEncoder.fit(pd.concat(dfPatientList, axis=0).astype(np.float32))
+
+    for i, df in enumerate(dfPatientList):
+        encoded = numericEncoder.transform(df.astype(np.float32))
+        dfEncoded = DataFrame(
+            encoded,  # type: ignore
+            columns=df.columns,
+        )
+
+        # replace original columns with encoded columns
+        dfPatientList[i] = dfEncoded
+        pass
+
     # combine dataframes (patients, features, timeWindows)
-    arrays = [df.to_numpy() for df in dfPatientList]
+    arrays = [df.to_numpy(dtype=np.float32) for df in dfPatientList]
     combinedArray = np.stack(arrays, axis=2)
 
     # reorder axis (patients, timeWindows, features)
     npPatient = combinedArray.transpose(0, 2, 1)
-
-    # scale numeric values
-    if (not hasattr(numericEncoder, "mean_") or numericEncoder.mean_ is None) and (
-        not hasattr(numericEncoder, "scale_") or numericEncoder.scale_ is None
-    ):
-        numericEncoder.fit(npPatient[:, :, -1])
-
-    npPatient[:, :, -1] = numericEncoder.transform(npPatient[:, :, -1])
 
     return npPatient, oneHotEncoder, numericEncoder
