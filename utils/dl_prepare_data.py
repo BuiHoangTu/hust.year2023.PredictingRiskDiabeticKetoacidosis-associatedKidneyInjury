@@ -1,4 +1,4 @@
-from typing import List
+from typing import Iterable, List
 import numpy as np
 from pandas import DataFrame, Timedelta
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
@@ -10,9 +10,10 @@ import pandas as pd
 def patientsToNumpy(
     patients: Patients,
     hoursPerWindows: int,
-    oneHotEncoder: None | OneHotEncoder,
     categoricalColumns: List[str],
-    numericEncoder: None | StandardScaler,
+    columns: Iterable[str] | None = None,
+    oneHotEncoder: None | OneHotEncoder = None,
+    numericEncoder: None | StandardScaler = None,
 ):
     """Convert patients to 3d numpy array
 
@@ -22,7 +23,7 @@ def patientsToNumpy(
         oneHotEncoder (None | OneHotEncoder): how to encode categorical columns, if it is not fitted yet, it will be fitted.
         categoricalColumns (List[str]): categorical columns
         numericEncoder (None | StandardScaler): how to encode numeric columns, if it is not fitted yet, it will be fitted.
-    
+
     Returns:
         np.array: 3d numpy array
         oneHotEncoder: oneHotEncoder(fitted) to encode the test part
@@ -91,6 +92,16 @@ def patientsToNumpy(
         dfPatientList[i] = dfMerged
         pass
 
+    # ensure columns order for numeric encode (for test set)
+    if columns is not None:
+        for i, df in enumerate(dfPatientList):
+            for col in columns:
+                if col not in df.columns:
+                    df[col] = np.nan
+            pass
+
+        dfPatientList[i] = df[columns]
+
     # encode numeric values
     if (not hasattr(numericEncoder, "mean_") or numericEncoder.mean_ is None) and (
         not hasattr(numericEncoder, "scale_") or numericEncoder.scale_ is None
@@ -115,4 +126,9 @@ def patientsToNumpy(
     # reorder axis (patients, timeWindows, features)
     npPatient = combinedArray.transpose(0, 2, 1)
 
-    return npPatient, oneHotEncoder, numericEncoder
+    return (
+        npPatient,
+        oneHotEncoder,
+        numericEncoder,
+        pd.concat(dfPatientList, axis=0).columns,
+    )
