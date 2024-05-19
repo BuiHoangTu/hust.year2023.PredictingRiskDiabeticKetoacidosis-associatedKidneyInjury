@@ -106,7 +106,9 @@ def patientsToNumpy(
     if (not hasattr(numericEncoder, "mean_") or numericEncoder.mean_ is None) and (
         not hasattr(numericEncoder, "scale_") or numericEncoder.scale_ is None
     ):
-        numericEncoder.fit(pd.concat(dfPatientList, axis=0).astype(np.float32))
+        dfAll = pd.concat(dfPatientList, axis=0).astype(np.float32)
+        numericEncoder.fit(dfAll)
+        columns = dfAll.columns
 
     for i, df in enumerate(dfPatientList):
         encoded = numericEncoder.transform(df.astype(np.float32))
@@ -130,5 +132,5 @@ def patientsToNumpy(
         npPatient,
         oneHotEncoder,
         numericEncoder,
-        pd.concat(dfPatientList, axis=0).columns,
+        columns,
     )
