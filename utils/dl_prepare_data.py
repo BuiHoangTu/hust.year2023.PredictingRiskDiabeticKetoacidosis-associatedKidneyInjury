@@ -12,7 +12,7 @@ def patientsToNumpy(
     hoursPerWindows: int,
     categoricalColumns: List[str],
     columns: Iterable[str] | None = None,
-    oneHotEncoder: None | OneHotEncoder = None,
+    categoricalEncoder: None | OneHotEncoder = None,
     numericEncoder: None | StandardScaler = None,
 ):
     """Convert patients to 3d numpy array
@@ -49,8 +49,8 @@ def patientsToNumpy(
         pass
 
     # unify inputs
-    if oneHotEncoder is None:
-        oneHotEncoder = OneHotEncoder(sparse_output=False, handle_unknown="ignore")
+    if categoricalEncoder is None:
+        categoricalEncoder = OneHotEncoder(sparse_output=False, handle_unknown="ignore")
 
     if numericEncoder is None:
         numericEncoder = StandardScaler()
@@ -76,14 +76,14 @@ def patientsToNumpy(
         pass
 
     # encode categorical columns
-    if not hasattr(oneHotEncoder, "categories_") or oneHotEncoder.categories_ is None:
-        oneHotEncoder.fit(pd.concat(dfPatientList, axis=0)[categoricalColumns])
+    if not hasattr(categoricalEncoder, "categories_") or categoricalEncoder.categories_ is None:
+        categoricalEncoder.fit(pd.concat(dfPatientList, axis=0)[categoricalColumns])
 
     for i, df in enumerate(dfPatientList):
-        encoded = oneHotEncoder.transform(df[categoricalColumns])
+        encoded = categoricalEncoder.transform(df[categoricalColumns])
         dfEncoded = DataFrame(
             encoded,  # type: ignore
-            columns=oneHotEncoder.get_feature_names_out(categoricalColumns),
+            columns=categoricalEncoder.get_feature_names_out(categoricalColumns),
         )
 
         # replace original columns with encoded columns
@@ -130,7 +130,7 @@ def patientsToNumpy(
 
     return (
         npPatient,
-        oneHotEncoder,
+        categoricalEncoder,
         numericEncoder,
         columns,
     )
