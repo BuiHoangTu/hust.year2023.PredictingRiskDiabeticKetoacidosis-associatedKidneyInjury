@@ -2,7 +2,6 @@ from typing import Iterable, List
 import numpy as np
 from pandas import DataFrame, Timedelta
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
-from constants import NULLABLE_MEASURES
 from utils.class_patient import Patients
 import pandas as pd
 
@@ -57,10 +56,6 @@ def patientsToNumpy(
 
     if __name__ == "__main__":
         print("retrieved patients", len(patients))
-
-    # fill measures whose null represent false value
-    for measureName in NULLABLE_MEASURES:
-        patients.fillMissingMeasureValue(measureName, 0)
 
     dfPatientList: List[DataFrame] = []
     for start, stop in timeWindowGenerate():
