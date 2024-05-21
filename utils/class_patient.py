@@ -279,10 +279,14 @@ class Patients:
             p.removeMeasures(measureNames)
         pass
 
-    def fillMissingMeasureValue(self, measureName: str, measureValue: float):
-        for p in self.patientList:
-            if measureName not in p.measures:
-                p.putMeasure(measureName, None, measureValue)
+    def fillMissingMeasureValue(self, measureNames: str | list[str], measureValue: float):
+        if isinstance(measureNames, str):
+            measureNames = [measureNames]
+        
+        for measureName in measureNames:        
+            for p in self.patientList:
+                if measureName not in p.measures:
+                    p.putMeasure(measureName, None, measureValue)
 
         pass
 
