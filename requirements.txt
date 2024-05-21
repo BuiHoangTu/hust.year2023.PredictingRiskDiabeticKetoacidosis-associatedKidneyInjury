@@ -13,6 +13,7 @@ matplotlib
 psycopg2
 
 # ML
+xgboost
 scikit-learn
 scikit-optimize
 

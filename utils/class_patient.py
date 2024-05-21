@@ -355,7 +355,7 @@ class Patients:
 
     def split(self, n, random_state=None):
         cachedSplitFile = (
-            TEMP_PATH / "split" / (str(n) + "-" + str(random_state) + ".json")
+            TEMP_PATH / "split" / (str(len(self)) + "-" + str(n) + "-" + str(random_state) + ".json")
         )
         if cachedSplitFile.exists():
             splitIndexes = json.loads(cachedSplitFile.read_text())
