@@ -98,9 +98,9 @@ def patientsToNumpy(
             for col in columns:
                 if col not in df.columns:
                     df[col] = np.nan
-            pass
+                pass
 
-        dfPatientList[i] = df[columns]
+            dfPatientList[i] = df[columns]
 
     # encode numeric values
     if (not hasattr(numericEncoder, "mean_") or numericEncoder.mean_ is None) and (
