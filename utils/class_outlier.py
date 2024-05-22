@@ -1,8 +1,9 @@
 import numpy as np
+from pandas import DataFrame
 
 
 class Outlier:
-    def fit(self, df):
+    def fit(self, df: DataFrame):
         self.Q1 = df.quantile(0.25)
         self.Q3 = df.quantile(0.75)
         self.IQR = self.Q3 - self.Q1
