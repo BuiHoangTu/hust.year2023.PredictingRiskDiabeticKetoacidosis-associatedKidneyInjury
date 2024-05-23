@@ -22,3 +22,6 @@ sortedcontainers
 
 # notebook as function 
 functionize-notebook
+
+# DL
+tensorflow
