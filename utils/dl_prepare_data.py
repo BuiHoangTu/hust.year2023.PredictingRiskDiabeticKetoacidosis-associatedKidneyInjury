@@ -2,6 +2,7 @@ from typing import Iterable, List
 import numpy as np
 from pandas import DataFrame, Timedelta
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from utils.class_outlier import Outlier
 from utils.class_patient import Patients
 import pandas as pd
 
@@ -13,6 +14,7 @@ def patientsToNumpy(
     columns: Iterable[str] | None = None,
     categoricalEncoder: None | OneHotEncoder = None,
     numericEncoder: None | StandardScaler = None,
+    outlier: Outlier | None = None,
 ):
     """Convert patients to 3d numpy array
 
@@ -54,6 +56,9 @@ def patientsToNumpy(
     if numericEncoder is None:
         numericEncoder = StandardScaler()
 
+    if outlier is None:
+        outlier = Outlier()
+
     if __name__ == "__main__":
         print("retrieved patients", len(patients))
 
@@ -65,13 +70,38 @@ def patientsToNumpy(
         dfPatientList.append(dfPatient)
         pass
 
+    dfTmp = pd.concat(dfPatientList, axis=0)
+    if columns is None:
+        numeriColumns = [
+            col
+            for col in dfTmp.columns
+            if col not in categoricalColumns and dfTmp[col].dtype != "bool"
+        ]
+    else:
+        outlierCateCols = categoricalEncoder.get_feature_names_out(categoricalColumns)
+        
+        numeriColumns = [
+            col
+            for col in columns
+            if col not in outlierCateCols and dfTmp[col].dtype != "bool"
+        ]
+    # Outlier
+    if outlier.fitted is False:
+        outlier.fit(pd.concat(dfPatientList, axis=0)[numeriColumns])
+
+    for i, df in enumerate(dfPatientList):
+        dfPatientList[i][numeriColumns] = outlier.transform(df[numeriColumns])
+
     # fill values
     for i in range(1, len(dfPatientList)):
         dfPatientList[i].fillna(dfPatientList[i - 1], inplace=True)
         pass
 
     # encode categorical columns
-    if not hasattr(categoricalEncoder, "categories_") or categoricalEncoder.categories_ is None:
+    if (
+        not hasattr(categoricalEncoder, "categories_")
+        or categoricalEncoder.categories_ is None
+    ):
         categoricalEncoder.fit(pd.concat(dfPatientList, axis=0)[categoricalColumns])
 
     for i, df in enumerate(dfPatientList):
@@ -127,5 +157,6 @@ def patientsToNumpy(
         npPatient,
         categoricalEncoder,
         numericEncoder,
+        outlier,
         columns,
     )
