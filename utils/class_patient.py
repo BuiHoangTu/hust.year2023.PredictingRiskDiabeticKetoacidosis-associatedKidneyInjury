@@ -230,6 +230,9 @@ class Patient:
                 jsonData["measures"][measureName] = measureData
         return jsonData
 
+    def __hash__(self) -> int:
+        return hash(self.stay_id)
+
 
 class Patients:
     """Create a list of patients. Read from cache file if avaiable"""
@@ -279,11 +282,13 @@ class Patients:
             p.removeMeasures(measureNames)
         pass
 
-    def fillMissingMeasureValue(self, measureNames: str | list[str], measureValue: float):
+    def fillMissingMeasureValue(
+        self, measureNames: str | list[str], measureValue: float
+    ):
         if isinstance(measureNames, str):
             measureNames = [measureNames]
-        
-        for measureName in measureNames:        
+
+        for measureName in measureNames:
             for p in self.patientList:
                 if measureName not in p.measures:
                     p.putMeasure(measureName, None, measureValue)
@@ -355,7 +360,9 @@ class Patients:
 
     def split(self, n, random_state=None):
         cachedSplitFile = (
-            TEMP_PATH / "split" / (str(len(self)) + "-" + str(n) + "-" + str(random_state) + ".json")
+            TEMP_PATH
+            / "split" /
+            f"{len(self)}-{hash(self)}-{n}-{random_state}.json"
         )
         if cachedSplitFile.exists():
             splitIndexes = json.loads(cachedSplitFile.read_text())
@@ -376,6 +383,9 @@ class Patients:
         for splitIndex in splitIndexes:
             res.append([self.patientList[i] for i in splitIndex])
         return [Patients(patients=pList) for pList in res]
+
+    def __hash__(self) -> int:
+        return hash(tuple(self.patientList))
 
     @staticmethod
     def toJsonFile(patients: Collection[Patient], file: str | Path):
