@@ -40,3 +40,7 @@ CATEGORICAL_MEASURES = [
 TARGET_PATIENT_FILE = "target_patients.csv"
 
 queryPostgresDf = PandaSQL(POSTGRESQL_CONNECTION_STRING)
+
+## Archived notebooks
+ARCHIVED_NOTEBOOKS_PATH = Path("archived_notebooks")
+ARCHIVED_NOTEBOOKS_PATH.mkdir(parents=True, exist_ok=True)
