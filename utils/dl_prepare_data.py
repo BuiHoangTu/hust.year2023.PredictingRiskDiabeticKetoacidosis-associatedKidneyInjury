@@ -1,7 +1,9 @@
 from typing import Iterable, List
 import numpy as np
 from pandas import DataFrame, Timedelta
+from sklearn.impute import KNNImputer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from constants import CATEGORICAL_MEASURES
 from utils.class_outlier import Outlier
 from utils.class_patient import Patients
 import pandas as pd
@@ -160,3 +162,91 @@ def patientsToNumpy(
         outlier,
         columns,
     )
+
+def normalizeData(dfTrain: DataFrame, dfTest, dfVal = None):
+    return _normalizeData(dfTrain, dfTest, dfVal, fillData=False)
+
+def normalizeAndFillData(dfTrain, dfTest, dfVal = None):
+    return _normalizeData(dfTrain, dfTest, dfVal, fillData=True)
+    
+    
+def _normalizeData(dfTrain: DataFrame, dfTest, dfVal = None, fillData = False):
+    numericColumns = dfTrain.select_dtypes(include=[np.number]).columns
+    numericColumns = [x for x in numericColumns if x not in CATEGORICAL_MEASURES]
+
+    # oulier
+    outliers = Outlier()
+    dfTrain[numericColumns] = outliers.fit_transform(dfTrain[numericColumns])
+
+    if fillData:
+        # knn
+        imputer = KNNImputer(n_neighbors=5, weights="distance")
+        dfTrain[numericColumns] = imputer.fit_transform(dfTrain[numericColumns])
+
+    # category
+    oneHotEncoder = OneHotEncoder(sparse_output=False, handle_unknown="ignore")
+    encoded = oneHotEncoder.fit_transform(dfTrain[CATEGORICAL_MEASURES])
+    dfEncoded = pd.DataFrame(
+        encoded, columns=oneHotEncoder.get_feature_names_out(CATEGORICAL_MEASURES)
+    )
+    dfTrain = dfTrain.drop(columns=CATEGORICAL_MEASURES)
+    dfTrain = dfTrain.join(dfEncoded)
+
+    # numeric
+    standardScaler = StandardScaler()
+    dfTrain[numericColumns] = standardScaler.fit_transform(dfTrain[numericColumns])
+    
+    # matching columns
+    columns = dfTrain.columns
+
+    # outlier
+    dfTest[numericColumns] = outliers.transform(dfTest[numericColumns])
+    
+    if fillData:
+        # knn
+        dfTest[numericColumns] = imputer.transform(dfTest[numericColumns])
+
+    # category
+    encoded = oneHotEncoder.transform(dfTest[CATEGORICAL_MEASURES])
+    dfEncoded = pd.DataFrame(encoded, columns=oneHotEncoder.get_feature_names_out(CATEGORICAL_MEASURES))  # type: ignore
+    dfTest = dfTest.drop(columns=CATEGORICAL_MEASURES)
+    dfTest = dfTest.join(dfEncoded)
+
+    # numeric
+    dfTest[numericColumns] = standardScaler.transform(dfTest[numericColumns])
+    
+    # matching columns
+    for col in columns:
+        if col not in dfTest.columns:
+            dfTest[col] = np.nan
+            pass
+        pass
+    dfTest = dfTest[columns]
+
+    if dfVal is None:
+        return dfTrain, dfTest, None
+
+    # outlier
+    dfVal[numericColumns] = outliers.transform(dfVal[numericColumns])
+    
+    if fillData:
+        # knn
+        dfVal[numericColumns] = imputer.transform(dfVal[numericColumns])
+
+    # category
+    encoded = oneHotEncoder.transform(dfVal[CATEGORICAL_MEASURES])
+    dfEncoded = pd.DataFrame(encoded, columns=oneHotEncoder.get_feature_names_out(CATEGORICAL_MEASURES))  # type: ignore
+    dfVal = dfVal.drop(columns=CATEGORICAL_MEASURES)
+    dfVal = dfVal.join(dfEncoded)
+
+    # numeric
+    dfVal[numericColumns] = standardScaler.transform(dfVal[numericColumns])
+    
+    # matching columns
+    for col in columns:
+        if col not in dfVal.columns:
+            dfVal[col] = np.nan
+            pass
+        pass
+
+    return dfTrain, dfTest, dfVal
