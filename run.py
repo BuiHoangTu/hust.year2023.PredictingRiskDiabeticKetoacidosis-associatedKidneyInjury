@@ -120,8 +120,8 @@ def run():
             ],
             allowError=True,
         )
-        for how in HOWS:
-            for modelName, modelFactory in modelFactories.items():
+        for modelName, modelFactory in modelFactories.items():
+            for how in HOWS:
                 (
                     auc_score_list,
                     accuracy_score_list,
