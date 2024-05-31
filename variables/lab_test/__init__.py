@@ -1,5 +1,5 @@
 from utils.extract_mesurements import extractLabEventMesures
-from middle_query import (
+from mimic_sql import (
     blood_differential,
     chemistry,
     complete_blood_count,
