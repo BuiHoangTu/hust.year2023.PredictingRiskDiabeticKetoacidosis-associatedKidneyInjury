@@ -8,7 +8,7 @@ def getDiabeteType():
     Returns:
         pandas.DataFrame: ["stay_id", "dka_type"]
     """
-    df = target_patients.getNotebookOutput()
+    df = target_patients_wrapper.getNotebookOutput()
     return df[["stay_id", "dka_type"]]
 
 def getMacroangiopathy():
