@@ -1,4 +1,4 @@
-from mimic_sql import first_day_sofa, gcs, oasis, sapsii
+from middle_query import first_day_sofa, gcs, oasis, sapsii
 from utils.reduce_mesurements import reduceByStayId
 
 
