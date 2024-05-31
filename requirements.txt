@@ -6,22 +6,15 @@ ipykernel
 
 ## data reading 
 pandas
-pandasql-lts
+pandasql
 numpy
 matplotlib
 # postgresql driver, an installed postgresql is required
 psycopg2
 
 # ML
-xgboost
 scikit-learn
 scikit-optimize
 
 # data structure packages
 sortedcontainers
-
-# notebook as function 
-functionize-notebook
-
-# DL
-tensorflow

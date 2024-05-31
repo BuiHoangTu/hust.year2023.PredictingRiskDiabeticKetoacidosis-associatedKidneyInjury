@@ -1,5 +1,5 @@
 from utils.extract_mesurements import extractInputEvents
-from mimic_sql import crrt, ventilation
+from middle_query import crrt, ventilation
 from utils.reduce_mesurements import reduceByStayId
 
 
