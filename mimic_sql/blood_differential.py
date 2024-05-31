@@ -17,7 +17,7 @@ def runSql():
     sqlWrapper = SqlWrapper(
         queryPostgresDf,
         sqlPath=SQL_FOLDER,
-        sqlFile=THIS_FILE.stem + ".sql",
+        sqlFileName=THIS_FILE.stem + ".sql",
     )
 
     CHART_EVENT_IDs = [

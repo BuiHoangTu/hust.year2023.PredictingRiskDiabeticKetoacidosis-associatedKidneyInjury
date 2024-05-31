@@ -57,6 +57,9 @@ class SqlWrapper:
                         sqlPath = path
                         break
                     pass
+                
+                if not sqlPath.is_file():
+                    raise Exception(f"{sqlPath} has no file {sqlFileName}.")
                 pass
             self.sqlText = sqlPath.read_text()
         else:
