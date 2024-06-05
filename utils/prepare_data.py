@@ -189,7 +189,7 @@ def _normalizeData(
 
         # knn
         if fillData:
-            imputer = KNNImputer(n_neighbors=5, weights="distance")
+            imputer = KNNImputer(n_neighbors=6, weights="distance")
             dfTrain[numericColumns] = imputer.fit_transform(dfTrain[numericColumns])
 
     # category
