@@ -10,8 +10,10 @@ from pandas import DataFrame, Timestamp, to_datetime
 from sklearn.model_selection import StratifiedKFold
 from sortedcontainers import SortedDict
 from constants import TEMP_PATH
+from mimic_sql import chemistry, complete_blood_count
 from notebook_wrappers.target_patients_wrapper import getTargetPatientIcu
 import akd_positive
+from utils.reduce_mesurements import reduceByHadmId
 from variables.charateristics_diabetes import (
     getDiabeteType,
     getMacroangiopathy,
@@ -288,7 +290,7 @@ class Patients:
         if isinstance(measureNames, str):
             measureNames = [measureNames]
 
-        for measureName in measureNames:
+        for measureName in measureNames:        
             for p in self.patientList:
                 if measureName not in p.measures:
                     p.putMeasure(measureName, None, measureValue)
@@ -516,6 +518,36 @@ class Patients:
 
             df = lab_test.getUrineKetone().dropna()
             patients._putDataForPatients(df)
+
+            ## extra lab variables
+            ### blood count
+            dfBc = reduceByHadmId(complete_blood_count.runSql())
+            dfBc = dfBc[
+                [
+                    "stay_id",
+                    "hematocrit",
+                    "mch",
+                    "mchc",
+                    "mcv",
+                    "rbc",
+                    "rdw"
+                ]
+            ].dropna()
+            patients._putDataForPatients(dfBc)
+
+            ## blood diff (missing too much )
+
+            ## chem
+            dfChem = reduceByHadmId(chemistry.runSql())
+            dfChem = dfChem[
+                [
+                    "stay_id",
+                    "chloride",
+                    "sodium",
+                    "potassium",
+                ]
+            ].dropna()
+            patients._putDataForPatients(dfChem)
 
             ########### Scoring systems ###########
             df = getGcs().dropna()
