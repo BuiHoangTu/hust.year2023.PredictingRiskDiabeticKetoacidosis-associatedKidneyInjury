@@ -265,5 +265,6 @@ def _normalizeData(
             dfVal[col] = np.nan
             pass
         pass
+    dfVal = dfVal[columns]
 
     return dfTrain, dfTest, dfVal
