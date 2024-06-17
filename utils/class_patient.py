@@ -467,7 +467,7 @@ class Patients:
         file = Path(file)
 
         jsonData: List[Dict] = json.loads(file.read_text())
-        return Patients([Patient(**d) for d in jsonData])
+        return Patients([Patient(**{k: v for k, v in d.items() if k != "akdPositive"}) for d in jsonData])
 
     @staticmethod
     def loadPatients(reload: bool = False):
