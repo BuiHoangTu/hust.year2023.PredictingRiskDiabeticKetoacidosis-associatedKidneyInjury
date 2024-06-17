@@ -75,7 +75,7 @@ class Patient:
         self.stay_id = stay_id
         self.intime = to_datetime(intime)
         self.akdPositive = akdPositive
-        self.measures: Dict[str, Dict[Timestamp, float] | float] = SortedDict()
+        self.measures: Dict[str, Dict[Timestamp, float] | float] = dict()
 
         if measures is None:
             return
