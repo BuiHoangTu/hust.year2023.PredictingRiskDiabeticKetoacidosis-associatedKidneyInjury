@@ -11,8 +11,8 @@ from sklearn.model_selection import StratifiedKFold
 from sortedcontainers import SortedDict
 from constants import TEMP_PATH
 from mimic_sql import chemistry, complete_blood_count
+from mimic_sql.kdigo_stages import extractKdigoStages
 from notebook_wrappers.target_patients_wrapper import getTargetPatientIcu
-import akd_positive
 from utils.reduce_mesurements import reduceByHadmId
 from variables.charateristics_diabetes import (
     getDiabeteType,
@@ -67,15 +67,13 @@ class Patient:
         hadm_id: int,
         stay_id: int,
         intime: str | datetime | datetime64 | Timestamp,
-        akdPositive: bool,
         measures: Dict[str, Dict[Timestamp, float] | float] | None = None,
     ) -> None:
         self.subject_id = subject_id
         self.hadm_id = hadm_id
         self.stay_id = stay_id
         self.intime = to_datetime(intime)
-        self.akdPositive = akdPositive
-        self.measures: Dict[str, Dict[Timestamp, float] | float] = dict()
+        self.measures: Dict[str, Dict[Timestamp, float] | float] = SortedDict()
 
         if measures is None:
             return
@@ -89,6 +87,28 @@ class Patient:
             else:
                 self.putMeasure(key, None, value)
         pass
+
+    @property
+    def akdPositive(self):
+        akiMeasure = self.measures.get("aki")
+
+        if akiMeasure is None:
+            return False
+
+        if not isinstance(akiMeasure, dict):
+            raise Exception("aki should be dict")
+
+        for timestamp, value in akiMeasure.items():
+            if timestamp < self.intime + pd.Timedelta(days=0):
+                continue
+
+            if timestamp >= self.intime + pd.Timedelta(days=7):
+                break
+
+            if value > 0:
+                return True
+
+        return False
 
     def putMeasure(
         self,
@@ -126,6 +146,7 @@ class Patient:
         fromTime: pd.Timedelta,
         toTime: pd.Timedelta,
         how: str | Callable[[DataFrame], float] = "avg",
+        getAkiRealTime: bool = False,
     ):
         """Get patient's status during specified period.
 
@@ -162,16 +183,61 @@ class Patient:
         if not isinstance(how, Callable):
             raise Exception("Unk how: ", how)
 
-        df = DataFrame(
-            {
-                "subject_id": [self.subject_id],
-                "hadm_id": [self.hadm_id],
-                "stay_id": [self.stay_id],
-                "akd": [self.akdPositive],
-            }
-        )
+        if getAkiRealTime:
+            df = DataFrame(
+                {
+                    "subject_id": [self.subject_id],
+                    "hadm_id": [self.hadm_id],
+                    "stay_id": [self.stay_id],
+                }
+            )
+        else:
+            df = DataFrame(
+                {
+                    "subject_id": [self.subject_id],
+                    "hadm_id": [self.hadm_id],
+                    "stay_id": [self.stay_id],
+                    "akd": [self.akdPositive],
+                }
+            )
+            
 
         for measureName, measureTimeValue in self.measures.items():
+            if measureName == "aki":
+                if getAkiRealTime:
+                    if not isinstance(measureTimeValue, dict):
+                        raise Exception("aki should be dict")
+                    measureTimes = list(measureTimeValue.keys())
+                    left = 0
+                    right = len(measureTimeValue) - 1
+
+                    while left <= right:
+                        mid = left + (right - left) // 2
+
+                        if measureTimes[mid] >= self.intime + fromTime:
+                            startId = mid
+                            right = mid - 1
+
+                        else:
+                            left = mid + 1
+                            pass
+                        pass
+
+                    max = 0
+                    try:
+                        for i in range(startId, len(measureTimes)):
+                            if measureTimes[i] > self.intime + toTime:
+                                break
+
+                            if measureTimeValue[measureTimes[i]] > max:
+                                max = measureTimeValue[measureTimes[i]]
+                            pass
+                    except UnboundLocalError:
+                        pass
+                    
+                    df["aki"] = max
+                    
+                continue
 
             if isinstance(measureTimeValue, dict):
                 measureTimes = list(measureTimeValue.keys())
@@ -290,7 +356,7 @@ class Patients:
         if isinstance(measureNames, str):
             measureNames = [measureNames]
 
-        for measureName in measureNames:        
+        for measureName in measureNames:
             for p in self.patientList:
                 if measureName not in p.measures:
                     p.putMeasure(measureName, None, measureValue)
@@ -335,6 +401,7 @@ class Patients:
         fromTime: pd.Timedelta,
         toTime: pd.Timedelta,
         how: str | Callable[[DataFrame], float] = "avg",
+        getAki: bool = False,
     ):
         """Get patient's status during specified period.
 
@@ -356,15 +423,13 @@ class Patients:
             DataFrame: one row with full status of patient
         """
 
-        xLs = [x.getMeasuresBetween(fromTime, toTime, how) for x in self.patientList]
+        xLs = [x.getMeasuresBetween(fromTime, toTime, how, getAki) for x in self.patientList]
 
         return pd.concat(xLs)
 
     def split(self, n, random_state=None):
         cachedSplitFile = (
-            TEMP_PATH
-            / "split" /
-            f"{len(self)}-{hash(self)}-{n}-{random_state}.json"
+            TEMP_PATH / "split" / f"{len(self)}-{hash(self)}-{n}-{random_state}.json"
         )
         if cachedSplitFile.exists():
             splitIndexes = json.loads(cachedSplitFile.read_text())
@@ -412,27 +477,23 @@ class Patients:
             dfPatient = getTargetPatientIcu()
             dfPatient = dfPatient[["subject_id", "hadm_id", "stay_id", "intime"]]
 
-            dfAkd = akd_positive.extractKdigoStages7day()
-            dfAkd["akd"] = dfAkd["aki_7day"]
-            dfAkd = dfAkd[["stay_id", "akd"]]
-
-            dfData1 = dfPatient.merge(dfAkd, "left", "stay_id")
-            dfData1["akd"] = dfData1["akd"].astype(bool)
-
-            for _, row in dfData1.iterrows():
+            for _, row in dfPatient.iterrows():
                 patient = Patient(
                     row["subject_id"],
                     row["hadm_id"],
                     row["stay_id"],
                     row["intime"],
-                    row["akd"],
                 )
                 patientList.append(patient)
                 pass
 
-            dfData1["akd"].value_counts()
-
             patients = Patients(patients=patientList)
+
+            ########### AKD ###########
+            df = extractKdigoStages()
+            df = df[["stay_id", "aki_stage_smoothed"]]
+            df = df.rename(columns={"aki_stage_smoothed": "aki"})
+            patients._putDataForPatients(df)
 
             ########### Characteristics of diabetes ###########
             df = getDiabeteType()
@@ -523,15 +584,7 @@ class Patients:
             ### blood count
             dfBc = reduceByHadmId(complete_blood_count.runSql())
             dfBc = dfBc[
-                [
-                    "stay_id",
-                    "hematocrit",
-                    "mch",
-                    "mchc",
-                    "mcv",
-                    "rbc",
-                    "rdw"
-                ]
+                ["stay_id", "hematocrit", "mch", "mchc", "mcv", "rbc", "rdw"]
             ].dropna()
             patients._putDataForPatients(dfBc)
 
