@@ -23,7 +23,7 @@ def reduceByStayId(df: pd.DataFrame, starttimeCol="charttime", endtimeCol="chart
     dfMerged = pd.merge(df, dfTargetPatient, "inner", "stay_id")
     dfMerged = dfMerged[
         (dfMerged[starttimeCol] > (dfMerged["intime"] - pd.Timedelta(hours=6)))
-        & (dfMerged[endtimeCol] < (dfMerged["intime"] + pd.Timedelta(hours=24)))
+        & (dfMerged[endtimeCol] < (dfMerged["intime"] + pd.Timedelta(days=7)))
     ]
 
     return dfMerged
@@ -39,7 +39,7 @@ def reduceByHadmId(df: pd.DataFrame, starttimeCol="charttime", endtimeCol="chart
     dfMerged = pd.merge(df, dfTargetPatient, "inner", "hadm_id")
     dfMerged = dfMerged[
         (dfMerged[starttimeCol] > (dfMerged["intime"] - pd.Timedelta(hours=6)))
-        & (dfMerged[endtimeCol] < (dfMerged["intime"] + pd.Timedelta(hours=24)))
+        & (dfMerged[endtimeCol] < (dfMerged["intime"] + pd.Timedelta(days=7)))
     ]
 
     return dfMerged
