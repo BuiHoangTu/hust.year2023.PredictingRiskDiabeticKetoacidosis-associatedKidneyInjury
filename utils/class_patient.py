@@ -491,8 +491,8 @@ class Patients:
 
             ########### AKD ###########
             df = extractKdigoStages()
-            df = df[["stay_id", "aki_stage_smoothed"]]
-            df = df.rename(columns={"aki_stage_smoothed": "aki"})
+            df = df[["stay_id", "aki_stage_smoothed", "charttime"]]
+            df = df.rename(columns={"aki_stage_smoothed": "aki", "charttime": "time"})
             patients._putDataForPatients(df)
 
             ########### Characteristics of diabetes ###########
@@ -584,8 +584,9 @@ class Patients:
             ### blood count
             dfBc = reduceByHadmId(complete_blood_count.runSql())
             dfBc = dfBc[
-                ["stay_id", "hematocrit", "mch", "mchc", "mcv", "rbc", "rdw"]
+                ["stay_id", "hematocrit", "mch", "mchc", "mcv", "rbc", "rdw", "charttime"]
             ].dropna()
+            dfBc = dfBc.rename(columns={"charttime": "time"})
             patients._putDataForPatients(dfBc)
 
             ## blood diff (missing too much )
@@ -598,8 +599,10 @@ class Patients:
                     "chloride",
                     "sodium",
                     "potassium",
+                    "charttime",
                 ]
             ].dropna()
+            dfChem = dfChem.rename(columns={"charttime": "time"})
             patients._putDataForPatients(dfChem)
 
             ########### Scoring systems ###########
