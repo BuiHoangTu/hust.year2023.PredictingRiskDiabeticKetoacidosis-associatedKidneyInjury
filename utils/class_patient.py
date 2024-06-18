@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Callable, Collection, Dict, Iterable, List, Tuple
 import numpy as np
-from numpy import datetime64
+from numpy import datetime64, nan
 import pandas as pd
 from pandas import DataFrame, Timestamp, to_datetime
 from sklearn.model_selection import StratifiedKFold
@@ -170,8 +170,8 @@ class Patient:
 
         # unify input
         howMapping: Dict[str, Callable[[DataFrame], float]] = {
-            "first": lambda df: df.loc[df["time"].idxmin(), "value"],  # type: ignore
-            "last": lambda df: df.loc[df["time"].idxmax(), "value"],
+            "first": lambda df: df.loc[df["time"].idxmin(), "value"] if not df.empty else nan,  # type: ignore
+            "last": lambda df: df.loc[df["time"].idxmax(), "value"] if not df.empty else nan,
             "avg": lambda df: df["value"].mean(),
             "max": lambda df: df["value"].max(),
             "min": lambda df: df["value"].min(),
