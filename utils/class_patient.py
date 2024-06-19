@@ -137,7 +137,7 @@ class Patient:
 
     def removeMeasures(self, measureNames: Collection[str]):
         for measureName in measureNames:
-            if measureName in self.measures:
+            if measureName in self.measures and measureName != "aki":
                 self.measures.pop(measureName, None)
         pass
 
@@ -172,10 +172,10 @@ class Patient:
         howMapping: Dict[str, Callable[[DataFrame], float]] = {
             "first": lambda df: df.loc[df["time"].idxmin(), "value"] if not df.empty else nan,  # type: ignore
             "last": lambda df: df.loc[df["time"].idxmax(), "value"] if not df.empty else nan,
-            "avg": lambda df: df["value"].mean(),
-            "max": lambda df: df["value"].max(),
-            "min": lambda df: df["value"].min(),
-            "std": lambda df: df["value"].std(),
+            "avg": lambda df: df["value"].mean() if not df.empty else nan,
+            "max": lambda df: df["value"].max() if not df.empty else nan,
+            "min": lambda df: df["value"].min() if not df.empty else nan,
+            "std": lambda df: df["value"].std() if not df.empty else nan,
         }
         if how in howMapping:
             how = howMapping[how]
@@ -365,7 +365,7 @@ class Patients:
 
     def removePatientByMissingFeatures(self, minimumFeatureCount: int | float = 0.8):
         if isinstance(minimumFeatureCount, float):
-            minimumFeatureCount = minimumFeatureCount * len(self.getMeasures())
+            minimumFeatureCount = minimumFeatureCount * (len(self.getMeasures()) - 1)  # -1 for aki
 
         for p in self.patientList:
             if len(p.measures) < minimumFeatureCount:
