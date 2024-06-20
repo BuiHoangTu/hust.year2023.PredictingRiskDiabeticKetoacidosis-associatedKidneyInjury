@@ -11,7 +11,7 @@ TEMP_PATH.mkdir(parents=True, exist_ok=True)
 
 # measures whose null represent false value
 NULLABLE_MEASURES = [
-    "dka_type",
+    # "dka_type",
     "macroangiopathy",
     "microangiopathy",
     "mechanical_ventilation",
