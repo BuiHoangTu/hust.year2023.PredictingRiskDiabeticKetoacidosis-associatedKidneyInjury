@@ -2,7 +2,7 @@ from collections import Counter
 from datetime import datetime
 import json
 from pathlib import Path
-from typing import Callable, Collection, Dict, Iterable, List, Tuple
+from typing import Callable, Collection, Dict, Iterable, List, Literal, Tuple
 import numpy as np
 from numpy import datetime64, nan
 import pandas as pd
@@ -90,13 +90,10 @@ class Patient:
 
     @property
     def akdPositive(self):
-        akiMeasure = self.measures.get("aki")
+        akiMeasure = self._getAki()
 
         if akiMeasure is None:
             return False
-
-        if not isinstance(akiMeasure, dict):
-            raise Exception("aki should be dict")
 
         for timestamp, value in akiMeasure.items():
             if timestamp < self.intime + pd.Timedelta(days=0):
@@ -140,6 +137,35 @@ class Patient:
             if measureName in self.measures and measureName != "aki":
                 self.measures.pop(measureName, None)
         pass
+    
+    def _getAki(self):
+        akiMeasure = self.measures.get("aki")
+        
+        if isinstance(akiMeasure, dict) or akiMeasure is None:
+            return akiMeasure
+
+        raise Exception("aki should be dict or empty")
+    
+    def akiPositivePreviously(self, time: pd.Timedelta):
+        x= self.akiPositiveBetween(pd.Timedelta(days=0), time)
+        
+        return x
+        
+    def akiPositiveBetween(self, fromTime: pd.Timedelta, toTime: pd.Timedelta):
+        akiMeasure = self._getAki()
+        
+        if akiMeasure is None:
+            return False
+        
+        for timestamp, value in akiMeasure.items():
+            if timestamp < self.intime + fromTime:
+                continue
+
+            if timestamp > self.intime + toTime:
+                break
+
+            if value > 0:
+                return True
 
     def getMeasuresBetween(
         self,
@@ -147,6 +173,7 @@ class Patient:
         toTime: pd.Timedelta,
         how: str | Callable[[DataFrame], float] = "avg",
         getAkiRealTime: bool = False,
+        measureTypes: Literal["all", "static", "time"] = "all",
     ):
         """Get patient's status during specified period.
 
@@ -240,6 +267,9 @@ class Patient:
                 continue
 
             if isinstance(measureTimeValue, dict):
+                if measureTypes not in ["all", "time"]:
+                    continue
+                
                 measureTimes = list(measureTimeValue.keys())
                 left = 0
                 right = len(measureTimeValue) - 1
@@ -276,6 +306,9 @@ class Patient:
                 df[measureName] = measureValue
                 pass
             else:
+                if measureTypes not in ["all", "static"]:
+                    continue
+                
                 df[measureName] = measureTimeValue
                 pass
             pass

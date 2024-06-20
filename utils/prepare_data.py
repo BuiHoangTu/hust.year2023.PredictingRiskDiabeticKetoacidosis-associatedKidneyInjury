@@ -17,6 +17,8 @@ def patientsToNumpy(
     categoricalEncoder: None | OneHotEncoder = None,
     numericEncoder: None | StandardScaler = None,
     outlier: Outlier | None = None,
+    startTime: Timedelta = Timedelta(hours=-6),
+    endTime: Timedelta = Timedelta(hours=24),
 ):
     """Convert patients to 3d numpy array
 
@@ -33,22 +35,16 @@ def patientsToNumpy(
         numericEncoder: numericEncoder(fitted) to encode the test part
     """
 
-    def timeWindowGenerate(stop=24):
-        start = 0
+    def timeWindowGenerate():
+        thisStart = startTime
         while True:
-            if start >= stop:
+            if thisStart >= endTime:
                 break
 
-            yield (
-                (Timedelta(hours=start) if start > 0 else Timedelta(hours=-6)),
-                (
-                    Timedelta(hours=(start + hoursPerWindows))
-                    if start + hoursPerWindows < stop
-                    else Timedelta(hours=stop)
-                ),
-            )
+            thisStop = thisStart + Timedelta(hours=hoursPerWindows)
+            yield (thisStart, thisStop if thisStop < endTime else endTime)
 
-            start += hoursPerWindows
+            thisStart = thisStop
         pass
 
     # unify inputs
@@ -177,13 +173,18 @@ def encodeCategoricalData(dfTrain: DataFrame, dfTest, dfVal=None):
 
 
 def _normalizeData(
-    dfTrain: DataFrame, dfTest, dfVal=None, fillData=False, encodeCategorical=True, encodeNumeric=True
+    dfTrain: DataFrame,
+    dfTest,
+    dfVal=None,
+    fillData=False,
+    encodeCategorical=True,
+    encodeNumeric=True,
 ):
     numericColumns = dfTrain.select_dtypes(include=[np.number]).columns
     numericColumns = [x for x in numericColumns if x not in CATEGORICAL_MEASURES]
 
     mixedColumns = [x for x in dfTrain.columns if x not in CATEGORICAL_MEASURES]
-    
+
     if encodeNumeric:
         # oulier
         outliers = Outlier()
