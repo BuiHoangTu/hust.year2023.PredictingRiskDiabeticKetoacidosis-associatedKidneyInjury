@@ -182,6 +182,8 @@ def _normalizeData(
     numericColumns = dfTrain.select_dtypes(include=[np.number]).columns
     numericColumns = [x for x in numericColumns if x not in CATEGORICAL_MEASURES]
 
+    mixedColumns = [x for x in dfTrain.columns if x not in CATEGORICAL_MEASURES]
+    
     if encodeNumeric:
         # oulier
         outliers = Outlier()
@@ -201,6 +203,10 @@ def _normalizeData(
         )
         dfTrain = dfTrain.drop(columns=CATEGORICAL_MEASURES)
         dfTrain = dfTrain.join(dfEncoded)
+
+    # parse mixed to number
+    for col in mixedColumns:
+        dfTrain[col] = dfTrain[col].astype(float)
 
     # numeric
     if encodeNumeric:
@@ -224,6 +230,10 @@ def _normalizeData(
         dfEncoded = pd.DataFrame(encoded, columns=oneHotEncoder.get_feature_names_out(CATEGORICAL_MEASURES))  # type: ignore
         dfTest = dfTest.drop(columns=CATEGORICAL_MEASURES)
         dfTest = dfTest.join(dfEncoded)
+
+    # parse mixed to number
+    for col in mixedColumns:
+        dfTest[col] = dfTest[col].astype(float)
 
     # numeric
     if encodeNumeric:
@@ -254,6 +264,10 @@ def _normalizeData(
         dfEncoded = pd.DataFrame(encoded, columns=oneHotEncoder.get_feature_names_out(CATEGORICAL_MEASURES))  # type: ignore
         dfVal = dfVal.drop(columns=CATEGORICAL_MEASURES)
         dfVal = dfVal.join(dfEncoded)
+
+    # parse mixed to number
+    for col in mixedColumns:
+        dfVal[col] = dfVal[col].astype(float)
 
     # numeric
     if encodeNumeric:
