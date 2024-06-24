@@ -4,7 +4,7 @@ from pandas import DataFrame, Timedelta
 from sklearn.impute import KNNImputer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from constants import CATEGORICAL_MEASURES
-from utils.class_outlier import Outlier
+from utils.class_outlier import Outliner
 from utils.class_patient import Patients
 import pandas as pd
 
@@ -16,7 +16,7 @@ def patientsToNumpy(
     columns: Iterable[str] | None = None,
     categoricalEncoder: None | OneHotEncoder = None,
     numericEncoder: None | StandardScaler = None,
-    outlier: Outlier | None = None,
+    outlier: Outliner | None = None,
 ):
     """Convert patients to 3d numpy array
 
@@ -59,7 +59,7 @@ def patientsToNumpy(
         numericEncoder = StandardScaler()
 
     if outlier is None:
-        outlier = Outlier()
+        outlier = Outliner()
 
     if __name__ == "__main__":
         print("retrieved patients", len(patients))
@@ -184,7 +184,7 @@ def _normalizeData(
 
     if encodeNumeric:
         # oulier
-        outliers = Outlier()
+        outliers = Outliner()
         dfTrain[numericColumns] = outliers.fit_transform(dfTrain[numericColumns])
 
         # knn
