@@ -166,6 +166,8 @@ class Patient:
 
             if value > 0:
                 return True
+        
+        return False
 
     def getMeasuresBetween(
         self,
