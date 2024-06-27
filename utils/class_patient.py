@@ -2,7 +2,7 @@ from collections import Counter
 from datetime import datetime
 import json
 from pathlib import Path
-from typing import Callable, Collection, Dict, Iterable, List, Tuple
+from typing import Callable, Collection, Dict, Iterable, List, Literal, Tuple
 import numpy as np
 from numpy import datetime64
 import pandas as pd
@@ -75,7 +75,7 @@ class Patient:
         self.stay_id = stay_id
         self.intime = to_datetime(intime)
         self.akdPositive = akdPositive
-        self.measures: Dict[str, Dict[Timestamp, float] | float] = dict()
+        self.measures: Dict[str, Dict[Timestamp, float] | float] = SortedDict()
 
         if measures is None:
             return
@@ -123,9 +123,10 @@ class Patient:
 
     def getMeasuresBetween(
         self,
-        fromTime: pd.Timedelta,
-        toTime: pd.Timedelta,
+        fromTime: pd.Timedelta = pd.Timedelta(-6),
+        toTime: pd.Timedelta = pd.Timedelta(24),
         how: str | Callable[[DataFrame], float] = "avg",
+        measureTypes: Literal["all", "static", "time"] = "all",
     ):
         """Get patient's status during specified period.
 
@@ -142,6 +143,7 @@ class Patient:
                     - min: Use min value.
                     - std: Use standard deviation of values
                     - custom function that take dataframe(time, value) and return value
+            measureTypes : {'all', 'static', 'time'}, default 'all', get all measures, only static measures, only time series measures
 
         Returns:
             DataFrame: one row with full status of patient
@@ -174,6 +176,9 @@ class Patient:
         for measureName, measureTimeValue in self.measures.items():
 
             if isinstance(measureTimeValue, dict):
+                if measureTypes not in ["all", "time"]:
+                    continue
+                
                 measureTimes = list(measureTimeValue.keys())
                 left = 0
                 right = len(measureTimeValue) - 1
@@ -210,6 +215,9 @@ class Patient:
                 df[measureName] = measureValue
                 pass
             else:
+                if measureTypes not in ["all", "static"]:
+                    continue
+                
                 df[measureName] = measureTimeValue
                 pass
             pass
@@ -519,35 +527,35 @@ class Patients:
             df = lab_test.getUrineKetone().dropna()
             patients._putDataForPatients(df)
 
-            ## extra lab variables
-            ### blood count
-            dfBc = reduceByHadmId(complete_blood_count.runSql())
-            dfBc = dfBc[
-                [
-                    "stay_id",
-                    "hematocrit",
-                    "mch",
-                    "mchc",
-                    "mcv",
-                    "rbc",
-                    "rdw"
-                ]
-            ].dropna()
-            patients._putDataForPatients(dfBc)
+            # ## extra lab variables
+            # ### blood count
+            # dfBc = reduceByHadmId(complete_blood_count.runSql())
+            # dfBc = dfBc[
+            #     [
+            #         "stay_id",
+            #         "hematocrit",
+            #         "mch",
+            #         "mchc",
+            #         "mcv",
+            #         "rbc",
+            #         "rdw"
+            #     ]
+            # ].dropna()
+            # patients._putDataForPatients(dfBc)
 
-            ## blood diff (missing too much )
+            # ## blood diff (missing too much )
 
-            ## chem
-            dfChem = reduceByHadmId(chemistry.runSql())
-            dfChem = dfChem[
-                [
-                    "stay_id",
-                    "chloride",
-                    "sodium",
-                    "potassium",
-                ]
-            ].dropna()
-            patients._putDataForPatients(dfChem)
+            # ## chem
+            # dfChem = reduceByHadmId(chemistry.runSql())
+            # dfChem = dfChem[
+            #     [
+            #         "stay_id",
+            #         "chloride",
+            #         "sodium",
+            #         "potassium",
+            #     ]
+            # ].dropna()
+            # patients._putDataForPatients(dfChem)
 
             ########### Scoring systems ###########
             df = getGcs().dropna()
