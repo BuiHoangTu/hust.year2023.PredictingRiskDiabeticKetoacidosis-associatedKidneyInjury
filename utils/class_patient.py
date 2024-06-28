@@ -574,35 +574,35 @@ class Patients:
             df = lab_test.getUrineKetone().dropna()
             patients._putDataForPatients(df)
 
-            # ## extra lab variables
-            # ### blood count
-            # dfBc = reduceByHadmId(complete_blood_count.runSql())
-            # dfBc = dfBc[
-            #     [
-            #         "stay_id",
-            #         "hematocrit",
-            #         "mch",
-            #         "mchc",
-            #         "mcv",
-            #         "rbc",
-            #         "rdw"
-            #     ]
-            # ].dropna()
-            # patients._putDataForPatients(dfBc)
+            ## extra lab variables
+            ### blood count
+            dfBc = reduceByHadmId(complete_blood_count.runSql())
+            dfBc = dfBc[
+                [
+                    "stay_id",
+                    "hematocrit",
+                    "mch",
+                    "mchc",
+                    "mcv",
+                    "rbc",
+                    "rdw"
+                ]
+            ].dropna()
+            patients._putDataForPatients(dfBc)
 
-            # ## blood diff (missing too much )
+            ## blood diff (missing too much )
 
-            # ## chem
-            # dfChem = reduceByHadmId(chemistry.runSql())
-            # dfChem = dfChem[
-            #     [
-            #         "stay_id",
-            #         "chloride",
-            #         "sodium",
-            #         "potassium",
-            #     ]
-            # ].dropna()
-            # patients._putDataForPatients(dfChem)
+            ## chem
+            dfChem = reduceByHadmId(chemistry.runSql())
+            dfChem = dfChem[
+                [
+                    "stay_id",
+                    "chloride",
+                    "sodium",
+                    "potassium",
+                ]
+            ].dropna()
+            patients._putDataForPatients(dfChem)
 
             ########### Scoring systems ###########
             df = getGcs().dropna()
