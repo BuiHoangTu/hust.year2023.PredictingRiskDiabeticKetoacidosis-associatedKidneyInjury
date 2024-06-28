@@ -351,6 +351,7 @@ class Patients:
         toTime: pd.Timedelta = pd.Timedelta(hours=24),
         how: str | Callable[[DataFrame], float] = "avg",
         measureTypes: Literal["all", "static", "time"] = "all",
+        getUntilAkiPositive: bool = False,
     ):
         """Get patient's status during specified period.
 
@@ -373,7 +374,18 @@ class Patients:
             DataFrame: one row with full status of patient
         """
 
-        xLs = [x.getMeasuresBetween(fromTime, toTime, how, measureTypes) for x in self.patientList]
+        if getUntilAkiPositive:
+            xLs = [
+                x.getMeasuresBetween(
+                    fromTime,
+                    x.akdTime if x.akdTime < toTime else toTime,
+                    how,
+                    measureTypes,
+                )
+                for x in self.patientList
+            ]
+        else:
+            xLs = [x.getMeasuresBetween(fromTime, toTime, how, measureTypes) for x in self.patientList]
 
         return pd.concat(xLs)
 
