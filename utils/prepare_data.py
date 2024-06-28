@@ -17,6 +17,7 @@ def patientsToNumpy(
     categoricalEncoder: None | OneHotEncoder = None,
     numericEncoder: None | StandardScaler = None,
     outlier: Outliner | None = None,
+    timeSeriesOnly: bool = False,
 ):
     """Convert patients to 3d numpy array
 
@@ -32,6 +33,12 @@ def patientsToNumpy(
         oneHotEncoder: oneHotEncoder(fitted) to encode the test part
         numericEncoder: numericEncoder(fitted) to encode the test part
     """
+    
+    if timeSeriesOnly:
+        measureTypes = "time"
+    else:
+        measureTypes = "all"
+    
 
     def timeWindowGenerate(stop=24):
         start = 0
@@ -66,7 +73,7 @@ def patientsToNumpy(
 
     dfPatientList: List[DataFrame] = []
     for start, stop in timeWindowGenerate():
-        dfPatient = patients.getMeasuresBetween(start, stop).drop(
+        dfPatient = patients.getMeasuresBetween(start, stop, measureTypes=measureTypes).drop(
             columns=["subject_id", "hadm_id", "stay_id", "akd"]
         )
         dfPatientList.append(dfPatient)
@@ -74,12 +81,24 @@ def patientsToNumpy(
 
     dfTmp = pd.concat(dfPatientList, axis=0)
     if columns is None:
+        categoricalColumns = [
+            col
+            for col in dfTmp.columns
+            if col in categoricalColumns
+        ]
+        
         numeriColumns = [
             col
             for col in dfTmp.columns
             if col not in categoricalColumns and dfTmp[col].dtype != "bool"
         ]
     else:
+        categoricalColumns = [
+            col
+            for col in columns
+            if col in categoricalColumns
+        ]
+        
         outlierCateCols = categoricalEncoder.get_feature_names_out(categoricalColumns)
 
         numeriColumns = [
@@ -182,6 +201,8 @@ def _normalizeData(
     numericColumns = dfTrain.select_dtypes(include=[np.number]).columns
     numericColumns = [x for x in numericColumns if x not in CATEGORICAL_MEASURES]
 
+    categoricalColumns = [x for x in CATEGORICAL_MEASURES if x in dfTrain.columns]
+
     if encodeNumeric:
         # oulier
         outliers = Outliner()
@@ -195,11 +216,11 @@ def _normalizeData(
     # category
     if encodeCategorical:
         oneHotEncoder = OneHotEncoder(sparse_output=False, handle_unknown="ignore")
-        encoded = oneHotEncoder.fit_transform(dfTrain[CATEGORICAL_MEASURES])
+        encoded = oneHotEncoder.fit_transform(dfTrain[categoricalColumns])
         dfEncoded = pd.DataFrame(
-            encoded, columns=oneHotEncoder.get_feature_names_out(CATEGORICAL_MEASURES)
+            encoded, columns=oneHotEncoder.get_feature_names_out(categoricalColumns)
         )
-        dfTrain = dfTrain.drop(columns=CATEGORICAL_MEASURES)
+        dfTrain = dfTrain.drop(columns=categoricalColumns)
         dfTrain = dfTrain.join(dfEncoded)
 
     # numeric
@@ -220,9 +241,9 @@ def _normalizeData(
 
     # category
     if encodeCategorical:
-        encoded = oneHotEncoder.transform(dfTest[CATEGORICAL_MEASURES])
-        dfEncoded = pd.DataFrame(encoded, columns=oneHotEncoder.get_feature_names_out(CATEGORICAL_MEASURES))  # type: ignore
-        dfTest = dfTest.drop(columns=CATEGORICAL_MEASURES)
+        encoded = oneHotEncoder.transform(dfTest[categoricalColumns])
+        dfEncoded = pd.DataFrame(encoded, columns=oneHotEncoder.get_feature_names_out(categoricalColumns))  # type: ignore
+        dfTest = dfTest.drop(columns=categoricalColumns)
         dfTest = dfTest.join(dfEncoded)
 
     # numeric
@@ -250,9 +271,9 @@ def _normalizeData(
 
     # category
     if encodeCategorical:
-        encoded = oneHotEncoder.transform(dfVal[CATEGORICAL_MEASURES])
-        dfEncoded = pd.DataFrame(encoded, columns=oneHotEncoder.get_feature_names_out(CATEGORICAL_MEASURES))  # type: ignore
-        dfVal = dfVal.drop(columns=CATEGORICAL_MEASURES)
+        encoded = oneHotEncoder.transform(dfVal[categoricalColumns])
+        dfEncoded = pd.DataFrame(encoded, columns=oneHotEncoder.get_feature_names_out(categoricalColumns))  # type: ignore
+        dfVal = dfVal.drop(columns=categoricalColumns)
         dfVal = dfVal.join(dfEncoded)
 
     # numeric

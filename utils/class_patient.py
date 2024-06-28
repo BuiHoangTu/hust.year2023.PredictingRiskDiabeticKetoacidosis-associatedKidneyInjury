@@ -123,8 +123,8 @@ class Patient:
 
     def getMeasuresBetween(
         self,
-        fromTime: pd.Timedelta = pd.Timedelta(-6),
-        toTime: pd.Timedelta = pd.Timedelta(24),
+        fromTime: pd.Timedelta,
+        toTime: pd.Timedelta,
         how: str | Callable[[DataFrame], float] = "avg",
         measureTypes: Literal["all", "static", "time"] = "all",
     ):
@@ -340,9 +340,10 @@ class Patients:
 
     def getMeasuresBetween(
         self,
-        fromTime: pd.Timedelta,
-        toTime: pd.Timedelta,
+        fromTime: pd.Timedelta = pd.Timedelta(-6),
+        toTime: pd.Timedelta = pd.Timedelta(24),
         how: str | Callable[[DataFrame], float] = "avg",
+        measureTypes: Literal["all", "static", "time"] = "all",
     ):
         """Get patient's status during specified period.
 
@@ -359,12 +360,13 @@ class Patients:
                     - min: Use min value.
                     - std: Use standard deviation of values
                     - custom function that take dataframe(time, value) and return value
+            measureTypes : {'all', 'static', 'time'}, default 'all', get all measures, only static measures, only time series measures
 
         Returns:
             DataFrame: one row with full status of patient
         """
 
-        xLs = [x.getMeasuresBetween(fromTime, toTime, how) for x in self.patientList]
+        xLs = [x.getMeasuresBetween(fromTime, toTime, how, measureTypes) for x in self.patientList]
 
         return pd.concat(xLs)
 
@@ -527,35 +529,35 @@ class Patients:
             df = lab_test.getUrineKetone().dropna()
             patients._putDataForPatients(df)
 
-            # ## extra lab variables
-            # ### blood count
-            # dfBc = reduceByHadmId(complete_blood_count.runSql())
-            # dfBc = dfBc[
-            #     [
-            #         "stay_id",
-            #         "hematocrit",
-            #         "mch",
-            #         "mchc",
-            #         "mcv",
-            #         "rbc",
-            #         "rdw"
-            #     ]
-            # ].dropna()
-            # patients._putDataForPatients(dfBc)
+            ## extra lab variables
+            ### blood count
+            dfBc = reduceByHadmId(complete_blood_count.runSql())
+            dfBc = dfBc[
+                [
+                    "stay_id",
+                    "hematocrit",
+                    "mch",
+                    "mchc",
+                    "mcv",
+                    "rbc",
+                    "rdw"
+                ]
+            ].dropna()
+            patients._putDataForPatients(dfBc)
 
-            # ## blood diff (missing too much )
+            ## blood diff (missing too much )
 
-            # ## chem
-            # dfChem = reduceByHadmId(chemistry.runSql())
-            # dfChem = dfChem[
-            #     [
-            #         "stay_id",
-            #         "chloride",
-            #         "sodium",
-            #         "potassium",
-            #     ]
-            # ].dropna()
-            # patients._putDataForPatients(dfChem)
+            ## chem
+            dfChem = reduceByHadmId(chemistry.runSql())
+            dfChem = dfChem[
+                [
+                    "stay_id",
+                    "chloride",
+                    "sodium",
+                    "potassium",
+                ]
+            ].dropna()
+            patients._putDataForPatients(dfChem)
 
             ########### Scoring systems ###########
             df = getGcs().dropna()
