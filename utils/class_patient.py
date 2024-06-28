@@ -6,7 +6,7 @@ from typing import Callable, Collection, Dict, Iterable, List, Literal, Tuple
 import numpy as np
 from numpy import datetime64
 import pandas as pd
-from pandas import DataFrame, Timestamp, to_datetime
+from pandas import DataFrame, Timedelta, Timestamp, to_datetime
 from sklearn.model_selection import StratifiedKFold
 from sortedcontainers import SortedDict
 from constants import TEMP_PATH
@@ -56,6 +56,8 @@ class PatientJsonEncoder(json.JSONEncoder):
             return obj.tolist()
         if isinstance(obj, Timestamp):
             return obj.isoformat()
+        if isinstance(obj, Timedelta):
+            return obj.total_seconds()
         return super(PatientJsonEncoder, self).default(obj)
 
 
@@ -69,12 +71,17 @@ class Patient:
         intime: str | datetime | datetime64 | Timestamp,
         akdPositive: bool,
         measures: Dict[str, Dict[Timestamp, float] | float] | None = None,
+        akdTime: Timedelta | float = pd.Timedelta(days=10),
     ) -> None:
+        if isinstance(akdTime, float) or isinstance(akdTime, int):
+            akdTime = pd.Timedelta(seconds=akdTime)
+        
         self.subject_id = subject_id
         self.hadm_id = hadm_id
         self.stay_id = stay_id
         self.intime = to_datetime(intime)
         self.akdPositive = akdPositive
+        self.akdTime = akdTime
         self.measures: Dict[str, Dict[Timestamp, float] | float] = SortedDict()
 
         if measures is None:
@@ -340,8 +347,8 @@ class Patients:
 
     def getMeasuresBetween(
         self,
-        fromTime: pd.Timedelta = pd.Timedelta(-6),
-        toTime: pd.Timedelta = pd.Timedelta(24),
+        fromTime: pd.Timedelta = pd.Timedelta(hours=-6),
+        toTime: pd.Timedelta = pd.Timedelta(hours=24),
         how: str | Callable[[DataFrame], float] = "avg",
         measureTypes: Literal["all", "static", "time"] = "all",
     ):
@@ -424,18 +431,44 @@ class Patients:
 
             dfAkd = akd_positive.extractKdigoStages7day()
             dfAkd["akd"] = dfAkd["aki_7day"]
-            dfAkd = dfAkd[["stay_id", "akd"]]
+            # dfAkd = dfAkd[["stay_id", "akd"]]
 
             dfData1 = dfPatient.merge(dfAkd, "left", "stay_id")
             dfData1["akd"] = dfData1["akd"].astype(bool)
 
             for _, row in dfData1.iterrows():
+
+                if row["aki_stage_7day"] != 0 and row["aki_stage_creat"] == row["aki_stage_7day"]:
+                    akdCreatTime = pd.Timestamp(row["charttime_creat"])
+                else:
+                    akdCreatTime = None
+
+                if row["aki_stage_7day"] != 0 and row["aki_stage_uo"] == row["aki_stage_7day"]:
+                    akdUrineTime = pd.Timestamp(row["charttime_uo"])
+                else:
+                    akdUrineTime = None
+
+                intime = pd.Timestamp(row["intime"])
+
+                if akdCreatTime is not None and akdUrineTime is not None:
+                    akdTime = min(akdCreatTime, akdUrineTime)
+                    akdTime = akdTime - intime
+                elif akdCreatTime is not None:
+                    akdTime = akdCreatTime
+                    akdTime = akdTime - intime
+                elif akdUrineTime is not None:
+                    akdTime = akdUrineTime
+                    akdTime = akdTime - intime
+                else:
+                    akdTime = Timedelta(days=10)
+
                 patient = Patient(
                     row["subject_id"],
                     row["hadm_id"],
                     row["stay_id"],
-                    row["intime"],
+                    intime,
                     row["akd"],
+                    akdTime=akdTime,
                 )
                 patientList.append(patient)
                 pass
