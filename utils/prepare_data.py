@@ -18,6 +18,8 @@ def patientsToNumpy(
     numericEncoder: None | StandardScaler = None,
     outlier: Outliner | None = None,
     timeSeriesOnly: bool = False,
+    fromHour: int = 0,
+    toHour: int = 24,
 ):
     """Convert patients to 3d numpy array
 
@@ -40,8 +42,9 @@ def patientsToNumpy(
         measureTypes = "all"
     
 
-    def timeWindowGenerate(stop=24):
-        start = 0
+    def timeWindowGenerate():
+        start = fromHour
+        stop = toHour
         while True:
             if start >= stop:
                 break

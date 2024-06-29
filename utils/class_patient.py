@@ -316,10 +316,14 @@ class Patients:
         if isinstance(minimumFeatureCount, float):
             minimumFeatureCount = minimumFeatureCount * len(self.getMeasures())
 
-        for p in self.patientList:
-            if len(p.measures) < minimumFeatureCount:
-                self.patientList.remove(p)
+        self.patientList = [p for p in self.patientList if len(p.measures) >= minimumFeatureCount]
         pass
+
+    def removePatientAkiEarly(self, minTime: pd.Timedelta):
+        prevLen = len(self)
+        self.patientList = [p for p in self.patientList if p.akdTime >= minTime]
+        
+        return prevLen - len(self)
 
     def _putDataForPatients(self, df):
         for patient in self.patientList:
