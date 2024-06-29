@@ -30,7 +30,7 @@ def run(modelNames: list[str] | None = None):
 
     from constants import ARCHIVED_NOTEBOOKS_PATH
 
-    HOWS = ["first", "last", "avg", "max", "min", "std"]
+    HOWS = ["first", "last", "avg", "max", "min", "med"]
 
     def _getModels():
         pattern = re.compile(r"tabular_model_(.*?)_template\.ipynb")

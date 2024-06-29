@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Callable, Collection, Dict, Iterable, List, Literal, Tuple
 import numpy as np
-from numpy import datetime64
+from numpy import datetime64, nan
 import pandas as pd
 from pandas import DataFrame, Timedelta, Timestamp, to_datetime
 from sklearn.model_selection import StratifiedKFold
@@ -75,7 +75,7 @@ class Patient:
     ) -> None:
         if isinstance(akdTime, float) or isinstance(akdTime, int):
             akdTime = pd.Timedelta(seconds=akdTime)
-        
+
         self.subject_id = subject_id
         self.hadm_id = hadm_id
         self.stay_id = stay_id
@@ -140,7 +140,7 @@ class Patient:
         Args:
             fromTime (pd.Timedelta): start time compare to intime (icu admission)
             toTime (pd.Timedelta): end time compare to intime (icu admission)
-            how : {'first', 'last', 'avg', 'max', 'min', 'std'} | Callable[[DataFrame], float], default 'avg'
+            how : {'first', 'last', 'avg', 'max', 'min', 'std', 'med'} | Callable[[DataFrame], float], default 'avg'
                 Which value to choose if multiple exist:
 
                     - first: Use first recored value.
@@ -149,6 +149,7 @@ class Patient:
                     - max: Use max value.
                     - min: Use min value.
                     - std: Use standard deviation of values
+                    - med: Use median value
                     - custom function that take dataframe(time, value) and return value
             measureTypes : {'all', 'static', 'time'}, default 'all', get all measures, only static measures, only time series measures
 
@@ -158,13 +159,14 @@ class Patient:
 
         # unify input
         howMapping: Dict[str, Callable[[DataFrame], float]] = {
-            "first": lambda df: df.loc[df["time"].idxmin(), "value"],  # type: ignore
-            "last": lambda df: df.loc[df["time"].idxmax(), "value"],
-            "avg": lambda df: df["value"].mean(),
-            "max": lambda df: df["value"].max(),
-            "min": lambda df: df["value"].min(),
-            "std": lambda df: df["value"].std(),
-        }
+            "first": lambda df: df.loc[df["time"].idxmin(), "value"] if len(df) > 0 else nan,
+            "last": lambda df: df.loc[df["time"].idxmax(), "value"] if len(df) > 0 else nan,
+            "avg": lambda df: df["value"].mean() if len(df) > 0 else nan,
+            "max": lambda df: df["value"].max() if len(df) > 0 else nan,
+            "min": lambda df: df["value"].min() if len(df) > 0 else nan,
+            "std": lambda df: df["value"].std() if len(df) > 0 else nan,
+            "med": lambda df: df["value"].median() if len(df) > 0 else nan,
+        }  # type: ignore
         if how in howMapping:
             how = howMapping[how]
 
@@ -185,7 +187,7 @@ class Patient:
             if isinstance(measureTimeValue, dict):
                 if measureTypes not in ["all", "time"]:
                     continue
-                
+
                 measureTimes = list(measureTimeValue.keys())
                 left = 0
                 right = len(measureTimeValue) - 1
@@ -224,7 +226,7 @@ class Patient:
             else:
                 if measureTypes not in ["all", "static"]:
                     continue
-                
+
                 df[measureName] = measureTimeValue
                 pass
             pass
@@ -362,7 +364,7 @@ class Patients:
         Args:
             fromTime (Timedelta): start time compare to intime (icu admission)
             toTime (Timedelta): end time compare to intime (icu admission)
-            how : {'first', 'last', 'avg', 'max', 'min', 'std'} | Callable[[DataFrame], float], default 'avg'
+            how : {'first', 'last', 'avg', 'max', 'min', 'std', 'med'} | Callable[[DataFrame], float], default 'avg'
                 Which value to choose if multiple exist:
 
                     - first: Use first recored value.
@@ -371,6 +373,7 @@ class Patients:
                     - max: Use max value.
                     - min: Use min value.
                     - std: Use standard deviation of values
+                    - med: Use median value
                     - custom function that take dataframe(time, value) and return value
             measureTypes : {'all', 'static', 'time'}, default 'all', get all measures, only static measures, only time series measures
 
