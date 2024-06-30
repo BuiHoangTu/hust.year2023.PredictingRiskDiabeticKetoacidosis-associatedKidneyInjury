@@ -5,7 +5,7 @@ from sklearn.impute import KNNImputer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from constants import CATEGORICAL_MEASURES
 from utils.class_outlier import Outliner
-from utils.class_patient import Patients
+from utils.class_patient import Patient, Patients
 import pandas as pd
 
 
@@ -35,12 +35,11 @@ def patientsToNumpy(
         oneHotEncoder: oneHotEncoder(fitted) to encode the test part
         numericEncoder: numericEncoder(fitted) to encode the test part
     """
-    
+
     if timeSeriesOnly:
         measureTypes = "time"
     else:
         measureTypes = "all"
-    
 
     def timeWindowGenerate():
         start = fromHour
@@ -76,32 +75,24 @@ def patientsToNumpy(
 
     dfPatientList: List[DataFrame] = []
     for start, stop in timeWindowGenerate():
-        dfPatient = patients.getMeasuresBetween(start, stop, measureTypes=measureTypes).drop(
-            columns=["subject_id", "hadm_id", "stay_id", "akd"]
-        )
+        dfPatient = patients.getMeasuresBetween(
+            start, stop, measureTypes=measureTypes
+        ).drop(columns=["subject_id", "hadm_id", "stay_id", "akd"])
         dfPatientList.append(dfPatient)
         pass
 
     dfTmp = pd.concat(dfPatientList, axis=0)
     if columns is None:
-        categoricalColumns = [
-            col
-            for col in dfTmp.columns
-            if col in categoricalColumns
-        ]
-        
+        categoricalColumns = [col for col in dfTmp.columns if col in categoricalColumns]
+
         numeriColumns = [
             col
             for col in dfTmp.columns
             if col not in categoricalColumns and dfTmp[col].dtype != "bool"
         ]
     else:
-        categoricalColumns = [
-            col
-            for col in columns
-            if col in categoricalColumns
-        ]
-        
+        categoricalColumns = [col for col in columns if col in categoricalColumns]
+
         outlierCateCols = categoricalEncoder.get_feature_names_out(categoricalColumns)
 
         numeriColumns = [
@@ -199,109 +190,178 @@ def encodeCategoricalData(dfTrain: DataFrame, dfTest, dfVal=None):
 
 
 def _normalizeData(
-    dfTrain: DataFrame, dfTest, dfVal=None, fillData=False, encodeCategorical=True, encodeNumeric=True
+    dfTrain: DataFrame,
+    dfTest,
+    dfVal=None,
+    fillData=False,
+    encodeCategorical=True,
+    encodeNumeric=True,
 ):
-    numericColumns = dfTrain.select_dtypes(include=[np.number]).columns
-    numericColumns = [x for x in numericColumns if x not in CATEGORICAL_MEASURES]
+    normalizeData = NormalizeData(fillData, encodeCategorical, encodeNumeric)
 
-    categoricalColumns = [x for x in CATEGORICAL_MEASURES if x in dfTrain.columns]
-    mixedColumns = [x for x in dfTrain.columns if x not in CATEGORICAL_MEASURES]
-
-    if encodeNumeric:
-        # oulier
-        outliers = Outliner()
-        dfTrain[numericColumns] = outliers.fit_transform(dfTrain[numericColumns])
-
-        # knn
-        if fillData:
-            imputer = KNNImputer(n_neighbors=6, weights="distance")
-            dfTrain[numericColumns] = imputer.fit_transform(dfTrain[numericColumns])
-
-    # category
-    if encodeCategorical:
-        oneHotEncoder = OneHotEncoder(sparse_output=False, handle_unknown="ignore")
-        encoded = oneHotEncoder.fit_transform(dfTrain[categoricalColumns])
-        dfEncoded = pd.DataFrame(
-            encoded, columns=oneHotEncoder.get_feature_names_out(categoricalColumns)
-        )
-        dfTrain = dfTrain.drop(columns=categoricalColumns)
-        dfTrain = dfTrain.join(dfEncoded)
-
-    # parse mixed to number
-    for col in mixedColumns:
-        dfTrain[col] = dfTrain[col].astype(float)
-
-    # numeric
-    if encodeNumeric:
-        standardScaler = StandardScaler()
-        dfTrain[numericColumns] = standardScaler.fit_transform(dfTrain[numericColumns])
-
-    # matching columns
-    columns = dfTrain.columns
-
-    if encodeNumeric:
-        # outlier
-        dfTest[numericColumns] = outliers.transform(dfTest[numericColumns])
-
-        # knn
-        if fillData:
-            dfTest[numericColumns] = imputer.transform(dfTest[numericColumns])
-
-    # category
-    if encodeCategorical:
-        encoded = oneHotEncoder.transform(dfTest[categoricalColumns])
-        dfEncoded = pd.DataFrame(encoded, columns=oneHotEncoder.get_feature_names_out(categoricalColumns))  # type: ignore
-        dfTest = dfTest.drop(columns=categoricalColumns)
-        dfTest = dfTest.join(dfEncoded)
-
-    # parse mixed to number
-    for col in mixedColumns:
-        dfTest[col] = dfTest[col].astype(float)
-
-    # numeric
-    if encodeNumeric:
-        dfTest[numericColumns] = standardScaler.transform(dfTest[numericColumns])
-
-    # matching columns
-    for col in columns:
-        if col not in dfTest.columns:
-            dfTest[col] = np.nan
-            pass
-        pass
-    dfTest = dfTest[columns]
-
-    if dfVal is None:
-        return dfTrain, dfTest, None
-
-    if encodeNumeric:
-        # outlier
-        dfVal[numericColumns] = outliers.transform(dfVal[numericColumns])
-
-        # knn
-        if fillData:
-            dfVal[numericColumns] = imputer.transform(dfVal[numericColumns])
-
-    # category
-    if encodeCategorical:
-        encoded = oneHotEncoder.transform(dfVal[categoricalColumns])
-        dfEncoded = pd.DataFrame(encoded, columns=oneHotEncoder.get_feature_names_out(categoricalColumns))  # type: ignore
-        dfVal = dfVal.drop(columns=categoricalColumns)
-        dfVal = dfVal.join(dfEncoded)
-
-    # parse mixed to number
-    for col in mixedColumns:
-        dfVal[col] = dfVal[col].astype(float)
-
-    # numeric
-    if encodeNumeric:
-        dfVal[numericColumns] = standardScaler.transform(dfVal[numericColumns])
-
-    # matching columns
-    for col in columns:
-        if col not in dfVal.columns:
-            dfVal[col] = np.nan
-            pass
-        pass
-    dfVal = dfVal[columns]
+    dfTrain = normalizeData.fit_transform(dfTrain)
+    dfTest = normalizeData.transform(dfTest)
+    if dfVal is not None:
+        dfVal = normalizeData.transform(dfVal)
 
     return dfTrain, dfTest, dfVal
+
+
+class NormalizeData:
+    def __init__(self, fillData=False, encodeCategorical=True, encodeNumeric=True):
+        self.fillData = fillData
+        self.encodeCategorical = encodeCategorical
+        self.encodeNumeric = encodeNumeric
+
+        self.oneHotEncoder = OneHotEncoder(sparse_output=False, handle_unknown="ignore")
+        self.standardScaler = StandardScaler()
+        self.outliers = Outliner()
+        self.columns: Iterable[str] = []
+        self.imputer = KNNImputer(n_neighbors=6, weights="distance")
+        self.numericColumns: Iterable[str] = []
+        self.categoricalColumns: Iterable[str] = []
+        self.mixedColumns: Iterable[str] = []
+
+    def fit(self, dfTrain: DataFrame):
+        self.fit_transform(dfTrain)
+
+    def fit_transform(self, dfTrain: DataFrame):
+        self.numericColumns = dfTrain.select_dtypes(include=[np.number]).columns
+        self.numericColumns = [
+            x for x in self.numericColumns if x not in CATEGORICAL_MEASURES
+        ]
+
+        self.categoricalColumns = [
+            x for x in CATEGORICAL_MEASURES if x in dfTrain.columns
+        ]
+        self.mixedColumns = [
+            x for x in dfTrain.columns if x not in CATEGORICAL_MEASURES
+        ]
+
+        if self.encodeNumeric:
+            # oulier
+            dfTrain[self.numericColumns] = self.outliers.fit_transform(
+                dfTrain[self.numericColumns]
+            )
+
+            # knn
+            dfTrain[self.numericColumns] = self.imputer.fit_transform(
+                dfTrain[self.numericColumns]
+            )
+
+        # category
+        if self.encodeCategorical:
+            encoded = self.oneHotEncoder.fit_transform(dfTrain[self.categoricalColumns])
+            dfEncoded = pd.DataFrame(
+                encoded,
+                columns=self.oneHotEncoder.get_feature_names_out(
+                    self.categoricalColumns
+                ),
+            )
+            dfTrain = dfTrain.drop(columns=self.categoricalColumns)
+            dfTrain = dfTrain.join(dfEncoded)
+
+        # parse mixed to number
+        for col in self.mixedColumns:
+            dfTrain[col] = dfTrain[col].astype(float)
+
+        # numeric
+        if self.encodeNumeric:
+            dfTrain[self.numericColumns] = self.standardScaler.fit_transform(
+                dfTrain[self.numericColumns]
+            )
+
+        # matching columns
+        self.columns = dfTrain.columns
+
+        return dfTrain
+
+    def transform(self, df: DataFrame):
+        if self.encodeNumeric:
+            # outlier
+            df[self.numericColumns] = self.outliers.transform(df[self.numericColumns])
+
+            # knn
+            if self.fillData:
+                df[self.numericColumns] = self.imputer.transform(
+                    df[self.numericColumns]
+                )
+
+        # category
+        if self.encodeCategorical:
+            encoded = self.oneHotEncoder.transform(df[self.categoricalColumns])
+            dfEncoded = pd.DataFrame(
+                encoded, columns=self.oneHotEncoder.get_feature_names_out(list(self.categoricalColumns))  # type: ignore
+            )
+            df = df.drop(columns=self.categoricalColumns)
+            df = df.join(dfEncoded)
+
+        # parse mixed to number
+        for col in self.mixedColumns:
+            df[col] = df[col].astype(float)
+
+        # numeric
+        if self.encodeNumeric:
+            df[self.numericColumns] = self.standardScaler.transform(
+                df[self.numericColumns]
+            )
+
+        # matching columns
+        for col in self.columns:
+            if col not in df.columns:
+                df[col] = np.nan
+                pass
+            pass
+        df = df[self.columns]
+
+        return df
+
+
+class DLModel:
+    def __init__(
+        self,
+        model,
+        normalizeData: NormalizeData,
+        categoryEncoder,
+        numericEncoder,
+        oulier,
+        columns,
+        hoursPerWindows,
+        fromHour,
+        toHour,
+    ):
+        self.model = model
+        self.normalizeData = normalizeData
+        self.categoryEncoder = categoryEncoder
+        self.numericEncoder = numericEncoder
+        self.oulier = oulier
+        self.columns = columns
+        self.hoursPerWindows = hoursPerWindows
+        self.fromHour = fromHour
+        self.toHour = toHour
+
+        pass
+    
+    def predict(self, patient: Patient):
+        npX = patientsToNumpy(
+            Patients([patient]),
+            self.hoursPerWindows,
+            CATEGORICAL_MEASURES,
+            self.columns,
+            self.categoryEncoder,
+            self.numericEncoder,
+            self.oulier,
+            timeSeriesOnly=True,
+            fromHour=self.fromHour,
+            toHour=self.toHour,
+        )[0]
+        npX = np.nan_to_num(npX, nan=0)
+        
+        staticX = patient.getMeasuresBetween(measureTypes="static")
+        staticX = staticX.drop(columns=["subject_id", "hadm_id", "stay_id", "akd"])
+        staticX = self.normalizeData.transform(staticX)
+        staticX = staticX.to_numpy(dtype=np.float32)
+        staticX = np.nan_to_num(staticX, nan=0)
+        
+        
+        return self.model.predict([npX, staticX])

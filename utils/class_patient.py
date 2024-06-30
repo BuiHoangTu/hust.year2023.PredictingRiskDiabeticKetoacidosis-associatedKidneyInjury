@@ -130,8 +130,8 @@ class Patient:
 
     def getMeasuresBetween(
         self,
-        fromTime: pd.Timedelta,
-        toTime: pd.Timedelta,
+        fromTime: pd.Timedelta = pd.Timedelta(hours=-6),
+        toTime: pd.Timedelta = pd.Timedelta(hours=24),
         how: str | Callable[[DataFrame], float] = "avg",
         measureTypes: Literal["all", "static", "time"] = "all",
     ):
