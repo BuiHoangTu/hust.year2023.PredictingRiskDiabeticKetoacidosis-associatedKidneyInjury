@@ -21,6 +21,7 @@ package_check.py
 paper_based.py
 main.py
 test*
+*.zip
 
 # secret files
 secret.py
