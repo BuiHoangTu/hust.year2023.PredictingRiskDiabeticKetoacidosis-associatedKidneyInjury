@@ -2,16 +2,18 @@ from collections import Counter
 from datetime import datetime
 import json
 from pathlib import Path
-from typing import Callable, Collection, Dict, Iterable, List, Tuple
+from typing import Callable, Collection, Dict, Iterable, List, Literal, Tuple
 import numpy as np
-from numpy import datetime64
+from numpy import datetime64, nan
 import pandas as pd
-from pandas import DataFrame, Timestamp, to_datetime
+from pandas import DataFrame, Timedelta, Timestamp, to_datetime
 from sklearn.model_selection import StratifiedKFold
 from sortedcontainers import SortedDict
 from constants import TEMP_PATH
+from mimic_sql import chemistry, complete_blood_count
 from notebook_wrappers.target_patients_wrapper import getTargetPatientIcu
 import akd_positive
+from utils.reduce_mesurements import reduceByHadmId
 from variables.charateristics_diabetes import (
     getDiabeteType,
     getMacroangiopathy,
@@ -54,6 +56,8 @@ class PatientJsonEncoder(json.JSONEncoder):
             return obj.tolist()
         if isinstance(obj, Timestamp):
             return obj.isoformat()
+        if isinstance(obj, Timedelta):
+            return obj.total_seconds()
         return super(PatientJsonEncoder, self).default(obj)
 
 
@@ -67,12 +71,17 @@ class Patient:
         intime: str | datetime | datetime64 | Timestamp,
         akdPositive: bool,
         measures: Dict[str, Dict[Timestamp, float] | float] | None = None,
+        akdTime: Timedelta | float = pd.Timedelta(days=10),
     ) -> None:
+        if isinstance(akdTime, float) or isinstance(akdTime, int):
+            akdTime = pd.Timedelta(seconds=akdTime)
+
         self.subject_id = subject_id
         self.hadm_id = hadm_id
         self.stay_id = stay_id
         self.intime = to_datetime(intime)
         self.akdPositive = akdPositive
+        self.akdTime = akdTime
         self.measures: Dict[str, Dict[Timestamp, float] | float] = SortedDict()
 
         if measures is None:
@@ -121,16 +130,17 @@ class Patient:
 
     def getMeasuresBetween(
         self,
-        fromTime: pd.Timedelta,
-        toTime: pd.Timedelta,
+        fromTime: pd.Timedelta = pd.Timedelta(hours=-6),
+        toTime: pd.Timedelta = pd.Timedelta(hours=24),
         how: str | Callable[[DataFrame], float] = "avg",
+        measureTypes: Literal["all", "static", "time"] = "all",
     ):
         """Get patient's status during specified period.
 
         Args:
             fromTime (pd.Timedelta): start time compare to intime (icu admission)
             toTime (pd.Timedelta): end time compare to intime (icu admission)
-            how : {'first', 'last', 'avg', 'max', 'min', 'std'} | Callable[[DataFrame], float], default 'avg'
+            how : {'first', 'last', 'avg', 'max', 'min', 'std', 'med'} | Callable[[DataFrame], float], default 'avg'
                 Which value to choose if multiple exist:
 
                     - first: Use first recored value.
@@ -139,7 +149,9 @@ class Patient:
                     - max: Use max value.
                     - min: Use min value.
                     - std: Use standard deviation of values
+                    - med: Use median value
                     - custom function that take dataframe(time, value) and return value
+            measureTypes : {'all', 'static', 'time'}, default 'all', get all measures, only static measures, only time series measures
 
         Returns:
             DataFrame: one row with full status of patient
@@ -147,13 +159,14 @@ class Patient:
 
         # unify input
         howMapping: Dict[str, Callable[[DataFrame], float]] = {
-            "first": lambda df: df.loc[df["time"].idxmin(), "value"],  # type: ignore
-            "last": lambda df: df.loc[df["time"].idxmax(), "value"],
-            "avg": lambda df: df["value"].mean(),
-            "max": lambda df: df["value"].max(),
-            "min": lambda df: df["value"].min(),
-            "std": lambda df: df["value"].std(),
-        }
+            "first": lambda df: df.loc[df["time"].idxmin(), "value"] if len(df) > 0 else nan,
+            "last": lambda df: df.loc[df["time"].idxmax(), "value"] if len(df) > 0 else nan,
+            "avg": lambda df: df["value"].mean() if len(df) > 0 else nan,
+            "max": lambda df: df["value"].max() if len(df) > 0 else nan,
+            "min": lambda df: df["value"].min() if len(df) > 0 else nan,
+            "std": lambda df: df["value"].std() if len(df) > 0 else nan,
+            "med": lambda df: df["value"].median() if len(df) > 0 else nan,
+        }  # type: ignore
         if how in howMapping:
             how = howMapping[how]
 
@@ -172,6 +185,9 @@ class Patient:
         for measureName, measureTimeValue in self.measures.items():
 
             if isinstance(measureTimeValue, dict):
+                if measureTypes not in ["all", "time"]:
+                    continue
+
                 measureTimes = list(measureTimeValue.keys())
                 left = 0
                 right = len(measureTimeValue) - 1
@@ -208,6 +224,9 @@ class Patient:
                 df[measureName] = measureValue
                 pass
             else:
+                if measureTypes not in ["all", "static"]:
+                    continue
+
                 df[measureName] = measureTimeValue
                 pass
             pass
@@ -229,6 +248,9 @@ class Patient:
             else:
                 jsonData["measures"][measureName] = measureData
         return jsonData
+
+    def __hash__(self) -> int:
+        return hash(self.stay_id)
 
 
 class Patients:
@@ -279,10 +301,12 @@ class Patients:
             p.removeMeasures(measureNames)
         pass
 
-    def fillMissingMeasureValue(self, measureNames: str | list[str], measureValue: float):
+    def fillMissingMeasureValue(
+        self, measureNames: str | list[str], measureValue: float
+    ):
         if isinstance(measureNames, str):
             measureNames = [measureNames]
-        
+
         for measureName in measureNames:        
             for p in self.patientList:
                 if measureName not in p.measures:
@@ -294,10 +318,14 @@ class Patients:
         if isinstance(minimumFeatureCount, float):
             minimumFeatureCount = minimumFeatureCount * len(self.getMeasures())
 
-        for p in self.patientList:
-            if len(p.measures) < minimumFeatureCount:
-                self.patientList.remove(p)
+        self.patientList = [p for p in self.patientList if len(p.measures) >= minimumFeatureCount]
         pass
+
+    def removePatientAkiEarly(self, minTime: pd.Timedelta):
+        prevLen = len(self)
+        self.patientList = [p for p in self.patientList if p.akdTime >= minTime]
+        
+        return prevLen - len(self)
 
     def _putDataForPatients(self, df):
         for patient in self.patientList:
@@ -325,16 +353,18 @@ class Patients:
 
     def getMeasuresBetween(
         self,
-        fromTime: pd.Timedelta,
-        toTime: pd.Timedelta,
+        fromTime: pd.Timedelta = pd.Timedelta(hours=-6),
+        toTime: pd.Timedelta = pd.Timedelta(hours=24),
         how: str | Callable[[DataFrame], float] = "avg",
+        measureTypes: Literal["all", "static", "time"] = "all",
+        getUntilAkiPositive: bool = False,
     ):
         """Get patient's status during specified period.
 
         Args:
             fromTime (Timedelta): start time compare to intime (icu admission)
             toTime (Timedelta): end time compare to intime (icu admission)
-            how : {'first', 'last', 'avg', 'max', 'min', 'std'} | Callable[[DataFrame], float], default 'avg'
+            how : {'first', 'last', 'avg', 'max', 'min', 'std', 'med'} | Callable[[DataFrame], float], default 'avg'
                 Which value to choose if multiple exist:
 
                     - first: Use first recored value.
@@ -343,19 +373,34 @@ class Patients:
                     - max: Use max value.
                     - min: Use min value.
                     - std: Use standard deviation of values
+                    - med: Use median value
                     - custom function that take dataframe(time, value) and return value
+            measureTypes : {'all', 'static', 'time'}, default 'all', get all measures, only static measures, only time series measures
 
         Returns:
             DataFrame: one row with full status of patient
         """
 
-        xLs = [x.getMeasuresBetween(fromTime, toTime, how) for x in self.patientList]
+        if getUntilAkiPositive:
+            xLs = [
+                x.getMeasuresBetween(
+                    fromTime,
+                    x.akdTime if x.akdTime < toTime else toTime,
+                    how,
+                    measureTypes,
+                )
+                for x in self.patientList
+            ]
+        else:
+            xLs = [x.getMeasuresBetween(fromTime, toTime, how, measureTypes) for x in self.patientList]
 
         return pd.concat(xLs)
 
     def split(self, n, random_state=None):
         cachedSplitFile = (
-            TEMP_PATH / "split" / (str(len(self)) + "-" + str(n) + "-" + str(random_state) + ".json")
+            TEMP_PATH
+            / "split" /
+            f"{len(self)}-{hash(self)}-{n}-{random_state}.json"
         )
         if cachedSplitFile.exists():
             splitIndexes = json.loads(cachedSplitFile.read_text())
@@ -377,6 +422,9 @@ class Patients:
             res.append([self.patientList[i] for i in splitIndex])
         return [Patients(patients=pList) for pList in res]
 
+    def __hash__(self) -> int:
+        return hash(tuple(self.patientList))
+
     @staticmethod
     def toJsonFile(patients: Collection[Patient], file: str | Path):
         jsonData = []
@@ -393,8 +441,8 @@ class Patients:
         return Patients([Patient(**d) for d in jsonData])
 
     @staticmethod
-    def loadPatients(reload: bool = False):
-        if reload or not DEFAULT_PATIENTS_FILE.exists():
+    def loadPatients(reload: bool = False, patientsFile: Path = DEFAULT_PATIENTS_FILE):
+        if reload or not patientsFile.exists():
             patientList: List[Patient] = []
 
             dfPatient = getTargetPatientIcu()
@@ -402,18 +450,44 @@ class Patients:
 
             dfAkd = akd_positive.extractKdigoStages7day()
             dfAkd["akd"] = dfAkd["aki_7day"]
-            dfAkd = dfAkd[["stay_id", "akd"]]
+            # dfAkd = dfAkd[["stay_id", "akd"]]
 
             dfData1 = dfPatient.merge(dfAkd, "left", "stay_id")
             dfData1["akd"] = dfData1["akd"].astype(bool)
 
             for _, row in dfData1.iterrows():
+
+                if row["aki_stage_7day"] != 0 and row["aki_stage_creat"] == row["aki_stage_7day"]:
+                    akdCreatTime = pd.Timestamp(row["charttime_creat"])
+                else:
+                    akdCreatTime = None
+
+                if row["aki_stage_7day"] != 0 and row["aki_stage_uo"] == row["aki_stage_7day"]:
+                    akdUrineTime = pd.Timestamp(row["charttime_uo"])
+                else:
+                    akdUrineTime = None
+
+                intime = pd.Timestamp(row["intime"])
+
+                if akdCreatTime is not None and akdUrineTime is not None:
+                    akdTime = min(akdCreatTime, akdUrineTime)
+                    akdTime = akdTime - intime
+                elif akdCreatTime is not None:
+                    akdTime = akdCreatTime
+                    akdTime = akdTime - intime
+                elif akdUrineTime is not None:
+                    akdTime = akdUrineTime
+                    akdTime = akdTime - intime
+                else:
+                    akdTime = Timedelta(days=10)
+
                 patient = Patient(
                     row["subject_id"],
                     row["hadm_id"],
                     row["stay_id"],
-                    row["intime"],
+                    intime,
                     row["akd"],
+                    akdTime=akdTime,
                 )
                 patientList.append(patient)
                 pass
@@ -507,6 +581,36 @@ class Patients:
             df = lab_test.getUrineKetone().dropna()
             patients._putDataForPatients(df)
 
+            ## extra lab variables
+            ### blood count
+            dfBc = reduceByHadmId(complete_blood_count.runSql())
+            dfBc = dfBc[
+                [
+                    "stay_id",
+                    "hematocrit",
+                    "mch",
+                    "mchc",
+                    "mcv",
+                    "rbc",
+                    "rdw"
+                ]
+            ].dropna()
+            patients._putDataForPatients(dfBc)
+
+            ## blood diff (missing too much )
+
+            ## chem
+            dfChem = reduceByHadmId(chemistry.runSql())
+            dfChem = dfChem[
+                [
+                    "stay_id",
+                    "chloride",
+                    "sodium",
+                    "potassium",
+                ]
+            ].dropna()
+            patients._putDataForPatients(dfChem)
+
             ########### Scoring systems ###########
             df = getGcs().dropna()
             patients._putDataForPatients(df)
@@ -573,9 +677,9 @@ class Patients:
             patients._putDataForPatients(df)
 
             ########### Save file ###########
-            Patients.toJsonFile(patientList, DEFAULT_PATIENTS_FILE)
+            Patients.toJsonFile(patientList, patientsFile)
 
             return patients
 
         else:
-            return Patients.fromJsonFile(DEFAULT_PATIENTS_FILE)
+            return Patients.fromJsonFile(patientsFile)

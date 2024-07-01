@@ -16,6 +16,8 @@ psycopg2
 xgboost
 scikit-learn
 scikit-optimize
+tabpfn
+GRANDE
 
 # data structure packages
 sortedcontainers

@@ -2,7 +2,7 @@ import numpy as np
 from pandas import DataFrame
 
 
-class Outlier:
+class Outliner:
     def __init__(self):
         self.fitted = False
     
