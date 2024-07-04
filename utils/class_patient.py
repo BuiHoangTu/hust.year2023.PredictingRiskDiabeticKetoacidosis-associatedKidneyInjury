@@ -102,8 +102,10 @@ class Patient:
         measureName: str,
         measureTime: str | datetime | datetime64 | Timestamp | None,
         measureValue: float,
+        existingTypeIncompatible: Literal["replace", "skip", "error", "static"] = "error",
     ):
 
+        # if no time then static measure
         if measureTime is None:
             self.measures[measureName] = measureValue
             return
@@ -112,9 +114,19 @@ class Patient:
 
         measure = self.measures.get(measureName)
 
+        # if existing measure is not time series
         if isinstance(measure, float) or isinstance(measure, int):
-            self.measures[measureName] = measureValue
-            return
+            if existingTypeIncompatible == "error":
+                raise Exception(
+                    f"Measure {measureName} is not time series but trying to add time series measure"
+                )
+            elif existingTypeIncompatible == "skip":
+                return 
+            elif existingTypeIncompatible == "static":
+                self.measures[measureName] = measureValue
+                return 
+            else:
+                measure = None  # set to none to resolve below
 
         if measure is None:
             measure = self.measures[measureName] = SortedDict()
@@ -304,6 +316,7 @@ class Patients:
     def fillMissingMeasureValue(
         self, measureNames: str | list[str], measureValue: float
     ):
+        
         if isinstance(measureNames, str):
             measureNames = [measureNames]
 
@@ -311,7 +324,15 @@ class Patients:
             for p in self.patientList:
                 if measureName not in p.measures:
                     p.putMeasure(measureName, None, measureValue)
-
+                elif p.measures[measureName] == nan:
+                    p.putMeasure(measureName, None, measureValue)
+                else:
+                    measures = p.measures[measureName]
+                    if isinstance(measures, dict):
+                        for time, value in measures.items():
+                            if value == nan:
+                                p.putMeasure(measureName, time, measureValue)
+                
         pass
 
     def removePatientByMissingFeatures(self, minimumFeatureCount: int | float = 0.8):
@@ -327,7 +348,7 @@ class Patients:
         
         return prevLen - len(self)
 
-    def _putDataForPatients(self, df):
+    def _putDataForPatients(self, df: DataFrame):
         for patient in self.patientList:
             if "stay_id" in df.columns:
                 dfIndividualMeasures = df[df["stay_id"] == patient.stay_id]
