@@ -224,6 +224,7 @@ class NormalizeData:
 
     def fit(self, dfTrain: DataFrame):
         self.fit_transform(dfTrain)
+        return self
 
     def fit_transform(self, dfTrain: DataFrame):
         self.numericColumns = dfTrain.select_dtypes(include=[np.number]).columns
@@ -244,10 +245,11 @@ class NormalizeData:
                 dfTrain[self.numericColumns]
             )
 
-            # knn
-            dfTrain[self.numericColumns] = self.imputer.fit_transform(
-                dfTrain[self.numericColumns]
-            )
+            if self.fillData:
+                # knn
+                dfTrain[self.numericColumns] = self.imputer.fit_transform(
+                    dfTrain[self.numericColumns]
+                )
 
         # category
         if self.encodeCategorical:
@@ -341,7 +343,7 @@ class DLModel:
         self.toHour = toHour
 
         pass
-    
+
     def predict(self, patient: Patient):
         npX = patientsToNumpy(
             Patients([patient]),
@@ -356,12 +358,11 @@ class DLModel:
             toHour=self.toHour,
         )[0]
         npX = np.nan_to_num(npX, nan=0)
-        
+
         staticX = patient.getMeasuresBetween(measureTypes="static")
         staticX = staticX.drop(columns=["subject_id", "hadm_id", "stay_id", "akd"])
         staticX = self.normalizeData.transform(staticX)
         staticX = staticX.to_numpy(dtype=np.float32)
         staticX = np.nan_to_num(staticX, nan=0)
-        
-        
+
         return self.model.predict([npX, staticX])
