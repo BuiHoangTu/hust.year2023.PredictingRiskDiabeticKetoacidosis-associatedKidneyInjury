@@ -1319,15 +1319,10 @@ def transformer_predict(
         inputs += [(eval_xs_dynamic_, eval_xs_static_)]
         labels += [eval_ys_]
 
-    print("inputs dynamic b4 cat", inputs[0][0].shape)
     inputs_dynamic = torch.cat([input_[0] for input_ in inputs], 1)
-    print("inputs dynamic after cat", inputs_dynamic.shape)
     inputs_dynamic = torch.split(inputs_dynamic, batch_size_inference, dim=1)
 
-    print("inputs static b4 cat", inputs[0][1].shape)    
     inputs_static = torch.cat([input_[1] for input_ in inputs], 1)
-    print("inputs static after cat", inputs_static.shape)
-    # raise Exception("stop for debug")
     inputs_static = torch.split(inputs_static, batch_size_inference, dim=1)
 
     labels = torch.cat(labels, 1)
