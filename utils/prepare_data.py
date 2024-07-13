@@ -3,7 +3,7 @@ import numpy as np
 from pandas import DataFrame, Timedelta
 from sklearn.impute import KNNImputer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
-from constants import CATEGORICAL_MEASURES
+from constants import CATEGORICAL_MEASURES, NULLABLE_MEASURES
 from utils.class_outlier import Outliner
 from utils.class_patient import Patient, Patients
 import pandas as pd
@@ -366,3 +366,17 @@ class DLModel:
         staticX = np.nan_to_num(staticX, nan=0)
 
         return self.model.predict([npX, staticX])
+
+
+def getMonitoredPatients():
+    patients = Patients.loadPatients()
+    patients.fillMissingMeasureValue(NULLABLE_MEASURES, 0)
+    
+    measures = patients.getMeasures()
+    for measure, count in measures.items():
+        if count < len(patients) * 80 / 100:
+            patients.removeMeasures([measure])
+            
+    patients.removePatientByMissingFeatures()
+    
+    return patients
