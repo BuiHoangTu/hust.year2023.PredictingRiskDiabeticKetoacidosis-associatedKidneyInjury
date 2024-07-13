@@ -19,9 +19,11 @@ tmp/bak
 ## self 
 package_check.py
 paper_based.py
-main.py
 test*
 *.zip
 
 # secret files
 secret.py
+
+# tinyDb
+db.json
