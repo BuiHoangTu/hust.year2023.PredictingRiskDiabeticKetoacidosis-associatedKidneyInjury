@@ -247,6 +247,8 @@ class Patient:
 
     def toJson(self):
         jsonData = self.__dict__.copy()
+        jsonData["intime"] = self.intime.isoformat()
+        jsonData["akdTime"] = self.akdTime.total_seconds()
 
         jsonData["measures"] = {}
 
@@ -260,6 +262,30 @@ class Patient:
             else:
                 jsonData["measures"][measureName] = measureData
         return jsonData
+    
+    @staticmethod
+    def fromJson(jsonMap: Dict):
+        measures = jsonMap.get("measures", {})
+        for measureName, measureData in measures.items():
+            if isinstance(measureData, dict):
+                for timestampStr, value in measureData.items():
+                    measureData[timestampStr] = float(value)
+                    pass
+                pass
+            else:
+                measures[measureName] = float(measureData)
+                pass
+            pass
+
+        return Patient(
+            jsonMap["subject_id"] if "subject_id" in jsonMap else 0,
+            jsonMap["hadm_id"] if "hadm_id" in jsonMap else 0,
+            jsonMap["stay_id"],
+            jsonMap["intime"],
+            jsonMap["akdPositive"] if "akdPositive" in jsonMap else False,
+            measures,
+            jsonMap["akdTime"] if "akdTime" in jsonMap else pd.Timedelta(days=10),
+        )
 
     def __hash__(self) -> int:
         return hash(self.stay_id)
@@ -316,7 +342,7 @@ class Patients:
     def fillMissingMeasureValue(
         self, measureNames: str | list[str], measureValue: float
     ):
-        
+
         if isinstance(measureNames, str):
             measureNames = [measureNames]
 
@@ -332,7 +358,7 @@ class Patients:
                         for time, value in measures.items():
                             if value == nan:
                                 p.putMeasure(measureName, time, measureValue)
-                
+
         pass
 
     def removePatientByMissingFeatures(self, minimumFeatureCount: int | float = 0.8):
@@ -345,7 +371,7 @@ class Patients:
     def removePatientAkiEarly(self, minTime: pd.Timedelta):
         prevLen = len(self)
         self.patientList = [p for p in self.patientList if p.akdTime >= minTime]
-        
+
         return prevLen - len(self)
 
     def _putDataForPatients(self, df: DataFrame):
@@ -446,6 +472,11 @@ class Patients:
     def __hash__(self) -> int:
         return hash(tuple(self.patientList))
 
+    def toJson(self):
+        return json.dumps(
+            [p.toJson() for p in self.patientList], indent=4, cls=PatientJsonEncoder
+        )
+
     @staticmethod
     def toJsonFile(patients: Collection[Patient], file: str | Path):
         jsonData = []
@@ -455,11 +486,14 @@ class Patients:
         Path(file).write_text(json.dumps(jsonData, indent=4, cls=PatientJsonEncoder))
 
     @staticmethod
+    def fromJson(jsonStr: str):
+        jsonData: List[Dict] = json.loads(jsonStr)
+        return Patients([Patient(**d) for d in jsonData])
+
+    @staticmethod
     def fromJsonFile(file: str | Path):
         file = Path(file)
-
-        jsonData: List[Dict] = json.loads(file.read_text())
-        return Patients([Patient(**d) for d in jsonData])
+        return Patients.fromJson(file.read_text())
 
     @staticmethod
     def loadPatients(reload: bool = False, patientsFile: Path = DEFAULT_PATIENTS_FILE):
