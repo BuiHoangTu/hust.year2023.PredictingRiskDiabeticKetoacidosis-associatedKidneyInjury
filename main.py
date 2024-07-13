@@ -123,13 +123,24 @@ def run(modelNames: list[str] | None = None):
             print("=============================")
     pass
 
+def runGui():
+    import utils.gui 
+
 
 if __name__ == "__main__":
+    if any("run" in argv for argv in sys.argv):
+        paramId = sys.argv.index("run")
+        if len(sys.argv) > paramId + 1:
+            mode = sys.argv[paramId + 1]
+            if mode == "--gui":
+                runGui()
+                exit()
+    
     if any("clean" in argv for argv in sys.argv):
         cleanTempPath()
         pass
-    if "run" in sys.argv:
-        paramId = sys.argv.index("run")
+    if "train" in sys.argv:
+        paramId = sys.argv.index("train")
         if len(sys.argv) > paramId + 1:
             modelNames = sys.argv[paramId + 1:]
             run(modelNames)
