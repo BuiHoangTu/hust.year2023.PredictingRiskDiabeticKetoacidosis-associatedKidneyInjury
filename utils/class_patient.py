@@ -262,18 +262,24 @@ class Patient:
             else:
                 jsonData["measures"][measureName] = measureData
         return jsonData
-    
+
     @staticmethod
     def fromJson(jsonMap: Dict):
         measures = jsonMap.get("measures", {})
         for measureName, measureData in measures.items():
             if isinstance(measureData, dict):
                 for timestampStr, value in measureData.items():
-                    measureData[timestampStr] = float(value)
+                    try:
+                        measureData[timestampStr] = float(value)
+                    except ValueError:
+                        measureData[timestampStr] = value
                     pass
                 pass
             else:
-                measures[measureName] = float(measureData)
+                try:
+                    measures[measureName] = float(measureData)
+                except ValueError:
+                    measures[measureName] = measureData
                 pass
             pass
 
