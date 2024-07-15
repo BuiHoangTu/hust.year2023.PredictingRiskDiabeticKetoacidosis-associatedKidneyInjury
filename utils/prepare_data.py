@@ -298,8 +298,8 @@ class NormalizeData:
             df = df.drop(columns=self.categoricalColumns)
             df = df.join(dfEncoded)
 
-        # parse mixed to number
-        for col in self.mixedColumns:
+        # parse mixed to number if exist in df
+        for col in set(self.mixedColumns) & set(df.columns):
             df[col] = df[col].astype(float)
 
         # numeric
