@@ -6,7 +6,7 @@ from pandas import Timestamp
 from tinydb import TinyDB
 from tinydb.queries import Query
 from constants import CATEGORICAL_MEASURES, TEMP_PATH
-from utils.class_patient import Patient, Patients
+from utils.class_patient import Patient
 from utils.class_voter import Voter
 from lime.lime_tabular import LimeTabularExplainer
 
@@ -99,4 +99,4 @@ def create_item():
 
 
 def runRestServer():
-    app.run()
+    app.run(port=5000)
