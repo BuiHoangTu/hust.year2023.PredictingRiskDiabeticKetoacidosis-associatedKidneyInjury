@@ -27,3 +27,6 @@ functionize-notebook
 
 # DL
 tensorflow
+
+# explain 
+shap
