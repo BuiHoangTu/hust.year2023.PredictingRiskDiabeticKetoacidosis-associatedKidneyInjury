@@ -9,6 +9,10 @@ MIMIC_PATH = Path(MIMIC_PATH_STR)
 TEMP_PATH = Path("tmp")
 TEMP_PATH.mkdir(parents=True, exist_ok=True)
 
+# result path 
+RESULT_PATH = Path("result")
+RESULT_PATH.mkdir(parents=True, exist_ok=True)
+
 # measures whose null represent false value
 NULLABLE_MEASURES = [
     "dka_type",
