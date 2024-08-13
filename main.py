@@ -126,6 +126,9 @@ def run(modelNames: list[str] | None = None):
 def runGui():
     import utils.gui 
 
+def runServer():
+    from utils.server import runRestServer
+    runRestServer()
 
 if __name__ == "__main__":
     if any("run" in argv for argv in sys.argv):
@@ -134,6 +137,9 @@ if __name__ == "__main__":
             mode = sys.argv[paramId + 1]
             if mode == "--gui":
                 runGui()
+                exit()
+            if mode == "--server":
+                runServer()
                 exit()
     
     if any("clean" in argv for argv in sys.argv):
