@@ -12,12 +12,12 @@ matplotlib
 # postgresql driver, an installed postgresql is required
 psycopg2
 
-# ML
+## buildin models
 xgboost
 scikit-learn
 scikit-optimize
 tabpfn
-GRANDE
+# GRANDE  # deactivate grande to use tf models 
 
 # data structure packages
 sortedcontainers
@@ -27,6 +27,7 @@ functionize-notebook
 
 # DL
 tensorflow
+tf-models-official==2.17.0
 
 # explain 
 shap
