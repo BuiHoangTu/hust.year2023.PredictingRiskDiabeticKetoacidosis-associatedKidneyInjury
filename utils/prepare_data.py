@@ -9,205 +9,7 @@ from utils.class_patient import Patient, Patients
 import pandas as pd
 
 
-def patientsToNumpy(
-    patients: Patients,
-    hoursPerWindows: int,
-    categoricalColumns: List[str],
-    columns: Iterable[str] | None = None,
-    categoricalEncoder: None | OneHotEncoder = None,
-    numericEncoder: None | StandardScaler = None,
-    outlier: Outliner | None = None,
-    timeSeriesOnly: bool = False,
-    fromHour: int = 0,
-    toHour: int = 24,
-):
-    """Convert patients to 3d numpy array
-
-    Args:
-        patients (Patients): patients
-        hoursPerWindows (int): _description_
-        oneHotEncoder (None | OneHotEncoder): how to encode categorical columns, if it is not fitted yet, it will be fitted.
-        categoricalColumns (List[str]): categorical columns
-        numericEncoder (None | StandardScaler): how to encode numeric columns, if it is not fitted yet, it will be fitted.
-
-    Returns:
-        np.array: 3d numpy array
-        oneHotEncoder: oneHotEncoder(fitted) to encode the test part
-        numericEncoder: numericEncoder(fitted) to encode the test part
-    """
-
-    if timeSeriesOnly:
-        measureTypes = "time"
-    else:
-        measureTypes = "all"
-
-    def timeWindowGenerate():
-        start = fromHour
-        stop = toHour
-        while True:
-            if start >= stop:
-                break
-
-            yield (
-                (Timedelta(hours=start) if start > 0 else Timedelta(hours=-6)),
-                (
-                    Timedelta(hours=(start + hoursPerWindows))
-                    if start + hoursPerWindows < stop
-                    else Timedelta(hours=stop)
-                ),
-            )
-
-            start += hoursPerWindows
-        pass
-
-    # unify inputs
-    if categoricalEncoder is None:
-        categoricalEncoder = OneHotEncoder(sparse_output=False, handle_unknown="ignore")
-
-    if numericEncoder is None:
-        numericEncoder = StandardScaler()
-
-    if outlier is None:
-        outlier = Outliner()
-
-    if __name__ == "__main__":
-        print("retrieved patients", len(patients))
-
-    dfPatientList: List[DataFrame] = []
-    for start, stop in timeWindowGenerate():
-        dfPatient = patients.getMeasuresBetween(
-            start, stop, measureTypes=measureTypes
-        ).drop(columns=["subject_id", "hadm_id", "stay_id", "akd"])
-        dfPatientList.append(dfPatient)
-        pass
-
-    dfTmp = pd.concat(dfPatientList, axis=0)
-    if columns is None:
-        categoricalColumns = [col for col in dfTmp.columns if col in categoricalColumns]
-
-        numeriColumns = [
-            col
-            for col in dfTmp.columns
-            if col not in categoricalColumns and dfTmp[col].dtype != "bool"
-        ]
-    else:
-        categoricalColumns = [col for col in columns if col in categoricalColumns]
-
-        outlierCateCols = categoricalEncoder.get_feature_names_out(categoricalColumns)
-
-        numeriColumns = [
-            col
-            for col in columns
-            if col not in outlierCateCols and dfTmp[col].dtype != "bool"
-        ]
-    # Outlier
-    if outlier.fitted is False:
-        outlier.fit(pd.concat(dfPatientList, axis=0)[numeriColumns])
-
-    for i, df in enumerate(dfPatientList):
-        dfPatientList[i][numeriColumns] = outlier.transform(df[numeriColumns])
-
-    # fill values
-    for i in range(1, len(dfPatientList)):
-        dfPatientList[i].fillna(dfPatientList[i - 1], inplace=True)
-        pass
-
-    # encode categorical columns
-    if (
-        not hasattr(categoricalEncoder, "categories_")
-        or categoricalEncoder.categories_ is None
-    ):
-        categoricalEncoder.fit(pd.concat(dfPatientList, axis=0)[categoricalColumns])
-
-    for i, df in enumerate(dfPatientList):
-        encoded = categoricalEncoder.transform(df[categoricalColumns])
-        dfEncoded = DataFrame(
-            encoded,  # type: ignore
-            columns=categoricalEncoder.get_feature_names_out(categoricalColumns),
-        )
-
-        # replace original columns with encoded columns
-        dfMerged = df.drop(columns=categoricalColumns)
-        dfMerged = dfMerged.join(dfEncoded)
-        dfPatientList[i] = dfMerged
-        pass
-
-    # ensure columns order for numeric encode (for test set)
-    if columns is not None:
-        for i, df in enumerate(dfPatientList):
-            for col in columns:
-                if col not in df.columns:
-                    df[col] = np.nan
-                pass
-
-            dfPatientList[i] = df[columns]
-
-    # encode numeric values
-    if (not hasattr(numericEncoder, "mean_") or numericEncoder.mean_ is None) and (
-        not hasattr(numericEncoder, "scale_") or numericEncoder.scale_ is None
-    ):
-        dfAll = pd.concat(dfPatientList, axis=0).astype(np.float32)
-        numericEncoder.fit(dfAll)
-        columns = dfAll.columns
-
-    for i, df in enumerate(dfPatientList):
-        encoded = numericEncoder.transform(df.astype(np.float32))
-        dfEncoded = DataFrame(
-            encoded,  # type: ignore
-            columns=df.columns,
-        )
-
-        # replace original columns with encoded columns
-        dfPatientList[i] = dfEncoded
-        pass
-
-    # combine dataframes (patients, features, timeWindows)
-    arrays = [df.to_numpy(dtype=np.float32) for df in dfPatientList]
-    combinedArray = np.stack(arrays, axis=2)
-
-    # reorder axis (patients, timeWindows, features)
-    npPatient = combinedArray.transpose(0, 2, 1)
-
-    return (
-        npPatient,
-        categoricalEncoder,
-        numericEncoder,
-        outlier,
-        columns,
-    )
-
-
-def normalizeData(dfTrain: DataFrame, dfTest, dfVal=None):
-    return _normalizeData(dfTrain, dfTest, dfVal, fillData=False)
-
-
-def normalizeAndFillData(dfTrain, dfTest, dfVal=None):
-    return _normalizeData(dfTrain, dfTest, dfVal, fillData=True)
-
-
-def encodeCategoricalData(dfTrain: DataFrame, dfTest, dfVal=None):
-    return _normalizeData(dfTrain, dfTest, dfVal, encodeNumeric=False)
-
-
-def _normalizeData(
-    dfTrain: DataFrame,
-    dfTest,
-    dfVal=None,
-    fillData=False,
-    encodeCategorical=True,
-    encodeNumeric=True,
-):
-    normalizeData = NormalizeData(fillData, encodeCategorical, encodeNumeric)
-
-    dfTrain = normalizeData.fit_transform(dfTrain)
-    dfTest = normalizeData.transform(dfTest)
-    if dfVal is not None:
-        dfVal = normalizeData.transform(dfVal)
-
-    return dfTrain, dfTest, dfVal
-
-
-class NormalizeData:
+class DataNormalizer:
     def __init__(self, fillData=False, encodeCategorical=True, encodeNumeric=True):
         self.fillData = fillData
         self.encodeCategorical = encodeCategorical
@@ -323,21 +125,13 @@ class DLModel:
     def __init__(
         self,
         model,
-        normalizeData: NormalizeData,
-        categoryEncoder,
-        numericEncoder,
-        oulier,
-        columns,
+        normalizeData: DataNormalizer,
         hoursPerWindows,
         fromHour,
         toHour,
     ):
         self.model = model
         self.normalizeData = normalizeData
-        self.categoryEncoder = categoryEncoder
-        self.numericEncoder = numericEncoder
-        self.oulier = oulier
-        self.columns = columns
         self.hoursPerWindows = hoursPerWindows
         self.fromHour = fromHour
         self.toHour = toHour
@@ -348,14 +142,11 @@ class DLModel:
         npX = patientsToNumpy(
             Patients([patient]),
             self.hoursPerWindows,
-            CATEGORICAL_MEASURES,
-            self.columns,
-            self.categoryEncoder,
-            self.numericEncoder,
-            self.oulier,
             timeSeriesOnly=True,
             fromHour=self.fromHour,
             toHour=self.toHour,
+            dataNormalizer=self.normalizeData,
+            isTrainPatients=False,
         )[0]
         npX = np.nan_to_num(npX, nan=0)
 
@@ -368,15 +159,175 @@ class DLModel:
         return self.model.predict([npX, staticX])
 
 
+def patientsToNumpy(
+    patients: Patients,
+    hoursPerWindows: int,
+    timeSeriesOnly: bool = False,
+    fromHour: int = 0,
+    toHour: int = 24,
+    dataNormalizer: DataNormalizer | None = None,
+    isTrainPatients: bool = True,
+):
+    """Convert patients to 3d numpy array
+
+    Args:
+        patients (Patients): patients
+        hoursPerWindows (int): _description_
+        oneHotEncoder (None | OneHotEncoder): how to encode categorical columns, if it is not fitted yet, it will be fitted.
+        categoricalColumns (List[str]): categorical columns
+        numericEncoder (None | StandardScaler): how to encode numeric columns, if it is not fitted yet, it will be fitted.
+
+    Returns:
+        np.array: 3d numpy array
+        oneHotEncoder: oneHotEncoder(fitted) to encode the test part
+        numericEncoder: numericEncoder(fitted) to encode the test part
+    """
+
+    if timeSeriesOnly:
+        measureTypes = "time"
+    else:
+        measureTypes = "all"
+
+    if not isTrainPatients and dataNormalizer is None:
+        raise ValueError(
+            "normalizeDataCls must be provided if this is not TrainPatients"
+        )
+
+    def timeWindowGenerate():
+        start = fromHour
+        stop = toHour
+        while True:
+            if start >= stop:
+                break
+
+            yield (
+                (Timedelta(hours=start) if start > 0 else Timedelta(hours=-6)),
+                (
+                    Timedelta(hours=(start + hoursPerWindows))
+                    if start + hoursPerWindows < stop
+                    else Timedelta(hours=stop)
+                ),
+            )
+
+            start += hoursPerWindows
+        pass
+
+    if dataNormalizer is None:
+        dataNormalizer = DataNormalizer()
+
+    if __name__ == "__main__":
+        print("retrieved patients", len(patients))
+
+    # merge into 3d array
+    dfPatientList: List[DataFrame] = []
+    for start, stop in timeWindowGenerate():
+        dfPatient = patients.getMeasuresBetween(
+            start, stop, measureTypes=measureTypes
+        ).drop(columns=["subject_id", "hadm_id", "stay_id", "akd"])
+        dfPatientList.append(dfPatient)
+        pass
+
+    dfTmp = pd.concat(dfPatientList, axis=0)
+    dataNormalizer.fit(dfTmp)
+
+    # fill values
+    for i in range(1, len(dfPatientList)):
+        dfPatientList[i].fillna(dfPatientList[i - 1], inplace=True)
+        pass
+
+    for i, df in enumerate(dfPatientList):
+        dfEncoded = dataNormalizer.transform(df)
+        dfPatientList[i] = dfEncoded
+        pass
+
+    # combine dataframes (patients, features, timeWindows)
+    arrays = [df.to_numpy(dtype=np.float32) for df in dfPatientList]
+    combinedArray = np.stack(arrays, axis=1)
+
+    return (combinedArray, dataNormalizer)
+
+
+def normalizeData(dfTrain: DataFrame, dfTest, dfVal=None):
+    return _normalizeData(dfTrain, dfTest, dfVal, fillData=False)
+
+
+def normalizeAndFillData(dfTrain, dfTest, dfVal=None):
+    return _normalizeData(dfTrain, dfTest, dfVal, fillData=True)
+
+
+def encodeCategoricalData(dfTrain: DataFrame, dfTest, dfVal=None):
+    return _normalizeData(dfTrain, dfTest, dfVal, encodeNumeric=False)
+
+
+def _normalizeData(
+    dfTrain: DataFrame,
+    dfTest,
+    dfVal=None,
+    fillData=False,
+    encodeCategorical=True,
+    encodeNumeric=True,
+):
+    normalizeData = DataNormalizer(fillData, encodeCategorical, encodeNumeric)
+
+    dfTrain = normalizeData.fit_transform(dfTrain)
+    dfTest = normalizeData.transform(dfTest)
+    if dfVal is not None:
+        dfVal = normalizeData.transform(dfVal)
+
+    return dfTrain, dfTest, dfVal
+
+
 def getMonitoredPatients():
     patients = Patients.loadPatients()
     patients.fillMissingMeasureValue(NULLABLE_MEASURES, 0)
-    
+
     measures = patients.getMeasures()
     for measure, count in measures.items():
         if count < len(patients) * 80 / 100:
             patients.removeMeasures([measure])
-            
+
     patients.removePatientByMissingFeatures()
-    
+
     return patients
+
+
+def getTimeMonitoredPatients():
+    patients = getMonitoredPatients()
+    patients.removePatientAkiEarly(Timedelta(hours=12))
+
+    return patients
+
+
+def trainTest(patients: Patients, seed=27):
+    splitedPatients = patients.split(5, seed)
+
+    for i in range(splitedPatients.__len__()):
+        testPatients = splitedPatients[i]
+
+        trainPatientsList = splitedPatients[:i] + splitedPatients[i + 1 :]
+        trainPatients = Patients(patients=[])
+        for trainPatientsElem in trainPatientsList:
+            trainPatients += trainPatientsElem
+
+    yield trainPatients, testPatients
+
+
+def trainValTest(patients: Patients, seed=27):
+    splitedPatients = patients.split(5, seed)
+
+    for i in range(splitedPatients.__len__()):
+        testPatients = splitedPatients[i]
+
+        trainPatientsList = splitedPatients[:i] + splitedPatients[i + 1 :]
+        trainPatients = Patients(patients=[])
+        for trainPatientsElem in trainPatientsList:
+            trainPatients += trainPatientsElem
+
+        *trainPatients, valPatients = trainPatients.split(5, 27)
+        tmpPatients = Patients(patients=[])
+        for trainPatientsElem in trainPatients:
+            tmpPatients += trainPatientsElem
+        trainPatients = tmpPatients
+
+        yield trainPatients, valPatients, testPatients
+        pass
