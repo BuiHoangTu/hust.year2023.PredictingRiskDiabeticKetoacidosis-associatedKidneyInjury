@@ -1,9 +1,11 @@
+from pathlib import Path
+import pickle
 from typing import Iterable, List
 import numpy as np
 from pandas import DataFrame, Timedelta
 from sklearn.impute import KNNImputer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
-from constants import CATEGORICAL_MEASURES, NULLABLE_MEASURES
+from constants import CATEGORICAL_MEASURES, NULLABLE_MEASURES, TEMP_PATH
 from utils.class_outlier import Outliner
 from utils.class_patient import Patient, Patients
 import pandas as pd
@@ -298,7 +300,7 @@ def getTimeMonitoredPatients():
     return patients
 
 
-def trainTest(patients: Patients, seed=27):
+def trainTestPatients(patients: Patients, seed=27):
     splitedPatients = patients.split(5, seed)
 
     for i in range(splitedPatients.__len__()):
@@ -312,22 +314,110 @@ def trainTest(patients: Patients, seed=27):
     yield trainPatients, testPatients
 
 
-def trainValTest(patients: Patients, seed=27):
-    splitedPatients = patients.split(5, seed)
+def trainValTestPatients(patients: Patients, seed=27):
+    splitedTestPatients = patients.split(5, seed)
 
-    for i in range(splitedPatients.__len__()):
-        testPatients = splitedPatients[i]
+    for i in range(splitedTestPatients.__len__()):
+        testPatients = splitedTestPatients[i]
 
-        trainPatientsList = splitedPatients[:i] + splitedPatients[i + 1 :]
+        trainPatientsList = splitedTestPatients[:i] + splitedTestPatients[i + 1 :]
         trainPatients = Patients(patients=[])
         for trainPatientsElem in trainPatientsList:
             trainPatients += trainPatientsElem
 
-        *trainPatients, valPatients = trainPatients.split(5, 27)
-        tmpPatients = Patients(patients=[])
-        for trainPatientsElem in trainPatients:
-            tmpPatients += trainPatientsElem
-        trainPatients = tmpPatients
+        def trainValGenerator(trainPatients):
+            splitedValPatients = trainPatients.split(5, seed)
+            for ii in range(splitedValPatients.__len__()):
+                valPatients = splitedValPatients[ii]
 
-        yield trainPatients, valPatients, testPatients
-        pass
+                trainPatientsList = splitedValPatients[:ii] + splitedValPatients[ii + 1 :]
+                trainPatients = Patients(patients=[])
+                for trainPatientsElem in trainPatientsList:
+                    trainPatients += trainPatientsElem
+
+                yield trainPatients, valPatients
+                pass
+
+            pass
+
+        yield trainValGenerator(trainPatients), testPatients
+
+
+def trainValTestNp(patients: Patients, seed=27, hoursPerWindow=24):
+    cacheFile = Path(TEMP_PATH / f"trainTest-{hash(patients)}-{seed}.pkl")
+
+    if cacheFile.exists():
+        return pickle.loads(cacheFile.read_bytes())
+
+    output = []
+    for i, (trainValGenerator, testPatients) in enumerate(trainValTestPatients(patients, seed)):
+        for trainPatients, valPatients in trainValGenerator:
+            ################### dynamic ###################
+            npTrainX, dataNormalizer = patientsToNumpy(
+                trainPatients,
+                hoursPerWindow,
+                timeSeriesOnly=True,
+                fromHour=0,
+                toHour=12,
+            )
+
+            npValX, *_ = patientsToNumpy(
+                valPatients,
+                hoursPerWindow,
+                timeSeriesOnly=True,
+                fromHour=0,
+                toHour=12,
+                dataNormalizer=dataNormalizer,
+                isTrainPatients=False,
+            )
+
+            npTestX, *_ = patientsToNumpy(
+                testPatients,
+                hoursPerWindow,
+                timeSeriesOnly=True,
+                fromHour=0,
+                toHour=12,
+                dataNormalizer=dataNormalizer,
+                isTrainPatients=False,
+            )
+
+            npTrainX = np.nan_to_num(npTrainX, nan=0)
+            npTestX = np.nan_to_num(npTestX, nan=0)
+            npValX = np.nan_to_num(npValX, nan=0)
+            
+            ################### Static ###################
+            staticTrainX = trainPatients.getMeasuresBetween(measureTypes="static")
+            staticTestX = testPatients.getMeasuresBetween(measureTypes="static")
+            staticValX = valPatients.getMeasuresBetween(measureTypes="static")
+
+            staticTrainX = staticTrainX.drop(columns=["subject_id", "hadm_id", "stay_id", "akd"])
+            staticTestX = staticTestX.drop(columns=["subject_id", "hadm_id", "stay_id", "akd"])
+            staticValX = staticValX.drop(columns=["subject_id", "hadm_id", "stay_id", "akd"])
+
+            staticTrainX, staticTestX, staticValX = normalizeData(
+                staticTrainX, staticTestX, staticValX
+            )
+
+            staticTrainX = staticTrainX.to_numpy().astype(np.float32)
+            staticTestX = staticTestX.to_numpy().astype(np.float32)
+            staticValX = staticValX.to_numpy().astype(np.float32) # type: ignore
+
+            staticTrainX = np.nan_to_num(staticTrainX, nan=0)
+            staticTestX = np.nan_to_num(staticTestX, nan=0)
+            staticValX = np.nan_to_num(staticValX, nan=0)
+                    
+            ################### labels ###################
+            trainY = [p.akdPositive for p in trainPatients]
+            testY = [p.akdPositive for p in testPatients]
+            valY = [p.akdPositive for p in valPatients]
+            
+            output.append((
+                i, 
+                (npTrainX, staticTrainX, trainY),
+                (npValX, staticValX, valY),
+                (npTestX, staticTestX, testY)
+            ))
+            pass
+        
+    cacheFile.write_bytes(pickle.dumps(output))
+    return output
