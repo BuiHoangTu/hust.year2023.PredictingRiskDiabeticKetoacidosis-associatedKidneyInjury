@@ -123,42 +123,42 @@ class DataNormalizer:
         return df
 
 
-class DLModel:
-    def __init__(
-        self,
-        model,
-        normalizeData: DataNormalizer,
-        hoursPerWindows,
-        fromHour,
-        toHour,
-    ):
-        self.model = model
-        self.normalizeData = normalizeData
-        self.hoursPerWindows = hoursPerWindows
-        self.fromHour = fromHour
-        self.toHour = toHour
+# class DLModel:
+#     def __init__(
+#         self,
+#         model,
+#         normalizeData: DataNormalizer,
+#         hoursPerWindows,
+#         fromHour,
+#         toHour,
+#     ):
+#         self.model = model
+#         self.normalizeData = normalizeData
+#         self.hoursPerWindows = hoursPerWindows
+#         self.fromHour = fromHour
+#         self.toHour = toHour
 
-        pass
+#         pass
 
-    def predict(self, patient: Patient):
-        npX = patientsToNumpy(
-            Patients([patient]),
-            self.hoursPerWindows,
-            timeSeriesOnly=True,
-            fromHour=self.fromHour,
-            toHour=self.toHour,
-            dataNormalizer=self.normalizeData,
-            isTrainPatients=False,
-        )[0]
-        npX = np.nan_to_num(npX, nan=0)
+#     def predict(self, patient: Patient):
+#         npX = patientsToNumpy(
+#             Patients([patient]),
+#             self.hoursPerWindows,
+#             timeSeriesOnly=True,
+#             fromHour=self.fromHour,
+#             toHour=self.toHour,
+#             dataNormalizer=self.normalizeData,
+#             isTrainPatients=False,
+#         )[0]
+#         npX = np.nan_to_num(npX, nan=0)
 
-        staticX = patient.getMeasuresBetween(measureTypes="static")
-        staticX = staticX.drop(columns=["subject_id", "hadm_id", "stay_id", "akd"])
-        staticX = self.normalizeData.transform(staticX)
-        staticX = staticX.to_numpy(dtype=np.float32)
-        staticX = np.nan_to_num(staticX, nan=0)
+#         staticX = patient.getMeasuresBetween(measureTypes="static")
+#         staticX = staticX.drop(columns=["subject_id", "hadm_id", "stay_id", "akd"])
+#         staticX = self.normalizeData.transform(staticX)
+#         staticX = staticX.to_numpy(dtype=np.float32)
+#         staticX = np.nan_to_num(staticX, nan=0)
 
-        return self.model.predict([npX, staticX])
+#         return self.model.predict([npX, staticX])
 
 
 def patientsToNumpy(
@@ -185,68 +185,29 @@ def patientsToNumpy(
         numericEncoder: numericEncoder(fitted) to encode the test part
     """
 
-    if timeSeriesOnly:
-        measureTypes = "time"
-    else:
-        measureTypes = "all"
-
     if not isTrainPatients and dataNormalizer is None:
         raise ValueError(
             "normalizeDataCls must be provided if this is not TrainPatients"
         )
 
-    def timeWindowGenerate():
-        start = fromHour
-        stop = toHour
-        while True:
-            if start >= stop:
-                break
-
-            yield (
-                (Timedelta(hours=start) if start > 0 else Timedelta(hours=-6)),
-                (
-                    Timedelta(hours=(start + hoursPerWindows))
-                    if start + hoursPerWindows < stop
-                    else Timedelta(hours=stop)
-                ),
-            )
-
-            start += hoursPerWindows
-        pass
-
-    if dataNormalizer is None:
-        dataNormalizer = DataNormalizer()
+    converter = PatientsNumpyConverter(
+        hoursPerWindows=hoursPerWindows,
+        timeSeriesOnly=timeSeriesOnly,
+        fromHour=fromHour,
+        toHour=toHour,
+    )    
+    if dataNormalizer is not None:
+        converter.dataNormalizer = DataNormalizer()
 
     if __name__ == "__main__":
         print("retrieved patients", len(patients))
 
-    # merge into 3d array
-    dfPatientList: List[DataFrame] = []
-    for start, stop in timeWindowGenerate():
-        dfPatient = patients.getMeasuresBetween(
-            start, stop, measureTypes=measureTypes
-        ).drop(columns=["subject_id", "hadm_id", "stay_id", "akd"])
-        dfPatientList.append(dfPatient)
-        pass
+    if isTrainPatients:
+        combinedArray = converter.fit_transform(patients)
+    else:
+        combinedArray = converter.transform(patients)
 
-    dfTmp = pd.concat(dfPatientList, axis=0)
-    dataNormalizer.fit(dfTmp)
-
-    # fill values
-    for i in range(1, len(dfPatientList)):
-        dfPatientList[i].fillna(dfPatientList[i - 1], inplace=True)
-        pass
-
-    for i, df in enumerate(dfPatientList):
-        dfEncoded = dataNormalizer.transform(df)
-        dfPatientList[i] = dfEncoded
-        pass
-
-    # combine dataframes (patients, features, timeWindows)
-    arrays = [df.to_numpy(dtype=np.float32) for df in dfPatientList]
-    combinedArray = np.stack(arrays, axis=1)
-
-    return (combinedArray, dataNormalizer)
+    return (combinedArray, converter.dataNormalizer)
 
 
 def normalizeData(dfTrain: DataFrame, dfTest, dfVal=None):
@@ -315,27 +276,43 @@ def trainTestPatients(patients: Patients, seed=27):
 
 
 def trainValTestPatients(patients: Patients, seed=27):
+    cacheFolder = Path(TEMP_PATH / "trainValTestPatients")
+    cacheFolder.mkdir(exist_ok=True)
+
     splitedTestPatients = patients.split(5, seed)
 
     for i in range(splitedTestPatients.__len__()):
         testPatients = splitedTestPatients[i]
 
-        trainPatientsList = splitedTestPatients[:i] + splitedTestPatients[i + 1 :]
-        trainPatients = Patients(patients=[])
-        for trainPatientsElem in trainPatientsList:
-            trainPatients += trainPatientsElem
+        cacheFile = cacheFolder / f"trainPatients-{seed}-{i}-{hash(testPatients)}.pkl"
+        if cacheFile.exists():
+            trainPatients: Patients = pickle.loads(cacheFile.read_bytes())
+        else:
+            trainPatientsList = splitedTestPatients[:i] + splitedTestPatients[i + 1 :]
+            trainPatients = Patients(patients=[])
+            for trainPatientsElem in trainPatientsList:
+                trainPatients += trainPatientsElem
 
         def trainValGenerator(trainPatients):
+            cacheFolder = Path(TEMP_PATH / "trainValTestPatients" / "trainValGenerator")
+            cacheFolder.mkdir(exist_ok=True)
+            
             splitedValPatients = trainPatients.split(5, seed)
             for ii in range(splitedValPatients.__len__()):
-                valPatients = splitedValPatients[ii]
+                cacheFile = cacheFolder / f"{seed}-{hash(trainPatients)}-{i}.pkl"
+                if cacheFile.exists():
+                    yield pickle.loads(cacheFile.read_bytes())
+                else:
+                
+                    valPatients = splitedValPatients[ii]
 
-                trainPatientsList = splitedValPatients[:ii] + splitedValPatients[ii + 1 :]
-                trainPatients = Patients(patients=[])
-                for trainPatientsElem in trainPatientsList:
-                    trainPatients += trainPatientsElem
-
-                yield trainPatients, valPatients
+                    trainPatientsList = splitedValPatients[:ii] + splitedValPatients[ii + 1 :]
+                    trainPatients = Patients(patients=[])
+                    for trainPatientsElem in trainPatientsList:
+                        trainPatients += trainPatientsElem
+                    
+                    cacheFile.write_bytes(pickle.dumps((trainPatients, valPatients)))
+                    yield trainPatients, valPatients
                 pass
 
             pass
@@ -349,68 +326,26 @@ def trainValTestNp(patients: Patients, seed=27, hoursPerWindow=24):
     if cacheFile.exists():
         return pickle.loads(cacheFile.read_bytes())
 
-    output = []
+    output: list[
+        tuple[
+            int,
+            tuple[np.ndarray, np.ndarray, list[bool]],
+            tuple[np.ndarray, np.ndarray, list[bool]],
+            tuple[np.ndarray, np.ndarray, list[bool]],
+        ]
+    ] = []
     for i, (trainValGenerator, testPatients) in enumerate(trainValTestPatients(patients, seed)):
         for trainPatients, valPatients in trainValGenerator:
-            ################### dynamic ###################
-            npTrainX, dataNormalizer = patientsToNumpy(
-                trainPatients,
-                hoursPerWindow,
-                timeSeriesOnly=True,
+            preparer = DeepLearningDataPreparer(
+                hoursPerWindows=hoursPerWindow,
                 fromHour=0,
                 toHour=12,
             )
-
-            npValX, *_ = patientsToNumpy(
-                valPatients,
-                hoursPerWindow,
-                timeSeriesOnly=True,
-                fromHour=0,
-                toHour=12,
-                dataNormalizer=dataNormalizer,
-                isTrainPatients=False,
-            )
-
-            npTestX, *_ = patientsToNumpy(
-                testPatients,
-                hoursPerWindow,
-                timeSeriesOnly=True,
-                fromHour=0,
-                toHour=12,
-                dataNormalizer=dataNormalizer,
-                isTrainPatients=False,
-            )
-
-            npTrainX = np.nan_to_num(npTrainX, nan=0)
-            npTestX = np.nan_to_num(npTestX, nan=0)
-            npValX = np.nan_to_num(npValX, nan=0)
-            
-            ################### Static ###################
-            staticTrainX = trainPatients.getMeasuresBetween(measureTypes="static")
-            staticTestX = testPatients.getMeasuresBetween(measureTypes="static")
-            staticValX = valPatients.getMeasuresBetween(measureTypes="static")
-
-            staticTrainX = staticTrainX.drop(columns=["subject_id", "hadm_id", "stay_id", "akd"])
-            staticTestX = staticTestX.drop(columns=["subject_id", "hadm_id", "stay_id", "akd"])
-            staticValX = staticValX.drop(columns=["subject_id", "hadm_id", "stay_id", "akd"])
-
-            staticTrainX, staticTestX, staticValX = normalizeData(
-                staticTrainX, staticTestX, staticValX
-            )
-
-            staticTrainX = staticTrainX.to_numpy().astype(np.float32)
-            staticTestX = staticTestX.to_numpy().astype(np.float32)
-            staticValX = staticValX.to_numpy().astype(np.float32) # type: ignore
-
-            staticTrainX = np.nan_to_num(staticTrainX, nan=0)
-            staticTestX = np.nan_to_num(staticTestX, nan=0)
-            staticValX = np.nan_to_num(staticValX, nan=0)
-                    
-            ################### labels ###################
-            trainY = [p.akdPositive for p in trainPatients]
-            testY = [p.akdPositive for p in testPatients]
-            valY = [p.akdPositive for p in valPatients]
-            
+        
+            npTrainX, staticTrainX, trainY = preparer.fit_transform(trainPatients)
+            npValX, staticValX, valY = preparer.transform(valPatients)
+            npTestX, staticTestX, testY = preparer.transform(testPatients)
+        
             output.append((
                 i, 
                 (npTrainX, staticTrainX, trainY),
@@ -418,6 +353,137 @@ def trainValTestNp(patients: Patients, seed=27, hoursPerWindow=24):
                 (npTestX, staticTestX, testY)
             ))
             pass
-        
+
     cacheFile.write_bytes(pickle.dumps(output))
     return output
+
+class PatientsNumpyConverter():
+    def __init__(
+        self, 
+        hoursPerWindows: int = 24,
+        timeSeriesOnly: bool = False,
+        fromHour: int = 0,
+        toHour: int = 24,
+    ):
+        self.hoursPerWindows = hoursPerWindows
+        if timeSeriesOnly:
+            self.measureTypes = "time"
+        else:
+            self.measureTypes = "all"
+        self.fromHour = fromHour
+        self.toHour = toHour
+        self.dataNormalizer = DataNormalizer()
+
+    def fit(self, patients: Patients):
+        dfPatientList: List[DataFrame] = []
+        for start, stop in self._timeWindowGenerate():
+            dfPatient = patients.getMeasuresBetween(
+                start, stop, measureTypes=self.measureTypes # type: ignore
+            ).drop(columns=["subject_id", "hadm_id", "stay_id", "akd"])
+            dfPatientList.append(dfPatient)
+            pass
+
+        dfTmp = pd.concat(dfPatientList, axis=0)
+        self.dataNormalizer.fit(dfTmp)
+
+        return self
+
+    def transform(self, patients: Patients):
+        dfPatientList: List[DataFrame] = []
+        for start, stop in self._timeWindowGenerate():
+            dfPatient = patients.getMeasuresBetween(
+                start, stop, measureTypes=self.measureTypes  # type: ignore
+            ).drop(columns=["subject_id", "hadm_id", "stay_id", "akd"])
+            dfPatientList.append(dfPatient)
+            pass
+
+        # fill values
+        for i in range(1, len(dfPatientList)):
+            dfPatientList[i].fillna(dfPatientList[i - 1], inplace=True)
+            pass
+
+        for i, df in enumerate(dfPatientList):
+            dfEncoded = self.dataNormalizer.transform(df)
+            dfPatientList[i] = dfEncoded
+            pass
+
+        arrays = [df.to_numpy(dtype=np.float32) for df in dfPatientList]
+        combinedArray = np.stack(arrays, axis=1)
+        
+        return combinedArray
+
+    def fit_transform(self, patients: Patients):
+        self.fit(patients)
+        return self.transform(patients)
+
+    def _timeWindowGenerate(self):
+        start = self.fromHour
+        stop = self.toHour
+        while True:
+            if start >= stop:
+                break
+
+            yield (
+                (Timedelta(hours=start) if start > 0 else Timedelta(hours=-6)),
+                (
+                    Timedelta(hours=(start + self.hoursPerWindows))
+                    if start + self.hoursPerWindows < stop
+                    else Timedelta(hours=stop)
+                ),
+            )
+
+            start += self.hoursPerWindows
+        pass
+
+    pass
+
+class DeepLearningDataPreparer():
+    def __init__(
+        self, 
+        hoursPerWindows,
+        fromHour: int = 0,
+        toHour: int = 24,
+    ):
+        self.timeSeriesConverter = PatientsNumpyConverter(
+            hoursPerWindows=hoursPerWindows,
+            timeSeriesOnly=True,
+            fromHour=fromHour,
+            toHour=toHour
+        )
+        
+        self.staticNormalizer = DataNormalizer(
+            fillData=False,
+            encodeCategorical=True,
+            encodeNumeric=True
+        )
+        
+    def fit(self, patients: Patients):
+        self.timeSeriesConverter.fit(patients)
+        
+        staticData = self._getRawStatic(patients)
+        self.staticNormalizer.fit(staticData)
+        return self
+
+    def transform(self, patients: Patients):
+        npTimeSeries = self.timeSeriesConverter.transform(patients)
+        npTimeSeries = np.nan_to_num(npTimeSeries, nan=0)
+
+        staticData = self._getRawStatic(patients)
+        staticData = self.staticNormalizer.transform(staticData)
+        staticData = staticData.to_numpy(dtype=np.float32)
+        staticData = np.nan_to_num(staticData, nan=0)
+        
+        labels = [p.akdPositive for p in patients]
+
+        return npTimeSeries, staticData, labels
+    
+    def fit_transform(self, patients: Patients):
+        self.fit(patients)
+        return self.transform(patients)
+    
+    def _getRawStatic(self, patients: Patients):
+        staticPatients = patients.getMeasuresBetween(measureTypes="static")
+        staticPatients = staticPatients.drop(columns=["subject_id", "hadm_id", "stay_id", "akd"])
+        return staticPatients
+
+    pass
