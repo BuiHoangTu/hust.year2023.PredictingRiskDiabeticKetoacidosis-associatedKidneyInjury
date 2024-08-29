@@ -2,6 +2,7 @@ from collections import Counter
 from datetime import datetime
 import json
 from pathlib import Path
+import pickle
 from typing import Callable, Collection, Dict, Iterable, List, Literal, Tuple
 import numpy as np
 from numpy import datetime64, nan
@@ -43,7 +44,7 @@ from variables.comorbidities import (
 )
 
 
-DEFAULT_PATIENTS_FILE = TEMP_PATH / "learning_data.json"
+DEFAULT_PATIENTS_FILE = TEMP_PATH / "learning_data.pkl"
 
 
 class PatientJsonEncoder(json.JSONEncoder):
@@ -504,6 +505,13 @@ class Patients:
     @staticmethod
     def loadPatients(reload: bool = False, patientsFile: Path = DEFAULT_PATIENTS_FILE):
         if reload or not patientsFile.exists():
+            #### convert json to pkl if json exists ####
+            possibleOldFile = patientsFile.with_suffix(".json")
+            if possibleOldFile.exists():
+                patients = Patients.fromJsonFile(possibleOldFile)
+                patientsFile.write_bytes(pickle.dumps(patients))
+            ############################################
+
             patientList: List[Patient] = []
 
             dfPatient = getTargetPatientIcu()
@@ -743,4 +751,10 @@ class Patients:
             return patients
 
         else:
-            return Patients.fromJsonFile(patientsFile)
+            # check file postfix json or pkl
+            if patientsFile.suffix == ".json":
+                return Patients.fromJsonFile(patientsFile)
+            elif patientsFile.suffix == ".pkl":
+                return pickle.loads(patientsFile.read_bytes())
+            else:
+                raise Exception("Unsupported file format")

@@ -1,5 +1,18 @@
+from collections.abc import Iterable
 import numpy as np
 
+
+def combineProbas(probas: Iterable[float]):
+    probas = list(probas)
+    confidences = np.abs(np.array(probas) - 0.5)
+    # Normalize the confidences to sum to 1
+    if np.sum(confidences) == 0:
+        weights = np.ones_like(confidences) / len(confidences)
+    else:
+        weights = confidences / np.sum(confidences)
+    finalProbas = np.sum(weights * probas)
+    
+    return finalProbas
 
 class ModelWrapper:
     def __init__(self, model, encoder):
