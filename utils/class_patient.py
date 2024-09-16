@@ -503,7 +503,7 @@ class Patients:
         return Patients.fromJson(file.read_text())
 
     @staticmethod
-    def loadPatients(reload: bool = False, patientsFile: Path = DEFAULT_PATIENTS_FILE):
+    def loadPatients(reload: bool = False, patientsFile: Path = DEFAULT_PATIENTS_FILE) -> "Patients":
         if reload or not patientsFile.exists():
             #### convert json to pkl if json exists ####
             possibleOldFile = patientsFile.with_suffix(".json")

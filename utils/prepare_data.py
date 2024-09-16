@@ -272,7 +272,7 @@ def trainTestPatients(patients: Patients, seed=27):
         for trainPatientsElem in trainPatientsList:
             trainPatients += trainPatientsElem
 
-    yield trainPatients, testPatients
+        yield trainPatients, testPatients
 
 
 def trainValTestPatients(patients: Patients, seed=27):
