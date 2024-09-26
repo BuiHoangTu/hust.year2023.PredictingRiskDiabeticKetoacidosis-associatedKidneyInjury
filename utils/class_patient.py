@@ -296,6 +296,11 @@ class Patient:
 
     def __hash__(self) -> int:
         return hash(self.stay_id)
+    
+    def __eq__(self, value: object) -> bool:
+        if not isinstance(value, Patient):
+            return False
+        return self.stay_id == value.stay_id
 
 
 class Patients:
@@ -478,6 +483,20 @@ class Patients:
 
     def __hash__(self) -> int:
         return hash(tuple(self.patientList))
+    
+    def __eq__(self, value: object) -> bool:
+        if not isinstance(value, Patients):
+            return False
+        return self.patientList == value.patientList
+    
+    def uniqueEquals(self, value: object) -> bool:
+        if isinstance(value, Patients):
+            return set(self.patientList) == set(value.patientList)
+        if isinstance(value, Collection):
+            return set(self.patientList) == set(value)
+        if isinstance(value, Patient):
+            return set(self.patientList) == {value}
+        return False
 
     def toJson(self):
         return json.dumps(
