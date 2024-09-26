@@ -276,45 +276,26 @@ def trainTestPatients(patients: Patients, seed=27):
 
 
 def trainValTestPatients(patients: Patients, seed=27):
-    cacheFolder = Path(TEMP_PATH / "trainValTestPatients")
-    cacheFolder.mkdir(exist_ok=True)
-
     splitedTestPatients = patients.split(5, seed)
 
     for i in range(splitedTestPatients.__len__()):
         testPatients = splitedTestPatients[i]
 
-        cacheFile = cacheFolder / f"trainPatients-{seed}-{i}-{hash(testPatients)}.pkl"
-        if cacheFile.exists():
-            trainPatients: Patients = pickle.loads(cacheFile.read_bytes())
-        else:
-            trainPatientsList = splitedTestPatients[:i] + splitedTestPatients[i + 1 :]
-            trainPatients = Patients(patients=[])
-            for trainPatientsElem in trainPatientsList:
-                trainPatients += trainPatientsElem
+        trainPatientsList = splitedTestPatients[:i] + splitedTestPatients[i + 1 :]
+        trainPatients = Patients(patients=[])
+        for trainPatientsElem in trainPatientsList:
+            trainPatients += trainPatientsElem
 
-        def trainValGenerator(trainPatients):
-            cacheFolder = Path(TEMP_PATH / "trainValTestPatients" / "trainValGenerator")
-            cacheFolder.mkdir(exist_ok=True)
-            
-            splitedValPatients = trainPatients.split(5, seed)
+        def trainValGenerator(trainValPatients):
+            splitedValPatients = trainValPatients.split(5, seed)
             for ii in range(splitedValPatients.__len__()):
-                cacheFile = cacheFolder / f"{seed}-{hash(trainPatients)}-{i}.pkl"
-                if cacheFile.exists():
-                    yield pickle.loads(cacheFile.read_bytes())
-                else:
+                valPatients = splitedValPatients[ii]
+                trainPatientsList = splitedValPatients[:ii] + splitedValPatients[ii + 1 :]
+                trainPatients = Patients(patients=[])
+                for trainPatientsElem in trainPatientsList:
+                    trainPatients += trainPatientsElem
                 
-                    valPatients = splitedValPatients[ii]
-
-                    trainPatientsList = splitedValPatients[:ii] + splitedValPatients[ii + 1 :]
-                    trainPatients = Patients(patients=[])
-                    for trainPatientsElem in trainPatientsList:
-                        trainPatients += trainPatientsElem
-                    
-                    cacheFile.write_bytes(pickle.dumps((trainPatients, valPatients)))
-                    yield trainPatients, valPatients
-                pass
-
+                yield trainPatients, valPatients
             pass
 
         yield trainValGenerator(trainPatients), testPatients
