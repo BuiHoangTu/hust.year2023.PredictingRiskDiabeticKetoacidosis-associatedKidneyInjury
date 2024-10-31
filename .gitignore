@@ -14,7 +14,7 @@ __pycache__
 .ipynb_checkpoints
 
 ## temporary path 
-tmp/bak
+tmp
 
 ## self 
 package_check.py
