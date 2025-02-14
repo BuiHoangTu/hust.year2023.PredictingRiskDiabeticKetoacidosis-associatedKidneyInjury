@@ -425,22 +425,26 @@ class DeepLearningDataPreparer():
         fromHour: int = 0,
         toHour: int = 24,
     ):
+        self.hoursPerWindows = hoursPerWindows
+        self.fromHour = fromHour
+        self.toHour = toHour
+
         self.timeSeriesConverter = PatientsNumpyConverter(
             hoursPerWindows=hoursPerWindows,
             timeSeriesOnly=True,
             fromHour=fromHour,
             toHour=toHour
         )
-        
+
         self.staticNormalizer = DataNormalizer(
             fillData=False,
             encodeCategorical=True,
             encodeNumeric=True
         )
-        
+
     def fit(self, patients: Patients):
         self.timeSeriesConverter.fit(patients)
-        
+
         staticData = self._getRawStatic(patients)
         self.staticNormalizer.fit(staticData)
         return self
@@ -453,15 +457,71 @@ class DeepLearningDataPreparer():
         staticData = self.staticNormalizer.transform(staticData)
         staticData = staticData.to_numpy(dtype=np.float32)
         staticData = np.nan_to_num(staticData, nan=0)
-        
+
         labels = [p.akdPositive for p in patients]
 
         return npTimeSeries, staticData, labels
-    
+
     def fit_transform(self, patients: Patients):
         self.fit(patients)
         return self.transform(patients)
-    
+
+    def trainValTest(
+        self,
+        trainPatients: Patients,
+        valPatients: Patients,
+        testPatients: Patients,
+        useCache: bool = True,
+    ) -> tuple[
+        tuple[np.ndarray, np.ndarray, list[bool]],
+        tuple[np.ndarray, np.ndarray, list[bool]],
+        tuple[np.ndarray, np.ndarray, list[bool]],
+    ]:
+        """convert train-val-test patients to numpy arrays
+
+        Args:
+            trainPatients (Patients): _description_
+            valPatients (Patients): _description_
+            testPatients (Patients): _description_
+            useCache (bool, optional): Use file to avoid duplicate computing. Defaults to True.
+
+        Returns:
+            [timeSeriesData, staticData, labels]: train, val, test
+        """
+
+        if useCache:
+            inputHash = hash(trainPatients) + hash(valPatients) + hash(testPatients)
+            inputHash = (
+                hash(inputHash)
+                + hash(self.hoursPerWindows)
+                + hash(self.fromHour)
+                + hash(self.toHour)
+            )
+            cacheFile = TEMP_PATH / f"dl_train_data/{inputHash}.pkl"
+            if cacheFile.exists():
+                return pickle.loads(cacheFile.read_bytes())
+
+        npTrainX, staticTrainX, trainY = self.fit_transform(trainPatients)
+        npValX, staticValX, valY = self.transform(valPatients)
+        npTestX, staticTestX, testY = self.transform(testPatients)
+
+        if useCache:
+            cacheFile.write_bytes(
+                pickle.dumps(
+                    (
+                        (npTrainX, staticTrainX, trainY),
+                        (npValX, staticValX, valY),
+                        (npTestX, staticTestX, testY),
+                    )
+                )
+            )
+
+        return (
+            (npTrainX, staticTrainX, trainY),
+            (npValX, staticValX, valY),
+            (npTestX, staticTestX, testY),
+        )
+
     def _getRawStatic(self, patients: Patients):
         staticPatients = patients.getMeasuresBetween(measureTypes="static")
         staticPatients = staticPatients.drop(columns=["subject_id", "hadm_id", "stay_id", "akd"])
