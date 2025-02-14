@@ -7,7 +7,7 @@ from sklearn.impute import KNNImputer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from constants import CATEGORICAL_MEASURES, NULLABLE_MEASURES, TEMP_PATH
 from utils.class_outlier import Outliner
-from utils.class_patient import Patient, Patients
+from utils.class_patient import Patients
 import pandas as pd
 
 
@@ -195,7 +195,7 @@ def patientsToNumpy(
         timeSeriesOnly=timeSeriesOnly,
         fromHour=fromHour,
         toHour=toHour,
-    )    
+    )
     if dataNormalizer is not None:
         converter.dataNormalizer = DataNormalizer()
 
@@ -290,11 +290,13 @@ def trainValTestPatients(patients: Patients, seed=27):
             splitedValPatients = trainValPatients.split(5, seed)
             for ii in range(splitedValPatients.__len__()):
                 valPatients = splitedValPatients[ii]
-                trainPatientsList = splitedValPatients[:ii] + splitedValPatients[ii + 1 :]
+                trainPatientsList = (
+                    splitedValPatients[:ii] + splitedValPatients[ii + 1 :]
+                )
                 trainPatients = Patients(patients=[])
                 for trainPatientsElem in trainPatientsList:
                     trainPatients += trainPatientsElem
-                
+
                 yield trainPatients, valPatients
             pass
 
@@ -315,32 +317,37 @@ def trainValTestNp(patients: Patients, seed=27, hoursPerWindow=24):
             tuple[np.ndarray, np.ndarray, list[bool]],
         ]
     ] = []
-    for i, (trainValGenerator, testPatients) in enumerate(trainValTestPatients(patients, seed)):
+    for i, (trainValGenerator, testPatients) in enumerate(
+        trainValTestPatients(patients, seed)
+    ):
         for trainPatients, valPatients in trainValGenerator:
             preparer = DeepLearningDataPreparer(
                 hoursPerWindows=hoursPerWindow,
                 fromHour=0,
                 toHour=12,
             )
-        
+
             npTrainX, staticTrainX, trainY = preparer.fit_transform(trainPatients)
             npValX, staticValX, valY = preparer.transform(valPatients)
             npTestX, staticTestX, testY = preparer.transform(testPatients)
-        
-            output.append((
-                i, 
-                (npTrainX, staticTrainX, trainY),
-                (npValX, staticValX, valY),
-                (npTestX, staticTestX, testY)
-            ))
+
+            output.append(
+                (
+                    i,
+                    (npTrainX, staticTrainX, trainY),
+                    (npValX, staticValX, valY),
+                    (npTestX, staticTestX, testY),
+                )
+            )
             pass
 
     cacheFile.write_bytes(pickle.dumps(output))
     return output
 
-class PatientsNumpyConverter():
+
+class PatientsNumpyConverter:
     def __init__(
-        self, 
+        self,
         hoursPerWindows: int = 24,
         timeSeriesOnly: bool = False,
         fromHour: int = 0,
@@ -359,7 +366,7 @@ class PatientsNumpyConverter():
         dfPatientList: List[DataFrame] = []
         for start, stop in self._timeWindowGenerate():
             dfPatient = patients.getMeasuresBetween(
-                start, stop, measureTypes=self.measureTypes # type: ignore
+                start, stop, measureTypes=self.measureTypes  # type: ignore
             ).drop(columns=["subject_id", "hadm_id", "stay_id", "akd"])
             dfPatientList.append(dfPatient)
             pass
@@ -390,7 +397,7 @@ class PatientsNumpyConverter():
 
         arrays = [df.to_numpy(dtype=np.float32) for df in dfPatientList]
         combinedArray = np.stack(arrays, axis=1)
-        
+
         return combinedArray
 
     def fit_transform(self, patients: Patients):
@@ -418,9 +425,10 @@ class PatientsNumpyConverter():
 
     pass
 
-class DeepLearningDataPreparer():
+
+class DeepLearningDataPreparer:
     def __init__(
-        self, 
+        self,
         hoursPerWindows,
         fromHour: int = 0,
         toHour: int = 24,
@@ -433,13 +441,13 @@ class DeepLearningDataPreparer():
             hoursPerWindows=hoursPerWindows,
             timeSeriesOnly=True,
             fromHour=fromHour,
-            toHour=toHour
+            toHour=toHour,
         )
 
         self.staticNormalizer = DataNormalizer(
             fillData=False,
             encodeCategorical=True,
-            encodeNumeric=True
+            encodeNumeric=True,
         )
 
     def fit(self, patients: Patients):
@@ -524,7 +532,9 @@ class DeepLearningDataPreparer():
 
     def _getRawStatic(self, patients: Patients):
         staticPatients = patients.getMeasuresBetween(measureTypes="static")
-        staticPatients = staticPatients.drop(columns=["subject_id", "hadm_id", "stay_id", "akd"])
+        staticPatients = staticPatients.drop(
+            columns=["subject_id", "hadm_id", "stay_id", "akd"]
+        )
         return staticPatients
 
     pass
