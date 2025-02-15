@@ -186,9 +186,7 @@ def patientsToNumpy(
     """
 
     if not isTrainPatients and dataNormalizer is None:
-        raise ValueError(
-            "normalizeDataCls must be provided if this is not TrainPatients"
-        )
+        raise ValueError("dataNormalizer must be provided to convert test data.")
 
     converter = PatientsNumpyConverter(
         hoursPerWindows=hoursPerWindows,
@@ -197,7 +195,7 @@ def patientsToNumpy(
         toHour=toHour,
     )
     if dataNormalizer is not None:
-        converter.dataNormalizer = DataNormalizer()
+        converter.dataNormalizer = dataNormalizer
 
     if __name__ == "__main__":
         print("retrieved patients", len(patients))
@@ -457,14 +455,14 @@ class DeepLearningDataPreparer:
         self.staticNormalizer.fit(staticData)
         return self
 
-    def transform(self, patients: Patients):
+    def transform(self, patients: Patients, fillNan=0):
         npTimeSeries = self.timeSeriesConverter.transform(patients)
-        npTimeSeries = np.nan_to_num(npTimeSeries, nan=0)
+        npTimeSeries = np.nan_to_num(npTimeSeries, nan=fillNan)
 
         staticData = self._getRawStatic(patients)
         staticData = self.staticNormalizer.transform(staticData)
         staticData = staticData.to_numpy(dtype=np.float32)
-        staticData = np.nan_to_num(staticData, nan=0)
+        staticData = np.nan_to_num(staticData, nan=fillNan)
 
         labels = [p.akdPositive for p in patients]
 
