@@ -2,6 +2,38 @@ import torch
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 
+def _default(batch, model):
+    if len(batch) == 2:
+        batchX, batchY = batch
+        batchXs = [batchX]
+    else:
+        *batchXs, batchY = batch
+
+    outputs = model(*batchXs)
+
+    return outputs, batchY
+
+
+def infer(model, device, testLoader, batchToInfer=_default):
+    model.to(device)
+
+    model.eval()
+
+    predProbas = []
+    actuals = []
+
+    with torch.no_grad():
+        for batch in testLoader:
+            batch = [b.to(device) for b in batch]
+            outputs, batchY = batchToInfer(batch, model)
+
+            probas = torch.sigmoid(outputs)
+            predProbas.append(probas)
+            actuals.append(batchY)
+
+    return torch.cat(predProbas), torch.cat(actuals)
+
+
 def train(
     model,
     device,
@@ -11,6 +43,7 @@ def train(
     optimizer,
     epochs=100,
     earlyStopping=10,
+    batchToInfer=_default,
 ):
     model.to(device)
 
@@ -28,38 +61,24 @@ def train(
         model.train()
         trainLoss = 0
 
-        for batchTsX, batchSX, batchY in trainLoader:
-            batchTsX, batchSX = batchTsX.to(device), batchSX.to(device)
-            batchY = batchY.to(device)
-
-            outputs = model(batchTsX, batchSX)
+        for batch in trainLoader:
+            batch = [b.to(device) for b in batch]
+            outputs, batchY = batchToInfer(batch, model)
             loss = criterion(outputs, batchY)
 
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
-            trainLoss += loss.item() * batchTsX.size(0)
+            trainLoss += loss.item() * len(batchY)
 
         trainLoss /= len(trainLoader.dataset)
         trainLosses.append(trainLoss)
 
         # validation
-        model.eval()
-        valLoss = 0
-
-        with torch.no_grad():
-            for batchTsX, batchSX, batchY in valLoader:
-                batchTsX, batchSX = batchTsX.to(device), batchSX.to(device)
-                batchY = batchY.to(device)
-
-                outputs = model(batchTsX, batchSX)
-                loss = criterion(outputs, batchY)
-
-                valLoss += loss.item() * batchTsX.size(0)
-
-        valLoss /= len(valLoader.dataset)
-        valLosses.append(valLoss)
+        valPred, valActual = infer(model, device, valLoader, batchToInfer)
+        valLoss = criterion(valPred, valActual).item()
+        valLosses.append(valLoss.item())
 
         optimScheduler.step(valLoss)
 
@@ -79,22 +98,3 @@ def train(
 
     model.load_state_dict(bestModelState)
     return model, trainLosses, valLosses
-
-
-def predTest(model, device, testLoader):
-    model.eval()
-
-    predProbas = []
-    actuals = []
-
-    with torch.no_grad():
-        for batchTsX, batchSX, batchY in testLoader:
-            batchTsX, batchSX = batchTsX.to(device), batchSX.to(device)
-            batchY = batchY.to(device)
-
-            outputs = model(batchTsX, batchSX)
-            probas = torch.sigmoid(outputs)
-            predProbas.extend(probas.cpu().numpy())
-            actuals.extend(batchY.cpu().numpy())
-
-    return predProbas, actuals
