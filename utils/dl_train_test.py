@@ -77,7 +77,7 @@ def train(
 
         # validation
         valPred, valActual = infer(model, device, valLoader, batchToInfer)
-        valLoss = criterion(valPred, valActual).item()
+        valLoss = criterion(valPred, valActual)
         valLosses.append(valLoss.item())
 
         optimScheduler.step(valLoss)
