@@ -512,6 +512,7 @@ class DeepLearningDataPreparer:
         npTestX, staticTestX, testY = self.transform(testPatients)
 
         if useCache:
+            cacheFile.parent.mkdir(parents=True, exist_ok=True)
             cacheFile.write_bytes(
                 pickle.dumps(
                     (
