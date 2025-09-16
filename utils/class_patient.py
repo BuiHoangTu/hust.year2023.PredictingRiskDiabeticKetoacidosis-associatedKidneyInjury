@@ -103,7 +103,9 @@ class Patient:
         measureName: str,
         measureTime: str | datetime | datetime64 | Timestamp | None,
         measureValue: float,
-        existingTypeIncompatible: Literal["replace", "skip", "error", "static"] = "error",
+        existingTypeIncompatible: Literal[
+            "replace", "skip", "error", "static"
+        ] = "error",
     ):
 
         # if no time then static measure
@@ -122,10 +124,10 @@ class Patient:
                     f"Measure {measureName} is not time series but trying to add time series measure"
                 )
             elif existingTypeIncompatible == "skip":
-                return 
+                return
             elif existingTypeIncompatible == "static":
                 self.measures[measureName] = measureValue
-                return 
+                return
             else:
                 measure = None  # set to none to resolve below
 
@@ -172,8 +174,12 @@ class Patient:
 
         # unify input
         howMapping: Dict[str, Callable[[DataFrame], float]] = {
-            "first": lambda df: df.loc[df["time"].idxmin(), "value"] if len(df) > 0 else nan,
-            "last": lambda df: df.loc[df["time"].idxmax(), "value"] if len(df) > 0 else nan,
+            "first": lambda df: (
+                df.loc[df["time"].idxmin(), "value"] if len(df) > 0 else nan
+            ),
+            "last": lambda df: (
+                df.loc[df["time"].idxmax(), "value"] if len(df) > 0 else nan
+            ),
             "avg": lambda df: df["value"].mean() if len(df) > 0 else nan,
             "max": lambda df: df["value"].max() if len(df) > 0 else nan,
             "min": lambda df: df["value"].min() if len(df) > 0 else nan,
@@ -181,7 +187,7 @@ class Patient:
             "med": lambda df: df["value"].median() if len(df) > 0 else nan,
         }  # type: ignore
         if how in howMapping:
-            how = howMapping[how]
+            how = howMapping[how]  # type: ignore
 
         if not isinstance(how, Callable):
             raise Exception("Unk how: ", how)
@@ -296,7 +302,7 @@ class Patient:
 
     def __hash__(self) -> int:
         return hash(self.stay_id)
-    
+
     def __eq__(self, value: object) -> bool:
         if not isinstance(value, Patient):
             return False
@@ -358,7 +364,7 @@ class Patients:
         if isinstance(measureNames, str):
             measureNames = [measureNames]
 
-        for measureName in measureNames:        
+        for measureName in measureNames:
             for p in self.patientList:
                 if measureName not in p.measures:
                     p.putMeasure(measureName, None, measureValue)
@@ -377,7 +383,9 @@ class Patients:
         if isinstance(minimumFeatureCount, float):
             minimumFeatureCount = minimumFeatureCount * len(self.getMeasures())
 
-        self.patientList = [p for p in self.patientList if len(p.measures) >= minimumFeatureCount]
+        self.patientList = [
+            p for p in self.patientList if len(p.measures) >= minimumFeatureCount
+        ]
         pass
 
     def removePatientAkiEarly(self, minTime: pd.Timedelta):
@@ -451,15 +459,16 @@ class Patients:
                 for x in self.patientList
             ]
         else:
-            xLs = [x.getMeasuresBetween(fromTime, toTime, how, measureTypes) for x in self.patientList]
+            xLs = [
+                x.getMeasuresBetween(fromTime, toTime, how, measureTypes)
+                for x in self.patientList
+            ]
 
         return pd.concat(xLs)
 
     def split(self, n, random_state=None):
         cachedSplitFile = (
-            TEMP_PATH
-            / "split" /
-            f"{len(self)}-{hash(self)}-{n}-{random_state}.json"
+            TEMP_PATH / "split" / f"{len(self)}-{hash(self)}-{n}-{random_state}.json"
         )
         if cachedSplitFile.exists():
             splitIndexes = json.loads(cachedSplitFile.read_text())
@@ -474,7 +483,8 @@ class Patients:
                 splitIndexes.append(splitIndex)
 
             cachedSplitFile.parent.mkdir(parents=True, exist_ok=True)
-            json.dump(splitIndexes, cachedSplitFile.open("w+"), cls=PatientJsonEncoder)
+
+            cachedSplitFile.write_text(json.dumps(splitIndexes, cls=PatientJsonEncoder))
 
         res: List[List[Patient]] = []
         for splitIndex in splitIndexes:
@@ -483,12 +493,12 @@ class Patients:
 
     def __hash__(self) -> int:
         return hash(tuple(self.patientList))
-    
+
     def __eq__(self, value: object) -> bool:
         if not isinstance(value, Patients):
             return False
         return self.patientList == value.patientList
-    
+
     def uniqueEquals(self, value: object) -> bool:
         if isinstance(value, Patients):
             return set(self.patientList) == set(value.patientList)
@@ -522,7 +532,9 @@ class Patients:
         return Patients.fromJson(file.read_text())
 
     @staticmethod
-    def loadPatients(reload: bool = False, patientsFile: Path = DEFAULT_PATIENTS_FILE) -> "Patients":
+    def loadPatients(
+        reload: bool = False, patientsFile: Path = DEFAULT_PATIENTS_FILE
+    ) -> "Patients":
         if reload or not patientsFile.exists():
             #### convert json to pkl if json exists ####
             possibleOldFile = patientsFile.with_suffix(".json")
@@ -545,12 +557,18 @@ class Patients:
 
             for _, row in dfData1.iterrows():
 
-                if row["aki_stage_7day"] != 0 and row["aki_stage_creat"] == row["aki_stage_7day"]:
+                if (
+                    row["aki_stage_7day"] != 0
+                    and row["aki_stage_creat"] == row["aki_stage_7day"]
+                ):
                     akdCreatTime = pd.Timestamp(row["charttime_creat"])
                 else:
                     akdCreatTime = None
 
-                if row["aki_stage_7day"] != 0 and row["aki_stage_uo"] == row["aki_stage_7day"]:
+                if (
+                    row["aki_stage_7day"] != 0
+                    and row["aki_stage_uo"] == row["aki_stage_7day"]
+                ):
                     akdUrineTime = pd.Timestamp(row["charttime_uo"])
                 else:
                     akdUrineTime = None
@@ -673,15 +691,7 @@ class Patients:
             ### blood count
             dfBc = reduceByHadmId(complete_blood_count.runSql())
             dfBc = dfBc[
-                [
-                    "stay_id",
-                    "hematocrit",
-                    "mch",
-                    "mchc",
-                    "mcv",
-                    "rbc",
-                    "rdw"
-                ]
+                ["stay_id", "hematocrit", "mch", "mchc", "mcv", "rbc", "rdw"]
             ].dropna()
             patients._putDataForPatients(dfBc)
 

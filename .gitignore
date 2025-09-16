@@ -16,6 +16,9 @@ __pycache__
 ## temporary path 
 tmp
 
+## Dont know why this is here
+*.pem
+
 ## self 
 package_check.py
 paper_based.py
